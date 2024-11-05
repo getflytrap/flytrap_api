@@ -1,1 +1,1 @@
-from app.routes.main import bp as main_bp
+from app.routes.projects import bp as projects_bp
