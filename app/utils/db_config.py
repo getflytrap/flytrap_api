@@ -20,8 +20,8 @@ def manage_db_connection(is_write: bool) -> callable:
             connection = get_db_connection()
             cursor: Cursor = connection.cursor()
             try:
-                kwargs['cursor'] = cursor
-                kwargs['connection'] = connection
+                kwargs["cursor"] = cursor
+                kwargs["connection"] = connection
                 return f(*args, **kwargs)
             except Exception as e:
                 if is_write:
@@ -30,8 +30,11 @@ def manage_db_connection(is_write: bool) -> callable:
             finally:
                 cursor.close()
                 connection.close()
+
         return wrapper
+
     return decorator
+
 
 db_read_connection = manage_db_connection(is_write=False)
 db_write_connection = manage_db_connection(is_write=True)

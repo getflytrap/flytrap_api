@@ -1,12 +1,16 @@
 from typing import List, Dict, Union
-from app.utils import db_read_connection, db_write_connection, calculate_total_project_pages
+from app.utils import (
+    db_read_connection,
+    db_write_connection,
+    calculate_total_project_pages,
+)
 
 
+@db_read_connection
 def fetch_projects(
     page: int, limit: int, **kwargs
 ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    cursor = kwargs["cursor"]
     offset = (page - 1) * limit if limit else 0
 
     query = """
@@ -46,20 +50,22 @@ def fetch_projects(
         "current_page": int(page),
     }
 
+
 @db_write_connection
 def add_project(pid: int, name: str, **kwargs) -> None:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
 
     query = "INSERT INTO projects (pid, name) VALUES (%s, %s)"
     cursor.execute(query, [pid, name])
 
     connection.commit()
 
+
 @db_write_connection
 def delete_project_by_id(pid: int, **kwargs) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
 
     query = "DELETE FROM projects WHERE pid = %s"
     cursor.execute(query, [pid])
@@ -68,10 +74,11 @@ def delete_project_by_id(pid: int, **kwargs) -> bool:
 
     return rows_deleted > 0
 
+
 @db_write_connection
 def update_project_name(pid: int, new_name: str, **kwargs) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
     query = "UPDATE projects SET name = %s WHERE pid = %s"
     cursor.execute(query, [new_name, pid])
     rows_updated = cursor.rowcount
