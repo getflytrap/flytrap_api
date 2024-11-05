@@ -1,6 +1,7 @@
+from typing import List, Dict, Optional, Union
 from app.utils import get_db_connection
 
-def fetch_all_users():
+def fetch_all_users() -> Optional[List[Dict[str, str]]]:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -25,7 +26,7 @@ def fetch_all_users():
 
     return users if users else None
 
-def add_user(first_name, last_name, email, password_hash):
+def add_user(first_name: str, last_name: str, email: str, password_hash: str) -> int:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -43,7 +44,7 @@ def add_user(first_name, last_name, email, password_hash):
     connection.close()
     return user_id
 
-def delete_user(user_id):
+def delete_user(user_id: int) -> bool:
     connection = get_db_connection()
     cursor = connection.cursor()
     query = "DELETE FROM users WHERE id = %s"
@@ -55,7 +56,7 @@ def delete_user(user_id):
 
     return rows_deleted > 0
 
-def update_password(user_id, password_hash):
+def update_password(user_id: int, password_hash: str) -> None:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -70,7 +71,7 @@ def update_password(user_id, password_hash):
     cursor.close()
     connection.close()
 
-def fetch_user_by_email(email): 
+def fetch_user_by_email(email: str) -> Optional[Dict[str, Union[int, str, bool]]]: 
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -84,4 +85,12 @@ def fetch_user_by_email(email):
     user = cursor.fetchone()
     cursor.close()
     connection.close()
-    return user if user else None
+    
+    if user:
+        return {
+            "id": user[0],
+            "password_hash": user[1],
+            "is_root": user[2],
+        }
+
+    return None

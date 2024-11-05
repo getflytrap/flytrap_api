@@ -1,5 +1,5 @@
 import bcrypt
-from flask import jsonify, request
+from flask import jsonify, request, Response
 from flask import Blueprint
 from app.models import (
     fetch_all_users,
@@ -14,7 +14,7 @@ from app.utils import (
 bp = Blueprint('users', __name__)
 
 @bp.route('/', methods=['GET'])
-def get_users():
+def get_users() -> Response:
     try:
         users = fetch_all_users()
         return jsonify({"message": "Successfully fetched all users", "users": users}), 200
@@ -23,7 +23,7 @@ def get_users():
         return jsonify({"message": "Failed to fetch data"}), 500
     
 @bp.route('/', methods=['POST'])
-def create_user():
+def create_user() -> Response:
     data = request.json
     first_name = data.get('first_name')
     last_name = data.get('last_name')
@@ -51,7 +51,7 @@ def create_user():
         return jsonify({"message": "Failed to create user"}), 500
 
 @bp.route('/<user_id>', methods=['DELETE'])
-def delete_user(user_id):
+def delete_user(user_id: int) -> Response:
     try:
         success = delete_user(user_id)
         if success:
@@ -62,7 +62,7 @@ def delete_user(user_id):
         return jsonify({"message": "Failed to delete user", "error": str(e)}), 500 
 
 @bp.route('/<user_id>', methods=['PATCH'])
-def update_user_password(id):
+def update_user_password(user_id: int) -> Response:
     data = request.json
     new_password = data.get('password')
         

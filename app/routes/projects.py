@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, Response
 from flask import Blueprint
 from app.utils import generate_uuid
 from app.models import (
@@ -11,7 +11,7 @@ from app.models import (
 bp = Blueprint('projects', __name__)
 
 @bp.route('/', methods=['GET'])
-def get_projects():
+def get_projects() -> Response:
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
 
@@ -22,7 +22,7 @@ def get_projects():
         return jsonify({"message": "Failed to fetch projects", "error": str(e)}), 500
     
 @bp.route('/', methods=['POST'])
-def create_project():
+def create_project() -> Response:
     data = request.get_json()
     project_name = data.get('name')
 
@@ -38,7 +38,7 @@ def create_project():
         return jsonify({"message": "Failed to add new project", "error": str(e)}), 500
     
 @bp.route('/<pid>', methods=['DELETE'])
-def delete_project(pid):
+def delete_project(pid: str) -> Response:
     try:
         success = delete_project_by_id(pid)
         if success:
@@ -49,7 +49,7 @@ def delete_project(pid):
         return jsonify({"message": "Failed to delete project", "error": str(e)}), 500
 
 @bp.route('/<pid>', methods=['PATCH'])
-def update_project(pid):
+def update_project(pid: str) -> Response:
     data = request.get_json()
     new_name = data.get('new_name')
 

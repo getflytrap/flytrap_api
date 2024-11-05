@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, Response
 from flask import Blueprint
 from app.models import (
     fetch_project_users,
@@ -9,7 +9,7 @@ from app.models import (
 bp = Blueprint('project_users', __name__)
 
 @bp.route('/', methods=['GET'])
-def get_project_users(pid):
+def get_project_users(pid: str) -> Response:
     try:
         users = fetch_project_users(pid)
         if users:
@@ -20,7 +20,7 @@ def get_project_users(pid):
         return jsonify({"message": "Failed to fetch users", "error": str(e)}), 500
     
 @bp.route('/', methods=['POST'])
-def add_project_user(pid, user_id):
+def add_project_user(pid: str, user_id: int) -> Response:
     data = request.get_json()
     user_id = data.get('user_id')
 
@@ -34,7 +34,7 @@ def add_project_user(pid, user_id):
         return jsonify({"message": "Failed to add user to project", "error": str(e)}), 500
     
 @bp.route('/<user_id>', methods=['DELETE'])
-def remove_project_user(pid, user_id):
+def remove_project_user(pid: str, user_id: int) -> Response:
     try:
         success = remove_user_from_project(pid, user_id)
         if success:

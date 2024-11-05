@@ -1,13 +1,8 @@
-import os
 import psycopg2
+from psycopg2.extensions import connection
+from app.config import DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT
 
-DB_HOST = os.getenv('PGHOST')
-DB_NAME = os.getenv('PGDATABASE')
-DB_USER = os.getenv('PGUSER')
-DB_PASS = os.getenv('PGPASSWORD')
-DB_PORT = os.getenv('PGPORT')
-
-def get_db_connection():
+def get_db_connection() -> connection:
     return psycopg2.connect(
         host=DB_HOST,
         database=DB_NAME,

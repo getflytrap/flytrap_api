@@ -1,7 +1,7 @@
 import bcrypt
 import datetime
 import jwt
-from flask import jsonify, request, make_response, redirect
+from flask import jsonify, request, make_response, redirect, Response
 from flask import Blueprint
 from app.models import (
     fetch_user_by_email,
@@ -10,7 +10,7 @@ from app.models import (
 bp = Blueprint('auth', __name__)
 
 @bp.route('/login', methods=['POST'])
-def login():
+def login() -> Response:
     data = request.json
     email = data.get('email')
     password = data.get('password')
@@ -40,7 +40,7 @@ def login():
         return jsonify({"message": "Invalid password"}), 401
 
 @bp.route('/logout', methods=['GET'])
-def logout():
+def logout() -> Response:
     response = make_response(redirect('/login'), 302)
     response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=True)
 

@@ -8,7 +8,7 @@ from app.routes import (
     auth_bp
 )
 
-def create_app():
+def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app)
 

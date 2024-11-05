@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, Response
 from flask import Blueprint
 from app.models import (
     fetch_issues_by_project,
@@ -14,7 +14,7 @@ from app.models import (
 bp = Blueprint('project_issues', __name__)
 
 @bp.route('/', methods=['GET'])
-def get_errors(pid):
+def get_errors(pid: str) -> Response:
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
     handled = request.args.get('handled', None)
@@ -28,7 +28,7 @@ def get_errors(pid):
         return jsonify({"message": "Failed to fetch data", "error": str(e)}), 500
     
 @bp.route('/', methods=['DELETE'])
-def delete_errors(pid):
+def delete_errors(pid: str) -> Response:
     try:
         success = delete_issues_by_project(pid)
         if success:
@@ -39,7 +39,7 @@ def delete_errors(pid):
         return jsonify({"message": "Failed to delete errors", "error": str(e)}), 500
     
 @bp.route('/errors/<eid>', methods=['GET'])
-def get_error(_, eid):
+def get_error(_, eid: int) -> Response:
     try:
         error = fetch_error(eid)
         if error:
@@ -50,7 +50,7 @@ def get_error(_, eid):
         return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
     
 @bp.route('/rejections/<rid>', methods=['GET'])
-def get_rejection(_, rid):
+def get_rejection(_, rid: int) -> Response:
     try:
         error = fetch_rejection(rid)
         if error:
@@ -61,7 +61,7 @@ def get_rejection(_, rid):
         return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
     
 @bp.route('/errors/<eid>', methods=['PATCH'])
-def toggle_error(_, eid):
+def toggle_error(_, eid: int) -> Response:
     data = request.get_json()
     new_resolved_state = data.get('resolved')
 
@@ -78,7 +78,7 @@ def toggle_error(_, eid):
         return jsonify({"message": "Failed to update error state", "error": str(e)}), 500
     
 @bp.route('/rejections/<rid>', methods=['PATCH'])
-def toggle_rejection(_, rid):
+def toggle_rejection(_, rid: int) -> Response:
     data = request.get_json()
     new_resolved_state = data.get('resolved')
 
@@ -95,7 +95,7 @@ def toggle_rejection(_, rid):
         return jsonify({"message": "Failed to update error state", "error": str(e)}), 500
     
 @bp.route('/errors/<eid>', methods=['DELETE'])
-def delete_error(_, eid):
+def delete_error(_, eid: int) -> Response:
     try:
         success = delete_error_by_id(eid)
         if success:
@@ -106,7 +106,7 @@ def delete_error(_, eid):
         return jsonify({"message": "Failed to delete error", "error": str(e)}), 500
     
 @bp.route('/rejections/<rid>', methods=['DELETE'])
-def delete_rejection(_, rid):
+def delete_rejection(_, rid: int) -> Response:
     try:
         success = delete_rejection_by_id(rid)
         if success:

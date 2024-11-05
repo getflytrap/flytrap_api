@@ -1,6 +1,7 @@
+from typing import List, Dict, Union
 from app.utils import get_db_connection, calculate_total_project_pages
 
-def fetch_projects(page, limit):
+def fetch_projects(page: int, limit: int) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -44,7 +45,7 @@ def fetch_projects(page, limit):
         "current_page": int(page),
     }
 
-def add_project(pid, name):
+def add_project(pid: int, name: str) -> None:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -55,7 +56,7 @@ def add_project(pid, name):
     cursor.close()
     connection.close()
 
-def delete_project_by_id(pid):
+def delete_project_by_id(pid: int) -> bool:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -68,7 +69,7 @@ def delete_project_by_id(pid):
 
     return rows_deleted > 0
 
-def update_project_name(pid, new_name):
+def update_project_name(pid: int, new_name: str) -> bool:
     connection = get_db_connection()
     cursor = connection.cursor()
     query = "UPDATE projects SET name = %s WHERE pid = %s"
