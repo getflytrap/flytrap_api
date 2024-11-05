@@ -3,6 +3,7 @@ from flask import Blueprint
 from app.models import (
     fetch_data_by_project,
     delete_data_by_project,
+    fetch_error,
 )
 
 bp = Blueprint('project_errors', __name__)
@@ -31,3 +32,14 @@ def delete_errors(pid):
             return jsonify({"message": "No errors found for this project"}), 404
     except Exception as e:
         return jsonify({"message": "Failed to delete errors", "error": str(e)}), 500
+    
+@bp.route('/<eid>', methods=['GET'])
+def get_error(_, eid):
+    try:
+        error = fetch_error(eid)
+        if error:
+            return jsonify(error), 200
+        else:
+            return jsonify({"message": "Error not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500

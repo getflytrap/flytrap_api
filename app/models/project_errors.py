@@ -42,3 +42,28 @@ def delete_data_by_project(pid):
         "error_rows_deleted": error_rows_deleted,
         "rejection_rows_deleted": rejection_rows_deleted
     }
+
+def fetch_error(eid):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "SELECT * FROM error_logs WHERE error_id = %s"
+    cursor.execute(query, [eid])
+    error = cursor.fetchone()
+    cursor.close()
+    connection.close()
+
+    if error: 
+        return {
+            "error_id": error[0],
+            "name": error[1],
+            "message": error[2],
+            "created_at": error[3],
+            "line_number": error[4],
+            "col_number": error[5],
+            "project_id": error[6],
+            "stack_trace": error[7],
+            "handled": error[8],
+            "resolved": error[9],
+        }
+    
+    return None
