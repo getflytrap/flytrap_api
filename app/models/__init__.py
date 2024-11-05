@@ -23,7 +23,8 @@ from .users import (
     fetch_all_users,
     add_user, 
     delete_user, 
-    update_password
+    update_password,
+    fetch_user_by_email
 )
 
 __all__ = [
@@ -45,5 +46,6 @@ __all__ = [
     "fetch_all_users",
     "add_user",
     "delete_user",
-    "update_password"
+    "update_password",
+    "fetch_user_by_email",
 ]

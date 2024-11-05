@@ -69,3 +69,19 @@ def update_password(user_id, password_hash):
     connection.commit()
     cursor.close()
     connection.close()
+
+def fetch_user_by_email(email): 
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+    SELECT 
+        u.id, u.password_hash, u.is_root
+    FROM users u
+    WHERE u.email = %s;
+    """
+    cursor.execute(query, (email,))
+    user = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return user if user else None
