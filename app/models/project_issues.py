@@ -7,6 +7,7 @@ from app.utils import (
     calculate_total_error_pages,
 )
 
+
 @db_read_connection
 def fetch_issues_by_project(
     pid: int,
@@ -17,12 +18,9 @@ def fetch_issues_by_project(
     resolved: Optional[bool],
     **kwargs: dict
 ) -> Dict[str, List[Dict[str, int]]]:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
-   
-    errors = fetch_errors_by_project(
-        cursor, pid, page, limit, handled, time, resolved
-    )
+    cursor = kwargs["cursor"]
+
+    errors = fetch_errors_by_project(cursor, pid, page, limit, handled, time, resolved)
     rejections = fetch_rejections_by_project(
         cursor, pid, page, limit, handled, time, resolved
     )
@@ -32,17 +30,19 @@ def fetch_issues_by_project(
     )
     total_pages = calculate_total_error_pages(cursor, pid, limit)
 
-
     return {
         "errors": combined_logs[:limit],
         "total_pages": total_pages,
         "current_page": int(page),
     }
 
+
 @db_write_connection
-def delete_data_by_project(pid: int, **kwargs: dict) -> Dict[str, Union[int, str, bool]]:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+def delete_data_by_project(
+    pid: int, **kwargs: dict
+) -> Dict[str, Union[int, str, bool]]:
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
 
     query = "DELETE FROM error_logs WHERE project_id = %s"
     cursor.execute(query, (pid,))
@@ -61,9 +61,10 @@ def delete_data_by_project(pid: int, **kwargs: dict) -> Dict[str, Union[int, str
         "rejection_rows_deleted": rejection_rows_deleted,
     }
 
+
 @db_read_connection
 def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
-    cursor = kwargs['cursor']
+    cursor = kwargs["cursor"]
 
     query = "SELECT * FROM error_logs WHERE error_id = %s"
     cursor.execute(query, [eid])
@@ -85,9 +86,10 @@ def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
 
     return None
 
+
 @db_read_connection
 def fetch_rejection(rid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
-    cursor = kwargs['cursor']
+    cursor = kwargs["cursor"]
     query = "SELECT * FROM rejection_logs WHERE error_id = %s"
     cursor.execute(query, [rid])
     rejection = cursor.fetchone()
@@ -103,10 +105,11 @@ def fetch_rejection(rid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
 
     return None
 
+
 @db_write_connection
 def update_error_resolved(eid: int, new_resolved_state: bool, **kwargs: dict) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
     query = "UPDATE error_logs SET resolved = %s WHERE id = %s"
     cursor.execute(query, [new_resolved_state, eid])
     rows_updated = cursor.rowcount
@@ -114,10 +117,13 @@ def update_error_resolved(eid: int, new_resolved_state: bool, **kwargs: dict) ->
 
     return rows_updated > 0
 
+
 @db_write_connection
-def update_rejection_resolved(rid: int, new_resolved_state: bool, **kwargs: dict) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+def update_rejection_resolved(
+    rid: int, new_resolved_state: bool, **kwargs: dict
+) -> bool:
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
     query = "UPDATE rejection_logs SET resolved = %s WHERE id = %s"
     cursor.execute(query, [new_resolved_state, rid])
     rows_updated = cursor.rowcount
@@ -125,10 +131,11 @@ def update_rejection_resolved(rid: int, new_resolved_state: bool, **kwargs: dict
 
     return rows_updated > 0
 
+
 @db_write_connection
 def delete_error_by_id(eid: int, **kwargs: dict) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
     query = "DELETE FROM error_logs WHERE id = %s"
     cursor.execute(query, [eid])
     rows_deleted = cursor.rowcount
@@ -136,10 +143,11 @@ def delete_error_by_id(eid: int, **kwargs: dict) -> bool:
 
     return rows_deleted > 0
 
+
 @db_write_connection
 def delete_rejection_by_id(rid: int, **kwargs: dict) -> bool:
-    connection = kwargs['connection']
-    cursor = kwargs['cursor']
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
     query = "DELETE FROM rejection_logs WHERE id = %s"
     cursor.execute(query, [rid])
     rows_deleted = cursor.rowcount
