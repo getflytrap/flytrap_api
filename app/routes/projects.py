@@ -1,7 +1,11 @@
 from flask import jsonify, request
 from flask import Blueprint
-from app.models import fetch_projects, add_project
 from app.utils import generate_uuid
+from app.models import (
+    fetch_projects, 
+    add_project,
+    delete_project_by_id,
+)
 
 bp = Blueprint('projects', __name__)
 
@@ -31,3 +35,14 @@ def create_project():
         return jsonify({"project_id": pid, "project_name": project_name}), 201
     except Exception as e:
         return jsonify({"message": "Failed to add new project", "error": str(e)}), 500
+    
+@bp.route('/<pid>', methods=['DELETE'])
+def delete_project(pid):
+    try:
+        success = delete_project_by_id(pid)
+        if success:
+            return '', 204
+        else: 
+            return jsonify({"message": "Project was not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to delete project", "error": str(e)}), 500

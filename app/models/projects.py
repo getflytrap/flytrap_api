@@ -53,4 +53,17 @@ def add_project(pid, name):
 
     connection.commit()
     cursor.close()
-    connection.close() 
+    connection.close()
+
+def delete_project_by_id(pid):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = "DELETE FROM projects WHERE pid = %s"
+    cursor.execute(query, [pid])
+    rows_deleted = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_deleted > 0
