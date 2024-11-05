@@ -87,3 +87,15 @@ def fetch_rejection(rid):
         }
     
     return None
+
+def update_error_resolved(eid, new_resolved_state):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "UPDATE error_logs SET resolved = %s WHERE id = %s"
+    cursor.execute(query, [new_resolved_state, eid])
+    rows_updated = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_updated > 0 
