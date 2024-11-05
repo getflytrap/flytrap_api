@@ -5,7 +5,8 @@ from app.models import (
     delete_issues_by_project,
     fetch_error,
     fetch_rejection,
-    update_error_resolved
+    update_error_resolved,
+    update_rejection_resolved
 )
 
 bp = Blueprint('project_issues', __name__)
@@ -67,6 +68,23 @@ def toggle_error(_, eid):
 
     try:
         success = update_error_resolved(eid, new_resolved_state)
+        if success:
+            return jsonify({"message": "Error state updated successfully"}), 200
+        else:
+            return jsonify({"message": "Error not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to update error state", "error": str(e)}), 500
+    
+@bp.route('/rejections/<rid>', methods=['PATCH'])
+def toggle_error(_, rid):
+    data = request.get_json()
+    new_resolved_state = data.get('resolved')
+
+    if new_resolved_state is None:
+        return jsonify({"message": "Resolved state required"}), 400
+
+    try:
+        success = update_rejection_resolved(rid, new_resolved_state)
         if success:
             return jsonify({"message": "Error state updated successfully"}), 200
         else:

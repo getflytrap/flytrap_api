@@ -99,3 +99,15 @@ def update_error_resolved(eid, new_resolved_state):
     connection.close()
 
     return rows_updated > 0 
+
+def update_rejection_resolved(rid, new_resolved_state):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "UPDATE rejection_logs SET resolved = %s WHERE id = %s"
+    cursor.execute(query, [new_resolved_state, rid])
+    rows_updated = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_updated > 0 
