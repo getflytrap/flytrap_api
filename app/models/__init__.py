@@ -15,7 +15,8 @@ from .project_issues import (
     delete_rejection_by_id
 )
 from .project_users import (
-    fetch_project_users
+    fetch_project_users,
+    add_user_to_project
 )
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "update_rejection_resolved",
     "delete_error_by_id",
     "delete_rejection_by_id",
-    "fetch_project_users"
+    "fetch_project_users",
+    "add_user_to_project"
 ]

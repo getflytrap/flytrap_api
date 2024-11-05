@@ -16,3 +16,18 @@ def fetch_project_users(pid):
     user_ids = cursor.fetchall()
 
     return [user_id[0] for user_id in user_ids] if user_ids else []
+
+def add_user_to_project(pid, user_id):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+    INSERT INTO projects_users (project_id, user_id)
+    SELECT p.id, %s
+    FROM projects p
+    WHERE p.pid = %s
+    RETURNING id
+    """
+
+    cursor.execute(query, (user_id, pid))
+    connection.commit()
