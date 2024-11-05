@@ -1,9 +1,6 @@
-import os
 from flask import jsonify, request, Response
 from flask import Blueprint
-from typing import Optional
-from dotenv import load_dotenv
-from app.utils.auth import JWTAuth
+from app import jwt_auth
 from app.models import (
     fetch_issues_by_project,
     delete_issues_by_project,
@@ -15,10 +12,6 @@ from app.models import (
     delete_rejection_by_id,
 )
 
-load_dotenv()
-
-secret_key: Optional[str] = os.getenv('JWT_SECRET_KEY')
-jwt_auth = JWTAuth(secret_key=secret_key)
 
 bp = Blueprint("project_issues", __name__)
 

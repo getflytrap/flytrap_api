@@ -1,22 +1,16 @@
-import os
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
-from typing import Optional
-from dotenv import load_dotenv
-from app.utils.auth import JWTAuth
+from app import jwt_auth, root_auth
 from app.models import fetch_all_users, add_user, delete_user_by_id, update_password
 from app.utils import is_valid_email
 
-load_dotenv()
-
-secret_key: Optional[str] = os.getenv('JWT_SECRET_KEY')
-jwt_auth = JWTAuth(secret_key=secret_key)
 
 bp = Blueprint("users", __name__)
 
 
 @bp.route("/", methods=["GET"])
+@root_auth.require_root_access
 def get_users() -> Response:
     try:
         users = fetch_all_users()
@@ -30,6 +24,7 @@ def get_users() -> Response:
 
 
 @bp.route("/", methods=["POST"])
+@root_auth.require_root_access
 def create_user() -> Response:
     data = request.json
     first_name = data.get("first_name")
@@ -71,6 +66,7 @@ def create_user() -> Response:
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
+@root_auth.require_root_access
 def delete_user(user_id: int) -> Response:
     try:
         success = delete_user_by_id(user_id)
