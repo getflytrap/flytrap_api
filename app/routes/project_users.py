@@ -3,12 +3,13 @@ from flask import Blueprint
 from app.models import (
     fetch_project_users,
     add_user_to_project,
-    remove_user_from_project
+    remove_user_from_project,
 )
 
-bp = Blueprint('project_users', __name__)
+bp = Blueprint("project_users", __name__)
 
-@bp.route('/', methods=['GET'])
+
+@bp.route("/", methods=["GET"])
 def get_project_users(pid: str) -> Response:
     try:
         users = fetch_project_users(pid)
@@ -18,11 +19,12 @@ def get_project_users(pid: str) -> Response:
             return jsonify({"message": "No users found for this project"}), 404
     except Exception as e:
         return jsonify({"message": "Failed to fetch users", "error": str(e)}), 500
-    
-@bp.route('/', methods=['POST'])
+
+
+@bp.route("/", methods=["POST"])
 def add_project_user(pid: str, user_id: int) -> Response:
     data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = data.get("user_id")
 
     if not user_id:
         return jsonify({"message": "User ID is required"}), 400
@@ -31,9 +33,13 @@ def add_project_user(pid: str, user_id: int) -> Response:
         add_user_to_project(pid, user_id)
         return jsonify({"message": "Successfully added user to project"}), 201
     except Exception as e:
-        return jsonify({"message": "Failed to add user to project", "error": str(e)}), 500
-    
-@bp.route('/<user_id>', methods=['DELETE'])
+        return (
+            jsonify({"message": "Failed to add user to project", "error": str(e)}),
+            500,
+        )
+
+
+@bp.route("/<user_id>", methods=["DELETE"])
 def remove_project_user(pid: str, user_id: int) -> Response:
     try:
         success = remove_user_from_project(pid, user_id)
@@ -42,4 +48,7 @@ def remove_project_user(pid: str, user_id: int) -> Response:
         else:
             return jsonify({"message": "Project or user was not found"}), 404
     except Exception as e:
-        return jsonify({"message": "failed to remove user from project"}), 500
+        return (
+            jsonify({"message": "failed to remove user from project", "error": str(e)}),
+            500,
+        )

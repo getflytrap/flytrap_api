@@ -1,25 +1,28 @@
 from typing import List, Dict, Union
 from app.utils import get_db_connection, calculate_total_project_pages
 
-def fetch_projects(page: int, limit: int) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
+
+def fetch_projects(
+    page: int, limit: int
+) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    offset = (page - 1) * limit if limit else 0 
+    offset = (page - 1) * limit if limit else 0
 
     query = """
-    SELECT 
-        p.pid, 
+    SELECT
+        p.pid,
         p.name,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
-    FROM 
+    FROM
         projects p
-    LEFT JOIN 
+    LEFT JOIN
         error_logs e ON e.project_id = p.id
-    LEFT JOIN 
+    LEFT JOIN
         rejection_logs r ON r.project_id = p.id
-    GROUP BY 
+    GROUP BY
         p.pid, p.name
     ORDER BY p.name
     LIMIT %s OFFSET %s
@@ -45,6 +48,7 @@ def fetch_projects(page: int, limit: int) -> Dict[str, Union[List[Dict[str, Unio
         "current_page": int(page),
     }
 
+
 def add_project(pid: int, name: str) -> None:
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -55,6 +59,7 @@ def add_project(pid: int, name: str) -> None:
     connection.commit()
     cursor.close()
     connection.close()
+
 
 def delete_project_by_id(pid: int) -> bool:
     connection = get_db_connection()
@@ -68,6 +73,7 @@ def delete_project_by_id(pid: int) -> bool:
     connection.close()
 
     return rows_deleted > 0
+
 
 def update_project_name(pid: int, new_name: str) -> bool:
     connection = get_db_connection()
