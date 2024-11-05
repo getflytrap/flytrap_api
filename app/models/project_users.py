@@ -1,9 +1,11 @@
+from typing import List
 from app.utils import get_db_connection
 
-def fetch_project_users(pid):
+
+def fetch_project_users(pid: int) -> List[int]:
     connection = get_db_connection()
     cursor = connection.cursor()
-    
+
     query = """
     SELECT pu.user_id
     FROM projects_users pu
@@ -17,7 +19,8 @@ def fetch_project_users(pid):
 
     return [user_id[0] for user_id in user_ids] if user_ids else []
 
-def add_user_to_project(pid, user_id):
+
+def add_user_to_project(pid: int, user_id: int) -> None:
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -32,10 +35,11 @@ def add_user_to_project(pid, user_id):
     cursor.execute(query, (user_id, pid))
     connection.commit()
 
-def remove_user_from_project(project_pid, user_id, cursor, connection):
+
+def remove_user_from_project(project_pid: int, user_id: int) -> bool:
     connection = get_db_connection()
     cursor = connection.cursor()
-    
+
     query = """
     DELETE FROM projects_users
     WHERE project_id = (
@@ -46,6 +50,12 @@ def remove_user_from_project(project_pid, user_id, cursor, connection):
     AND user_id = %s
     """
 
-    cursor.execute(query, (project_pid, user_id,))
+    cursor.execute(
+        query,
+        (
+            project_pid,
+            user_id,
+        ),
+    )
     connection.commit()
     return cursor.rowcount > 0

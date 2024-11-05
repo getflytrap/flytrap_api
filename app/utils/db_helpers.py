@@ -1,6 +1,9 @@
 import math
+from typing import Optional, List, Dict
+from psycopg2.extensions import connection as Connection
 
-def calculate_total_project_pages(connection, limit):
+
+def calculate_total_project_pages(connection: Connection, limit: int) -> int:
     if not limit:
         return 1
 
@@ -12,13 +15,23 @@ def calculate_total_project_pages(connection, limit):
 
     return total_pages
 
-def fetch_errors_by_project(connection, pid, page, limit, handled, time, resolved):
+
+def fetch_errors_by_project(
+    connection: Connection,
+    pid: int,
+    page: int,
+    limit: int,
+    handled: Optional[bool],
+    time: Optional[str],
+    resolved: Optional[bool],
+) -> List[Dict[str, int]]:
     cursor = connection.cursor()
 
     # Base query
     query = """
     SELECT
-        e.id, e.name, e.message, e.created_at, e.line_number, e.col_number, e.project_id, e.handled, e.resolved
+        e.id, e.name, e.message, e.created_at, e.line_number,
+        e.col_number, e.project_id, e.handled, e.resolved
     FROM error_logs e
     JOIN projects p ON e.project_id = p.id
     WHERE p.pid = %s
@@ -63,7 +76,16 @@ def fetch_errors_by_project(connection, pid, page, limit, handled, time, resolve
 
     return errors if errors else []
 
-def fetch_rejections_by_project(connection, pid, page, limit, handled, time, resolved):
+
+def fetch_rejections_by_project(
+    connection: Connection,
+    pid: int,
+    page: int,
+    limit: int,
+    handled: Optional[bool],
+    time: Optional[str],
+    resolved: Optional[bool],
+) -> List[Dict[str, int]]:
     cursor = connection.cursor()
 
     # Base query
@@ -112,7 +134,8 @@ def fetch_rejections_by_project(connection, pid, page, limit, handled, time, res
 
     return rejections if rejections else []
 
-def calculate_total_error_pages(connection, pid, limit):
+
+def calculate_total_error_pages(connection: Connection, pid: int, limit: int):
     cursor = connection.cursor()
     error_count_query = "SELECT COUNT(*) FROM error_logs WHERE pid = %s"
     error_count_query = "SELECT COUNT(*) FROM error_logs WHERE project_id = %s"
