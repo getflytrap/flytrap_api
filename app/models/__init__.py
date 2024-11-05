@@ -25,6 +25,7 @@ from .users import (
     delete_user_by_id,
     update_password,
     fetch_user_by_email,
+    get_user_root_info,
 )
 
 __all__ = [
@@ -48,4 +49,5 @@ __all__ = [
     "delete_user_by_id",
     "update_password",
     "fetch_user_by_email",
+    "get_user_root_info",
 ]

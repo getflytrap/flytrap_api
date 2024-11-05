@@ -1,5 +1,6 @@
 from flask import jsonify, request, Response
 from flask import Blueprint
+from app import jwt_auth
 from app.models import (
     fetch_issues_by_project,
     delete_issues_by_project,
@@ -11,10 +12,12 @@ from app.models import (
     delete_rejection_by_id,
 )
 
+
 bp = Blueprint("project_issues", __name__)
 
 
 @bp.route("/", methods=["GET"])
+@jwt_auth.check_session_and_authorization
 def get_errors(pid: str) -> Response:
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
@@ -30,6 +33,7 @@ def get_errors(pid: str) -> Response:
 
 
 @bp.route("/", methods=["DELETE"])
+@jwt_auth.check_session_and_authorization
 def delete_errors(pid: str) -> Response:
     try:
         success = delete_issues_by_project(pid)
@@ -42,6 +46,7 @@ def delete_errors(pid: str) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["GET"])
+@jwt_auth.check_session_and_authorization
 def get_error(_, eid: int) -> Response:
     try:
         error = fetch_error(eid)
@@ -54,6 +59,7 @@ def get_error(_, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["GET"])
+@jwt_auth.check_session_and_authorization
 def get_rejection(_, rid: int) -> Response:
     try:
         error = fetch_rejection(rid)
@@ -66,6 +72,7 @@ def get_rejection(_, rid: int) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["PATCH"])
+@jwt_auth.check_session_and_authorization
 def toggle_error(_, eid: int) -> Response:
     data = request.get_json()
     new_resolved_state = data.get("resolved")
@@ -87,6 +94,7 @@ def toggle_error(_, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["PATCH"])
+@jwt_auth.check_session_and_authorization
 def toggle_rejection(_, rid: int) -> Response:
     data = request.get_json()
     new_resolved_state = data.get("resolved")
@@ -108,6 +116,7 @@ def toggle_rejection(_, rid: int) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["DELETE"])
+@jwt_auth.check_session_and_authorization
 def delete_error(_, eid: int) -> Response:
     try:
         success = delete_error_by_id(eid)
@@ -120,6 +129,7 @@ def delete_error(_, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["DELETE"])
+@jwt_auth.check_session_and_authorization
 def delete_rejection(_, rid: int) -> Response:
     try:
         success = delete_rejection_by_id(rid)

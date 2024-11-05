@@ -1,5 +1,6 @@
 from flask import jsonify, request, Response
 from flask import Blueprint
+from app import root_auth
 from app.models import (
     fetch_project_users,
     add_user_to_project,
@@ -10,6 +11,7 @@ bp = Blueprint("project_users", __name__)
 
 
 @bp.route("/", methods=["GET"])
+@root_auth.require_root_access
 def get_project_users(pid: str) -> Response:
     try:
         users = fetch_project_users(pid)
@@ -22,6 +24,7 @@ def get_project_users(pid: str) -> Response:
 
 
 @bp.route("/", methods=["POST"])
+@root_auth.require_root_access
 def add_project_user(pid: str, user_id: int) -> Response:
     data = request.get_json()
     user_id = data.get("user_id")
@@ -40,6 +43,7 @@ def add_project_user(pid: str, user_id: int) -> Response:
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
+@root_auth.require_root_access
 def remove_project_user(pid: str, user_id: int) -> Response:
     try:
         success = remove_user_from_project(pid, user_id)
