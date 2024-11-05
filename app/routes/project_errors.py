@@ -1,7 +1,8 @@
 from flask import jsonify, request
 from flask import Blueprint
 from app.models import (
-    fetch_data,
+    fetch_data_by_project,
+    delete_data_by_project,
 )
 
 bp = Blueprint('project_errors', __name__)
@@ -15,7 +16,18 @@ def get_errors(pid):
     resolved = request.args.get('resolved', None)
 
     try:
-        data = fetch_data(pid, page, limit, handled, time, resolved)
+        data = fetch_data_by_project(pid, page, limit, handled, time, resolved)
         return jsonify(data), 200
     except Exception as e:
         return jsonify({"message": "Failed to fetch data", "error": str(e)}), 500
+    
+@bp.route('/projects/<pid>/errors', methods=['DELETE'])
+def delete_errors(pid):
+    try:
+        success = delete_data_by_project(pid)
+        if success:
+            return '', 204
+        else: 
+            return jsonify({"message": "No errors found for this project"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to delete errors", "error": str(e)}), 500
