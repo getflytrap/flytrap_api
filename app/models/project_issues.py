@@ -5,7 +5,7 @@ from app.utils import (
     calculate_total_error_pages
 )
 
-def fetch_data_by_project(pid, page, limit, handled, time, resolved):
+def fetch_issues_by_project(pid, page, limit, handled, time, resolved):
     connection = get_db_connection()
     errors = fetch_errors_by_project(connection, pid, page, limit, handled, time, resolved)
     rejections = fetch_rejections_by_project(connection, pid, page, limit, handled, time, resolved)
