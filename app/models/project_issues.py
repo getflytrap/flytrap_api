@@ -67,3 +67,23 @@ def fetch_error(eid):
         }
     
     return None
+
+def fetch_rejection(rid):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "SELECT * FROM rejection_logs WHERE error_id = %s"
+    cursor.execute(query, [rid])
+    rejection = cursor.fetchone()
+    cursor.close()
+    connection.close()
+
+    if rejection: 
+        return {
+            "value": rejection[0],
+            "created_at": rejection[1],
+            "project_id": rejection[2],
+            "handled": rejection[3],
+            "resolved": rejection[4],
+        }
+    
+    return None

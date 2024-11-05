@@ -4,6 +4,7 @@ from app.models import (
     fetch_issues_by_project,
     delete_issues_by_project,
     fetch_error,
+    fetch_rejection,
 )
 
 bp = Blueprint('project_issues', __name__)
@@ -44,3 +45,13 @@ def get_error(_, eid):
     except Exception as e:
         return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
     
+@bp.route('/rejections/<rid>', methods=['GET'])
+def get_rejection(_, rid):
+    try:
+        error = fetch_rejection(rid)
+        if error:
+            return jsonify(error), 200
+        else:
+            return jsonify({"message": "Error not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
