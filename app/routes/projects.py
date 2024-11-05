@@ -5,6 +5,7 @@ from app.models import (
     fetch_projects, 
     add_project,
     delete_project_by_id,
+    update_project_name
 )
 
 bp = Blueprint('projects', __name__)
@@ -46,3 +47,20 @@ def delete_project(pid):
             return jsonify({"message": "Project was not found"}), 404
     except Exception as e:
         return jsonify({"message": "Failed to delete project", "error": str(e)}), 500
+
+@bp.route('/<pid>', methods=['PATCH'])
+def update_project(pid):
+    data = request.get_json()
+    new_name = data.get('new_name')
+
+    if not new_name:
+        return jsonify({"message": "Project name is required"}), 400
+    
+    try:
+        success = update_project_name(pid, new_name)
+        if success:
+            return jsonify({"project_id": pid, "project_name": new_name}), 200
+        else:
+            return jsonify({"message": "Project not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to update project", "error": str(e)}), 500

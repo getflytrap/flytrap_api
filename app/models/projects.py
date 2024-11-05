@@ -67,3 +67,15 @@ def delete_project_by_id(pid):
     connection.close()
 
     return rows_deleted > 0
+
+def update_project_name(pid, new_name):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "UPDATE projects SET name = %s WHERE pid = %s"
+    cursor.execute(query, [new_name, pid])
+    rows_updated = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_updated > 0
