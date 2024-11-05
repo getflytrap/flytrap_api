@@ -50,8 +50,7 @@ def delete_user(user_id):
     cursor.execute(query, (user_id,))
     rows_deleted = cursor.rowcount
     connection.commit()
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    cursor.close()
+    connection.close()
 
     return rows_deleted > 0
-
