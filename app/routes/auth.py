@@ -1,7 +1,7 @@
 import bcrypt
 import datetime
 import jwt
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, redirect
 from flask import Blueprint
 from app.models import (
     fetch_user_by_email,
@@ -38,3 +38,11 @@ def login():
         return response
     else:
         return jsonify({"message": "Invalid password"}), 401
+
+@bp.route('/logout', methods=['GET'])
+def logout():
+    response = make_response(redirect('/login'), 302)
+    response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=True)
+
+    # Note: No access_token clearing needed since it's client-managed in memory
+    return response
