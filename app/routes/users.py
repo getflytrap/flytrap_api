@@ -1,8 +1,17 @@
+import os
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
+from typing import Optional
+from dotenv import load_dotenv
+from app.utils.auth import JWTAuth
 from app.models import fetch_all_users, add_user, delete_user_by_id, update_password
 from app.utils import is_valid_email
+
+load_dotenv()
+
+secret_key: Optional[str] = os.getenv('JWT_SECRET_KEY')
+jwt_auth = JWTAuth(secret_key=secret_key)
 
 bp = Blueprint("users", __name__)
 
@@ -74,6 +83,7 @@ def delete_user(user_id: int) -> Response:
 
 
 @bp.route("/<user_id>", methods=["PATCH"])
+@jwt_auth.check_session_and_authorization
 def update_user_password(user_id: int) -> Response:
     data = request.json
     new_password = data.get("password")
@@ -86,7 +96,7 @@ def update_user_password(user_id: int) -> Response:
     ).decode("utf-8")
 
     try:
-        update_password(id, password_hash)
+        update_password(user_id, password_hash)
         return jsonify({"message": "Password updated successfully"}), 200
     except Exception as e:
         return jsonify({"message": "Failed to update password", "error": str(e)}), 500
