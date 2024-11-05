@@ -24,3 +24,21 @@ def fetch_all_users(cursor, connection):
     connection.close()
 
     return users if users else None
+
+def add_user(first_name, last_name, email, password_hash, cursor, connection):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+    INSERT INTO users
+    (first_name, last_name, email, password_hash)
+    VALUES (%s, %s, %s, %s)
+    RETURNING id;
+    """
+    cursor.execute(query, (first_name, last_name, email, password_hash))
+    user_id = cursor.fetchone()[0]
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+    return user_id
