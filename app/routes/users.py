@@ -3,7 +3,8 @@ from flask import jsonify, request
 from flask import Blueprint
 from app.models import (
     fetch_all_users,
-    add_user
+    add_user,
+    delete_user
 )
 from app.utils import (
     is_valid_email
@@ -47,3 +48,14 @@ def create_user():
     except Exception as e:
         print("error: " + str(e))
         return jsonify({"message": "Failed to create user"}), 500
+
+@bp.route('/<user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    try:
+        success = delete_user(user_id)
+        if success:
+            return jsonify({"message:" "Successfully delete user"}), 204
+        else:
+            return jsonify({"message": "User was not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to delete user", "error": str(e)}), 500 

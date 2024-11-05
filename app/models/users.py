@@ -42,3 +42,15 @@ def add_user(first_name, last_name, email, password_hash, cursor, connection):
     cursor.close()
     connection.close()
     return user_id
+
+def delete_user(user_id, cursor, connection):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "DELETE FROM users WHERE id = %s"
+    cursor.execute(query, (user_id,))
+    rows_deleted = cursor.rowcount
+    connection.commit()
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    return rows_deleted > 0
