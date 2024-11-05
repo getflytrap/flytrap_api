@@ -1,9 +1,10 @@
 import jwt
-from flask import request, jsonify
 import datetime
+from typing import Tuple
+from flask import request, jsonify, Response
 from .redis_client import get_user_root_info_from_cache
 
-def refresh_token():
+def refresh_token() -> Tuple[Response, int]:
     refresh_token = request.cookies.get('refresh_token')
     if not refresh_token:
         return jsonify({"message": "Token is missing!"}), 401

@@ -1,9 +1,10 @@
 import redis
+from typing import Optional
 from app.models import get_user_root_info
 
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
-def get_user_root_info_from_cache(user_id):
+def get_user_root_info_from_cache(user_id: str) -> Optional[bool]:
     is_root = redis_client.get(f"is_root:{user_id}")
 
     if is_root is not None:
