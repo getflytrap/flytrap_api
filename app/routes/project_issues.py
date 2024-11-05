@@ -7,7 +7,8 @@ from app.models import (
     fetch_rejection,
     update_error_resolved,
     update_rejection_resolved,
-    delete_error_by_id
+    delete_error_by_id,
+    delete_rejection_by_id
 )
 
 bp = Blueprint('project_issues', __name__)
@@ -97,6 +98,17 @@ def toggle_error(_, rid):
 def delete_error(_, eid):
     try:
         success = delete_error_by_id(eid)
+        if success:
+            return '', 204
+        else:
+            return jsonify({"message": "Error not found"}), 404
+    except Exception as e:
+        return jsonify({"message": "Failed to delete error", "error": str(e)}), 500
+    
+@bp.route('/rejections/<rid>', methods=['DELETE'])
+def delete_error(_, rid):
+    try:
+        success = delete_rejection_by_id(rid)
         if success:
             return '', 204
         else:

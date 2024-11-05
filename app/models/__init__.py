@@ -11,7 +11,8 @@ from .project_issues import (
     fetch_rejection,
     update_error_resolved,
     update_rejection_resolved,
-    delete_error_by_id
+    delete_error_by_id,
+    delete_rejection_by_id
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "update_error_resolved",
     "update_rejection_resolved",
     "delete_error_by_id",
+    "delete_rejection_by_id"
 ]

@@ -123,3 +123,15 @@ def delete_error_by_id(eid):
     connection.close()
 
     return rows_deleted > 0
+
+def delete_rejection_by_id(rid):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "DELETE FROM rejection_logs WHERE id = %s"
+    cursor.execute(query, [rid])
+    rows_deleted = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_deleted > 0
