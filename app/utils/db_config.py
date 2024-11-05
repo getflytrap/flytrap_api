@@ -33,5 +33,5 @@ def manage_db_connection(is_write: bool) -> callable:
         return wrapper
     return decorator
 
-ensure_read_connection = manage_db_connection(is_write=False)
-ensure_write_connection = manage_db_connection(is_write=True)
+db_read_connection = manage_db_connection(is_write=False)
+db_write_connection = manage_db_connection(is_write=True)

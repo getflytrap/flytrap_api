@@ -1,13 +1,12 @@
 from typing import List, Dict, Union
-from app.utils import get_db_connection, calculate_total_project_pages
+from app.utils import db_read_connection, db_write_connection, calculate_total_project_pages
 
 
 def fetch_projects(
-    page: int, limit: int
+    page: int, limit: int, **kwargs
 ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
     offset = (page - 1) * limit if limit else 0
 
     query = """
@@ -29,7 +28,6 @@ def fetch_projects(
     """
     cursor.execute(query, [limit, offset])
     rows = cursor.fetchall()
-    cursor.close()
 
     projects = [
         {
@@ -40,7 +38,7 @@ def fetch_projects(
         for row in rows
     ]
 
-    total_pages = calculate_total_project_pages(connection, limit)
+    total_pages = calculate_total_project_pages(cursor, limit)
 
     return {
         "projects": projects,
@@ -48,41 +46,35 @@ def fetch_projects(
         "current_page": int(page),
     }
 
-
-def add_project(pid: int, name: str) -> None:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def add_project(pid: int, name: str, **kwargs) -> None:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
 
     query = "INSERT INTO projects (pid, name) VALUES (%s, %s)"
     cursor.execute(query, [pid, name])
 
     connection.commit()
-    cursor.close()
-    connection.close()
 
-
-def delete_project_by_id(pid: int) -> bool:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def delete_project_by_id(pid: int, **kwargs) -> bool:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
 
     query = "DELETE FROM projects WHERE pid = %s"
     cursor.execute(query, [pid])
     rows_deleted = cursor.rowcount
     connection.commit()
-    cursor.close()
-    connection.close()
 
     return rows_deleted > 0
 
-
-def update_project_name(pid: int, new_name: str) -> bool:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def update_project_name(pid: int, new_name: str, **kwargs) -> bool:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
     query = "UPDATE projects SET name = %s WHERE pid = %s"
     cursor.execute(query, [new_name, pid])
     rows_updated = cursor.rowcount
     connection.commit()
-    cursor.close()
-    connection.close()
 
     return rows_updated > 0
