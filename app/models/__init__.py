@@ -19,6 +19,12 @@ from .project_users import (
     add_user_to_project,
     remove_user_from_project
 )
+from .users import (
+    fetch_all_users,
+    add_user, 
+    delete_user, 
+    update_password
+)
 
 __all__ = [
     "fetch_projects",
@@ -35,5 +41,9 @@ __all__ = [
     "delete_rejection_by_id",
     "fetch_project_users",
     "add_user_to_project",
-    "remove_user_from_project"
+    "remove_user_from_project",
+    "fetch_all_users",
+    "add_user",
+    "delete_user",
+    "update_password"
 ]
