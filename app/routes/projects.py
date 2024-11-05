@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from flask import Blueprint
-from app.models import fetch_projects
+from app.models import fetch_projects, add_project
+from app.utils import generate_uuid
 
 bp = Blueprint('projects', __name__)
 
@@ -15,3 +16,18 @@ def get_projects():
     except Exception as e:
         return jsonify({"message": "Failed to fetch projects", "error": str(e)}), 500
     
+@bp.route('/', methods=['POST'])
+def create_project():
+    data = request.get_json()
+    project_name = data.get('name')
+
+    if not project_name:
+        return jsonify({ "message": "Project name is required"}), 400
+    
+    pid = generate_uuid()
+
+    try:
+        add_project(pid, project_name)
+        return jsonify({"project_id": pid, "project_name": project_name}), 201
+    except Exception as e:
+        return jsonify({"message": "Failed to add new project", "error": str(e)}), 500

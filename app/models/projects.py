@@ -1,21 +1,4 @@
-import os
-import math
-import psycopg2
-
-DB_HOST = os.getenv('PGHOST')
-DB_NAME = os.getenv('PGDATABASE')
-DB_USER = os.getenv('PGUSER')
-DB_PASS = os.getenv('PGPASSWORD')
-DB_PORT = os.getenv('PGPORT')
-
-def get_db_connection():
-    return psycopg2.connect(
-        host=DB_HOST,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS,
-        port=DB_PORT
-    )
+from app.utils import get_db_connection, calculate_total_project_pages
 
 def fetch_projects(page, limit):
     connection = get_db_connection()
@@ -61,16 +44,13 @@ def fetch_projects(page, limit):
         "current_page": int(page),
     }
 
-
-# * --- Helpers --- * #
-def calculate_total_project_pages(connection, limit):
-    if not limit:
-        return 1
-
+def add_project(pid, name):
+    connection = get_db_connection()
     cursor = connection.cursor()
-    query = "SELECT COUNT(DISTINCT p.id) FROM projects p;"
-    cursor.execute(query)
-    total_count = cursor.fetchone()[0]
-    total_pages = math.ceil(total_count / limit)
 
-    return total_pages
+    query = "INSERT INTO projects (pid, name) VALUES (%s, %s)"
+    cursor.execute(query, [pid, name])
+
+    connection.commit()
+    cursor.close()
+    connection.close() 
