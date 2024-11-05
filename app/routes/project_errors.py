@@ -7,7 +7,7 @@ from app.models import (
 
 bp = Blueprint('project_errors', __name__)
 
-@bp.route('/projects/<pid>/errors', methods=['GET'])
+@bp.route('/', methods=['GET'])
 def get_errors(pid):
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
@@ -21,7 +21,7 @@ def get_errors(pid):
     except Exception as e:
         return jsonify({"message": "Failed to fetch data", "error": str(e)}), 500
     
-@bp.route('/projects/<pid>/errors', methods=['DELETE'])
+@bp.route('/', methods=['DELETE'])
 def delete_errors(pid):
     try:
         success = delete_data_by_project(pid)
