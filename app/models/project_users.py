@@ -31,3 +31,21 @@ def add_user_to_project(pid, user_id):
 
     cursor.execute(query, (user_id, pid))
     connection.commit()
+
+def remove_user_from_project(project_pid, user_id, cursor, connection):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    query = """
+    DELETE FROM projects_users
+    WHERE project_id = (
+        SELECT p.id
+        FROM projects p
+        WHERE p.pid = %s
+    )
+    AND user_id = %s
+    """
+
+    cursor.execute(query, (project_pid, user_id,))
+    connection.commit()
+    return cursor.rowcount > 0
