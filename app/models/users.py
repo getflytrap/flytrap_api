@@ -1,6 +1,6 @@
 from app.utils import get_db_connection
 
-def fetch_all_users(cursor, connection):
+def fetch_all_users():
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -25,7 +25,7 @@ def fetch_all_users(cursor, connection):
 
     return users if users else None
 
-def add_user(first_name, last_name, email, password_hash, cursor, connection):
+def add_user(first_name, last_name, email, password_hash):
     connection = get_db_connection()
     cursor = connection.cursor()
 
@@ -43,7 +43,7 @@ def add_user(first_name, last_name, email, password_hash, cursor, connection):
     connection.close()
     return user_id
 
-def delete_user(user_id, cursor, connection):
+def delete_user(user_id):
     connection = get_db_connection()
     cursor = connection.cursor()
     query = "DELETE FROM users WHERE id = %s"
@@ -54,3 +54,4 @@ def delete_user(user_id, cursor, connection):
     cursor = connection.cursor()
 
     return rows_deleted > 0
+
