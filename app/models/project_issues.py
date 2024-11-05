@@ -111,3 +111,15 @@ def update_rejection_resolved(rid, new_resolved_state):
     connection.close()
 
     return rows_updated > 0 
+
+def delete_error_by_id(eid):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = "DELETE FROM error_logs WHERE id = %s"
+    cursor.execute(query, [eid])
+    rows_deleted = cursor.rowcount
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return rows_deleted > 0
