@@ -1,10 +1,9 @@
 from typing import List, Dict, Optional, Union
-from app.utils import get_db_connection
+from app.utils import db_read_connection, db_write_connection
 
-
-def fetch_all_users() -> Optional[List[Dict[str, str]]]:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_read_connection
+def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
+    cursor = kwargs['cursor']
 
     query = "SELECT * FROM users;"
     cursor.execute(query)
@@ -22,15 +21,12 @@ def fetch_all_users() -> Optional[List[Dict[str, str]]]:
         for user in rows
     ]
 
-    cursor.close()
-    connection.close()
-
     return users if users else None
 
-
-def add_user(first_name: str, last_name: str, email: str, password_hash: str) -> int:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def add_user(first_name: str, last_name: str, email: str, password_hash: str, **kwargs) -> int:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
 
     query = """
     INSERT INTO users
@@ -42,27 +38,23 @@ def add_user(first_name: str, last_name: str, email: str, password_hash: str) ->
     user_id = cursor.fetchone()[0]
     connection.commit()
 
-    cursor.close()
-    connection.close()
     return user_id
 
-
-def delete_user_by_id(user_id: int) -> bool:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def delete_user_by_id(user_id: int, **kwargs) -> bool:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
     query = "DELETE FROM users WHERE id = %s"
     cursor.execute(query, (user_id,))
     rows_deleted = cursor.rowcount
     connection.commit()
-    cursor.close()
-    connection.close()
 
     return rows_deleted > 0
 
-
-def update_password(user_id: int, password_hash: str) -> None:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_write_connection
+def update_password(user_id: int, password_hash: str, **kwargs) -> None:
+    connection = kwargs['connection']
+    cursor = kwargs['cursor']
 
     query = """
     UPDATE users
@@ -72,13 +64,10 @@ def update_password(user_id: int, password_hash: str) -> None:
 
     cursor.execute(query, (password_hash, user_id))
     connection.commit()
-    cursor.close()
-    connection.close()
 
-
-def fetch_user_by_email(email: str) -> Optional[Dict[str, Union[int, str, bool]]]:
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_read_connection
+def fetch_user_by_email(email: str, **kwargs) -> Optional[Dict[str, Union[int, str, bool]]]:
+    cursor = kwargs['cursor']
 
     query = """
     SELECT
@@ -88,8 +77,6 @@ def fetch_user_by_email(email: str) -> Optional[Dict[str, Union[int, str, bool]]
     """
     cursor.execute(query, (email,))
     user = cursor.fetchone()
-    cursor.close()
-    connection.close()
 
     if user:
         return {
@@ -100,10 +87,9 @@ def fetch_user_by_email(email: str) -> Optional[Dict[str, Union[int, str, bool]]
 
     return None
 
-
-def get_user_root_info(user_id):
-    connection = get_db_connection()
-    cursor = connection.cursor()
+@db_read_connection
+def get_user_root_info(user_id, **kwargs):
+    cursor = kwargs['cursor']
 
     query = """
     SELECT is_root
@@ -112,7 +98,5 @@ def get_user_root_info(user_id):
     """
     cursor.execute(query, (user_id,))
     is_root = cursor.fetchone()[0]
-    cursor.close()
-    connection.close()
 
     return is_root

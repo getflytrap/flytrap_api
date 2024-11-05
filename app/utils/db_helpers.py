@@ -1,13 +1,12 @@
 import math
 from typing import Optional, List, Dict
-from psycopg2.extensions import connection as Connection
+from psycopg2.extensions import cursor as Cursor
 
 
-def calculate_total_project_pages(connection: Connection, limit: int) -> int:
+def calculate_total_project_pages(cursor: Cursor, limit: int) -> int:
     if not limit:
         return 1
 
-    cursor = connection.cursor()
     query = "SELECT COUNT(DISTINCT p.id) FROM projects p;"
     cursor.execute(query)
     total_count = cursor.fetchone()[0]
@@ -17,7 +16,7 @@ def calculate_total_project_pages(connection: Connection, limit: int) -> int:
 
 
 def fetch_errors_by_project(
-    connection: Connection,
+    cursor: Cursor,
     pid: int,
     page: int,
     limit: int,
@@ -25,7 +24,6 @@ def fetch_errors_by_project(
     time: Optional[str],
     resolved: Optional[bool],
 ) -> List[Dict[str, int]]:
-    cursor = connection.cursor()
 
     # Base query
     query = """
@@ -78,7 +76,7 @@ def fetch_errors_by_project(
 
 
 def fetch_rejections_by_project(
-    connection: Connection,
+    cursor: Cursor,
     pid: int,
     page: int,
     limit: int,
@@ -86,7 +84,6 @@ def fetch_rejections_by_project(
     time: Optional[str],
     resolved: Optional[bool],
 ) -> List[Dict[str, int]]:
-    cursor = connection.cursor()
 
     # Base query
     query = """
@@ -135,8 +132,7 @@ def fetch_rejections_by_project(
     return rejections if rejections else []
 
 
-def calculate_total_error_pages(connection: Connection, pid: int, limit: int):
-    cursor = connection.cursor()
+def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
     error_count_query = "SELECT COUNT(*) FROM error_logs WHERE pid = %s"
     error_count_query = "SELECT COUNT(*) FROM error_logs WHERE project_id = %s"
     cursor.execute(error_count_query, [pid])
