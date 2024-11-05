@@ -4,7 +4,8 @@ from flask import Blueprint
 from app.models import (
     fetch_all_users,
     add_user,
-    delete_user
+    delete_user, 
+    update_password
 )
 from app.utils import (
     is_valid_email
@@ -59,3 +60,19 @@ def delete_user(user_id):
             return jsonify({"message": "User was not found"}), 404
     except Exception as e:
         return jsonify({"message": "Failed to delete user", "error": str(e)}), 500 
+
+@bp.route('/<user_id>', methods=['PATCH'])
+def update_user_password(id):
+    data = request.json
+    new_password = data.get('password')
+        
+    if not new_password:
+        return jsonify({"message": "Password is required"}), 400
+
+    password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    try:
+        update_password(id, password_hash)
+        return jsonify({"message": "Password updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"message": "Failed to update password",  "error": str(e)}), 500

@@ -54,3 +54,18 @@ def delete_user(user_id):
     connection.close()
 
     return rows_deleted > 0
+
+def update_password(user_id, password_hash):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+    UPDATE users
+    SET password_hash = %s
+    WHERE id = %s
+    """
+
+    cursor.execute(query, (password_hash, user_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
