@@ -78,7 +78,7 @@ def toggle_error(_, eid):
         return jsonify({"message": "Failed to update error state", "error": str(e)}), 500
     
 @bp.route('/rejections/<rid>', methods=['PATCH'])
-def toggle_error(_, rid):
+def toggle_rejection(_, rid):
     data = request.get_json()
     new_resolved_state = data.get('resolved')
 
@@ -106,7 +106,7 @@ def delete_error(_, eid):
         return jsonify({"message": "Failed to delete error", "error": str(e)}), 500
     
 @bp.route('/rejections/<rid>', methods=['DELETE'])
-def delete_error(_, rid):
+def delete_rejection(_, rid):
     try:
         success = delete_rejection_by_id(rid)
         if success:
