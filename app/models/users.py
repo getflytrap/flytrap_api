@@ -99,3 +99,19 @@ def fetch_user_by_email(email: str) -> Optional[Dict[str, Union[int, str, bool]]
         }
 
     return None
+
+def get_user_root_info(user_id):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+    SELECT is_root
+    FROM users
+    WHERE id = %s
+    """
+    cursor.execute(query, (user_id,))
+    is_root = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()
+    
+    return is_root
