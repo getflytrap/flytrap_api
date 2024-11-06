@@ -28,8 +28,8 @@ from app.routes import (
     auth_bp,
     webhook_bp,
 )
-from app.config import secret_key
-from app.utils.auth import JWTAuth, RootAuth
+# from app.config import secret_key
+# from app.utils.auth import JWTAuth, RootAuth
 
 
 def create_app() -> Flask:
@@ -40,10 +40,10 @@ def create_app() -> Flask:
     def handle_generic_error(e):
         return jsonify({"status": "error", "message": str(e)}), 500
 
-    jwt_auth = JWTAuth(secret_key=secret_key)
-    root_auth = RootAuth(secret_key=secret_key)
-    app.jwt_auth = jwt_auth
-    app.root_auth = root_auth
+    # jwt_auth = JWTAuth(secret_key=secret_key)
+    # root_auth = RootAuth(secret_key=secret_key)
+    # app.jwt_auth = jwt_auth
+    # app.root_auth = root_auth
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<pid>/issues")
