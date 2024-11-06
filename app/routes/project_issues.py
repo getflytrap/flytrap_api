@@ -92,7 +92,7 @@ def delete_issues(pid: str) -> Response:
 
 @bp.route("/errors/<eid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization
-def get_error(_, eid: int) -> Response:
+def get_error(pid, eid: int) -> Response:
     """Retrieves a specific error by its ID.
 
     Args:
@@ -110,12 +110,13 @@ def get_error(_, eid: int) -> Response:
             return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
         print(f"Error in get_error: {e}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": "Failed to fetch error"}), 500
 
 
 @bp.route("/rejections/<rid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization
-def get_rejection(_, rid: int) -> Response:
+def get_rejection(pid, rid: int) -> Response:
     """Retrieves a specific rejection by its ID.
 
     Args:
@@ -138,7 +139,7 @@ def get_rejection(_, rid: int) -> Response:
 
 @bp.route("/errors/<eid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization
-def toggle_error(_, eid: int) -> Response:
+def toggle_error(pid, eid: int) -> Response:
     """Toggles the resolved state of a specific error.
 
     Args:
@@ -178,7 +179,7 @@ def toggle_error(_, eid: int) -> Response:
 
 @bp.route("/rejections/<rid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization
-def toggle_rejection(_, rid: int) -> Response:
+def toggle_rejection(pid, rid: int) -> Response:
     """Toggles the resolved state of a specific rejection.
 
     Args:
@@ -218,7 +219,7 @@ def toggle_rejection(_, rid: int) -> Response:
 
 @bp.route("/errors/<eid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization
-def delete_error(_, eid: int) -> Response:
+def delete_error(pid, eid: int) -> Response:
     """Deletes a specific error by its ID.
 
     Args:
@@ -241,7 +242,7 @@ def delete_error(_, eid: int) -> Response:
 
 @bp.route("/rejections/<rid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization
-def delete_rejection(_, rid: int) -> Response:
+def delete_rejection(pid, rid: int) -> Response:
     """Deletes a specific rejection by its ID.
 
     Args:
