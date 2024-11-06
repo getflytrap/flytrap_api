@@ -8,6 +8,7 @@ Routes:
     /login (POST): Authenticates a user, issuing JWT access and refresh tokens upon
     successful login.
     /logout (GET): Logs out a user by clearing the refresh token cookie.
+    /refresh (POST): Refreshes a JWT Token
 
 Attributes:
     bp (Blueprint): Blueprint for the authentication routes.
@@ -21,6 +22,7 @@ from flask import Blueprint
 from app.models import (
     fetch_user_by_email,
 )
+from app.utils.auth import refresh_token
 
 bp = Blueprint("auth", __name__)
 
@@ -107,3 +109,18 @@ def logout() -> Response:
 
     # Note: No access_token clearing needed since it's client-managed in memory
     return response
+
+@bp.route('/refresh', methods=['POST'])
+def refresh() -> Response:
+    """
+    Refreshes the user's access token.
+
+    This endpoint uses the `refresh_token` function to generate a new access token
+    based on the refresh token provided in the request. It is intended to be called
+    when the user's access token has expired.
+
+    Returns:
+        Response: JSON response containing a new access token, or an error message if
+        the refresh token is invalid or missing.
+    """
+    return refresh_token()
