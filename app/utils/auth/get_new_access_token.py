@@ -41,10 +41,12 @@ def get_new_access_token() -> Tuple[Response, int]:
     if not refresh_token:
         return jsonify({"message": "Token is missing!"}), 401
     try:
-        decoded_refresh_token = jwt.decode(
+        refresh_token_payload = jwt.decode(
             refresh_token, os.getenv("JWT_SECRET_KEY"), algorithms=["HS256"]
         )
-        user_id = decoded_refresh_token.get("user_id")
+
+        print('refresh', refresh_token_payload)
+        user_id = refresh_token_payload.get("user_id")
         is_root = get_user_root_info_from_cache(user_id)
 
         access_token = jwt.encode(

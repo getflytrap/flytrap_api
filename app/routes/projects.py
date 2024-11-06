@@ -16,7 +16,7 @@ Attributes:
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app.utils import generate_uuid
-from app.auth_manager import root_auth
+from app.auth_manager import jwt_auth
 from app.models import (
     fetch_projects,
     add_project,
@@ -28,7 +28,7 @@ bp = Blueprint("projects", __name__)
 
 
 @bp.route("/", methods=["GET"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def get_projects() -> Response:
     """Fetches a paginated list of all projects.
 
@@ -52,7 +52,7 @@ def get_projects() -> Response:
 
 
 @bp.route("/", methods=["POST"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def create_project() -> Response:
     """Creates a new project with a unique project ID.
 
@@ -84,7 +84,7 @@ def create_project() -> Response:
 
 
 @bp.route("/<pid>", methods=["DELETE"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def delete_project(pid: str) -> Response:
     """Deletes a specified project by its project ID.
 
@@ -108,7 +108,7 @@ def delete_project(pid: str) -> Response:
 
 
 @bp.route("/<pid>", methods=["PATCH"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def update_project(pid: str) -> Response:
     """Updates the name of a specified project.
 

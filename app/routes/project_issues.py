@@ -38,7 +38,7 @@ bp = Blueprint("project_issues", __name__)
 
 
 @bp.route("/", methods=["GET"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def get_issues(pid: str) -> Response:
     """Fetches a paginated list of issues for a specified project.
 
@@ -65,7 +65,7 @@ def get_issues(pid: str) -> Response:
 
 
 @bp.route("/", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def delete_issues(pid: str) -> Response:
     """Deletes all issues for a specified project.
 
@@ -91,7 +91,7 @@ def delete_issues(pid: str) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["GET"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def get_error(pid, eid: int) -> Response:
     """Retrieves a specific error by its ID.
 
@@ -115,7 +115,7 @@ def get_error(pid, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["GET"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def get_rejection(pid, rid: int) -> Response:
     """Retrieves a specific rejection by its ID.
 
@@ -138,7 +138,7 @@ def get_rejection(pid, rid: int) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def toggle_error(pid, eid: int) -> Response:
     """Toggles the resolved state of a specific error.
 
@@ -170,7 +170,7 @@ def toggle_error(pid, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def toggle_rejection(pid, rid: int) -> Response:
     """Toggles the resolved state of a specific rejection.
 
@@ -202,7 +202,7 @@ def toggle_rejection(pid, rid: int) -> Response:
 
 
 @bp.route("/errors/<eid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def delete_error(pid, eid: int) -> Response:
     """Deletes a specific error by its ID.
 
@@ -225,7 +225,7 @@ def delete_error(pid, eid: int) -> Response:
 
 
 @bp.route("/rejections/<rid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def delete_rejection(pid, rid: int) -> Response:
     """Deletes a specific rejection by its ID.
 
