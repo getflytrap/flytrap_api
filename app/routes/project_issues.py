@@ -103,7 +103,7 @@ def get_error(_, eid: int) -> Response:
     try:
         error = fetch_error(eid)
         if error:
-            return jsonify(error), 200
+            return jsonify({"status": "success", "data": error}), 200
         else:
             return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
@@ -126,7 +126,7 @@ def get_rejection(_, rid: int) -> Response:
     try:
         rejection = fetch_rejection(rid)
         if rejection:
-            return jsonify(rejection), 200
+            return jsonify({"status": "success", "data": rejection}), 200
         else:
             return jsonify({"status": "error", "message": "Rejection not found"}), 404
     except Exception as e:
