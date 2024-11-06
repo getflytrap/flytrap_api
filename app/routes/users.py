@@ -10,6 +10,7 @@ Routes:
     / (POST): Creates a new user.
     /<user_id> (DELETE): Deletes a specified user by ID.
     /<user_id> (PATCH): Updates the password of a specified user.
+    /<user_id>/projects (GET): Gets all projects a user is assigned to.
 
 Attributes:
     bp (Blueprint): Blueprint for user management routes.
@@ -19,7 +20,13 @@ import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app import jwt_auth, root_auth
-from app.models import fetch_all_users, add_user, delete_user_by_id, update_password
+from app.models import (
+    fetch_all_users,
+    add_user,
+    delete_user_by_id,
+    update_password,
+    fetch_projects_for_user,
+)
 from app.utils import is_valid_email
 
 
@@ -154,3 +161,26 @@ def update_user_password(user_id: int) -> Response:
     except Exception as e:
         print(f"Error in update_user_password: {e}")
         return jsonify({"status": "error", "message": "Failed to update password"}), 500
+
+
+@bp.route("/<user_id>/projects", methods=["GET"])
+@jwt_auth.check_session_and_authorization
+def get_user_projects(user_id: int) -> Response:
+    """
+    Retrieves all projects assigned to a specific user by user ID.
+
+    Args:
+    - user_id (int): The ID of the user for whom to retrieve projects.
+
+    Returns:
+        Response: 200 status code and the project data.
+    """
+    try:
+        data = fetch_projects_for_user(user_id)
+        return jsonify({"status": "success", "data": data}), 200
+    except Exception as e:
+        print(f"Error in get_user_projects: {e}")
+        return (
+            jsonify({"status": "error", "message": "Failed to get projects for user"}),
+            500,
+        )
