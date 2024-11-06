@@ -58,7 +58,6 @@ def add_project(pid: int, name: str, **kwargs) -> None:
 
     query = "INSERT INTO projects (pid, name) VALUES (%s, %s)"
     cursor.execute(query, [pid, name])
-
     connection.commit()
 
 
@@ -79,7 +78,9 @@ def delete_project_by_id(pid: int, **kwargs) -> bool:
 def update_project_name(pid: int, new_name: str, **kwargs) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "UPDATE projects SET name = %s WHERE pid = %s"
+
     cursor.execute(query, [new_name, pid])
     rows_updated = cursor.rowcount
     connection.commit()

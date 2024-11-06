@@ -1,5 +1,6 @@
 from flask import jsonify, request, Response
 from flask import Blueprint
+from psycopg2 import IntegrityError, OperationalError
 from app.utils import generate_uuid
 from app import root_auth
 from app.models import (
@@ -20,9 +21,10 @@ def get_projects() -> Response:
 
     try:
         data = fetch_projects(page, limit)
-        return jsonify(data), 200
+        return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
-        return jsonify({"message": "Failed to fetch projects", "error": str(e)}), 500
+        print(f"Error in get_projects: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch projects"}), 500
 
 
 @bp.route("/", methods=["POST"])
@@ -32,15 +34,17 @@ def create_project() -> Response:
     project_name = data.get("name")
 
     if not project_name:
-        return jsonify({"message": "Project name is required"}), 400
+        return jsonify({"status": "error", "message": "Missing project name"}), 400
 
     pid = generate_uuid()
 
     try:
         add_project(pid, project_name)
-        return jsonify({"project_id": pid, "project_name": project_name}), 201
+        data = {"project_id": pid, "project_name": project_name}
+        return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
-        return jsonify({"message": "Failed to add new project", "error": str(e)}), 500
+        print(f"Error in create_project:", {e})
+        return jsonify({"status": "error", "message": "Failed to create new project"}), 500
 
 
 @bp.route("/<pid>", methods=["DELETE"])
@@ -51,9 +55,10 @@ def delete_project(pid: str) -> Response:
         if success:
             return "", 204
         else:
-            return jsonify({"message": "Project was not found"}), 404
+            return jsonify({"status": "error", "message": "Project not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete project", "error": str(e)}), 500
+        print(f"Error in delete_project: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete project"}), 500
 
 
 @bp.route("/<pid>", methods=["PATCH"])
@@ -63,13 +68,15 @@ def update_project(pid: str) -> Response:
     new_name = data.get("new_name")
 
     if not new_name:
-        return jsonify({"message": "Project name is required"}), 400
+        return jsonify({"status": "error", "message": "Missing project name"}), 400
 
     try:
         success = update_project_name(pid, new_name)
         if success:
-            return jsonify({"project_id": pid, "project_name": new_name}), 200
+            data = {"project_id": pid, "project_name": new_name}
+            return jsonify({"status": "success", "data": data}), 200
         else:
-            return jsonify({"message": "Project not found"}), 404
+            return jsonify({"status": "error", "message": "Project not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to update project", "error": str(e)}), 500
+        print(f"Error in update_project: {e}")
+        return jsonify({"status": "error", "message": "Failed to update project name"}), 500
