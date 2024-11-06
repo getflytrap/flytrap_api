@@ -120,7 +120,7 @@ def logout() -> Response:
     """
     response = make_response(redirect("/login"), 302)
     response.set_cookie(
-        "refresh_token", "", expires=0, httponly=httponly, secure=secure
+        "refresh_token", "", expires=0, httponly=httponly, secure=secure, samesite=samesite, path=path
     )
 
     # Note: No access_token clearing needed since it's client-managed in memory

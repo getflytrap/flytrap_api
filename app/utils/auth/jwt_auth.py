@@ -53,15 +53,15 @@ class JWTAuth:
 
         def decorator(f: callable) -> callable:
             @wraps(f)
-            def decorated_function(*args: tuple, **kwargs: dict) -> Response:
-                token = self._get_token()
-                if not token:
-                    return jsonify({"message": "Token is missing"}), 401
-
-                if root_required:
-                    return self._authenticate_root(f, token, *args, **kwargs)
-                
+            def decorated_function(*args: tuple, **kwargs: dict) -> Response:                
                 try:
+                    token = self._get_token()
+                    if not token:
+                        return jsonify({"message": "Token is missing"}), 401
+
+                    if root_required:
+                        return self._authenticate_root(f, token, *args, **kwargs)
+                    
                     if 'pid' in kwargs:
                         return self.authorize_user_for_project(f, token, *args, **kwargs)
                     elif 'user_id' in kwargs:
@@ -202,7 +202,7 @@ class JWTAuth:
             get_new_access_token()[0].get_data().decode("utf-8")
         )
         new_access_token = parsed_json_data.get("access_token")
-
+        print('new', new_access_token)
         if new_access_token:
             try:
                 return self.authorize_user_for_project(
