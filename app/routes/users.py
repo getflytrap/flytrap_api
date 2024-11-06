@@ -19,7 +19,7 @@ Attributes:
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import jwt_auth, root_auth
+from app.auth_manager import jwt_auth
 from app.models import (
     fetch_all_users,
     add_user,
@@ -34,7 +34,7 @@ bp = Blueprint("users", __name__)
 
 
 @bp.route("/", methods=["GET"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def get_users() -> Response:
     """Fetches a list of all users.
 
@@ -51,7 +51,7 @@ def get_users() -> Response:
 
 
 @bp.route("/", methods=["POST"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def create_user() -> Response:
     """Creates a new user with specified attributes.
 
@@ -107,7 +107,7 @@ def create_user() -> Response:
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def delete_user(user_id: int) -> Response:
     """Deletes a specified user by their user ID.
 
@@ -130,7 +130,7 @@ def delete_user(user_id: int) -> Response:
 
 
 @bp.route("/<user_id>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def update_user_password(user_id: int) -> Response:
     """Updates the password of a specified user.
 
@@ -164,7 +164,7 @@ def update_user_password(user_id: int) -> Response:
 
 
 @bp.route("/<user_id>/projects", methods=["GET"])
-@jwt_auth.check_session_and_authorization
+@jwt_auth.check_session_and_authorization()
 def get_user_projects(user_id: int) -> Response:
     """
     Retrieves all projects assigned to a specific user by user ID.

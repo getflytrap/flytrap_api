@@ -40,6 +40,45 @@ class JWTAuth:
             secret_key (str): The secret key for JWT token operations.
         """
         self.secret_key = secret_key
+    
+    def check_session_and_authorization(self, root_required: bool = False) -> callable:
+        """Decorator factory to check JWT session token validity and user authorization.
+
+        Args:
+            f (callable): The function to wrap with session and authorization checks.
+
+        Returns:
+            callable: The wrapped function with added session and authorization checks.
+        """
+
+        def decorator(f: callable) -> callable:
+            @wraps(f)
+            def decorated_function(*args: tuple, **kwargs: dict) -> Response:
+                token = self._get_token()
+                if not token:
+                    return jsonify({"message": "Token is missing"}), 401
+
+                if root_required:
+                    return self._authenticate_root(f, token, *args, **kwargs)
+                
+                try:
+                    if 'pid' in kwargs:
+                        return self.authorize_user_for_project(f, token, *args, **kwargs)
+                    elif 'user_id' in kwargs:
+                        return self.authorize_for_user_specific_operation(f, token, *args, **kwargs)
+
+                    # If no specific project or user authorization is required, proceed
+                    return f(*args, **kwargs)
+                
+                except jwt.ExpiredSignatureError:
+                    return self.handle_expired_access_token(f, *args, **kwargs)
+                except jwt.InvalidTokenError:
+                    return jsonify({"message": "Invalid token."}), 401
+            
+            return decorated_function
+        
+        return decorator
+
 
     def _get_token(self) -> str | None:
         """Extracts the token from the Authorization header.
@@ -85,7 +124,9 @@ class JWTAuth:
 
         if user_id:
             current_user_id = token_payload.get('user_id')
-            if current_user_id != user_id:
+            print('hereree', user_id, current_user_id)
+            if str(current_user_id) != str(user_id):
+                print('unequal')
                 return jsonify({"message": "Unauthorized"}), 403
             else:
                 return f(*args, **kwargs)
@@ -153,31 +194,25 @@ class JWTAuth:
         else:
             # return message for invalid or expired refresh token
             return parsed_json_data
-
-    def check_session_and_authorization(self, f: callable) -> callable:
-        """Decorator to check JWT session token validity and user authorization.
+        
+    def _authenticate_root(
+        self, f: callable, token: str, *args: tuple, **kwargs: dict
+    ) -> Response | Any:
+        """Method to check whether the current user has root privileges necessary
+        to perform sensitive operations.
 
         Args:
-            f (callable): The function to wrap with session and authorization checks.
+            f (callable): The function to wrap with authorization checks.
+            token (str): The JWT access token.
+            *args (tuple): Additional arguments for the wrapped function.
+            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
 
         Returns:
-            callable: The wrapped function with added session and authorization checks.
+            Response | Any: The response from the wrapped function if authorized, or an
+                            error response with status 403 or 404 if unauthorized
         """
-
-        @wraps(f)
-        def decorated_function(*args: tuple, **kwargs: dict) -> Response:
-            token = self._get_token()
-            if not token:
-                return jsonify({"message": "Token is missing"}), 401
-            try:
-                if kwargs.get('pid'):
-                    return self.authorize_user_for_project(f, token, *args, **kwargs)
-                elif kwargs.get('user_id'):
-                    return self.authorize_for_user_specific_operation(f, token, *args, **kwargs)
-                return f(*args, **kwargs)
-            except jwt.ExpiredSignatureError:
-                return self.handle_expired_access_token(f, *args, **kwargs)
-            except jwt.InvalidTokenError:
-                return jsonify({"message": "Invalid token."}), 401
-
-        return decorated_function
+        token_payload = self._decode_token(token)
+        if token_payload.get("is_root") == True:
+            return f(*args, **kwargs)
+        else:
+            return jsonify({"message": "Unathorized"}), 403

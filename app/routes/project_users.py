@@ -15,7 +15,7 @@ Attributes:
 
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import root_auth
+from app.auth_manager import jwt_auth
 from app.models import (
     fetch_project_users,
     add_user_to_project,
@@ -26,7 +26,7 @@ bp = Blueprint("project_users", __name__)
 
 
 @bp.route("/", methods=["GET"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def get_project_users(pid: str) -> Response:
     """Fetches all users associated with a specified project.
 
@@ -52,7 +52,7 @@ def get_project_users(pid: str) -> Response:
 
 
 @bp.route("/", methods=["POST"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def add_project_user(pid: str) -> Response:
     """Adds a user to a specified project.
 
@@ -87,7 +87,7 @@ def add_project_user(pid: str) -> Response:
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
-@root_auth.require_root_access
+@jwt_auth.check_session_and_authorization(root_required=True)
 def remove_project_user(pid: str, user_id: int) -> Response:
     """Removes a user from a specified project.
 
