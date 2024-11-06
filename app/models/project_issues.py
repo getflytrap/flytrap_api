@@ -38,9 +38,9 @@ def fetch_issues_by_project(
 
 
 @db_write_connection
-def delete_data_by_project(
+def delete_issues_by_project(
     pid: int, **kwargs: dict
-) -> Dict[str, Union[int, str, bool]]:
+) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -54,12 +54,7 @@ def delete_data_by_project(
 
     connection.commit()
 
-    return {
-        "success": True,
-        "message": "Data deletion completed.",
-        "error_rows_deleted": error_rows_deleted,
-        "rejection_rows_deleted": rejection_rows_deleted,
-    }
+    return error_rows_deleted > 0 or rejection_rows_deleted > 0
 
 
 @db_read_connection

@@ -18,7 +18,7 @@ bp = Blueprint("project_issues", __name__)
 
 @bp.route("/", methods=["GET"])
 @jwt_auth.check_session_and_authorization
-def get_errors(pid: str) -> Response:
+def get_issues(pid: str) -> Response:
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     handled = request.args.get("handled", None)
@@ -27,22 +27,24 @@ def get_errors(pid: str) -> Response:
 
     try:
         data = fetch_issues_by_project(pid, page, limit, handled, time, resolved)
-        return jsonify(data), 200
+        return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
-        return jsonify({"message": "Failed to fetch data", "error": str(e)}), 500
+        print(f"Error in get_issues: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch data"}), 500
 
 
 @bp.route("/", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization
-def delete_errors(pid: str) -> Response:
+def delete_issues(pid: str) -> Response:
     try:
         success = delete_issues_by_project(pid)
         if success:
             return "", 204
         else:
-            return jsonify({"message": "No errors found for this project"}), 404
+            return jsonify({"status": "error", "message": "No issues found for project"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete errors", "error": str(e)}), 500
+        print(f"Error in delete_issues: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete issues"}), 500
 
 
 @bp.route("/errors/<eid>", methods=["GET"])
@@ -53,9 +55,10 @@ def get_error(_, eid: int) -> Response:
         if error:
             return jsonify(error), 200
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
+        print(f"Error in get_error: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch error"}), 500
 
 
 @bp.route("/rejections/<rid>", methods=["GET"])
@@ -66,9 +69,10 @@ def get_rejection(_, rid: int) -> Response:
         if error:
             return jsonify(error), 200
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Rejection not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to retrieve error", "error": str(e)}), 500
+        print(f"Error in get_rejection: {e}")
+        return jsonify({"message": "Failed to retrieve rejection"}), 500
 
 
 @bp.route("/errors/<eid>", methods=["PATCH"])
@@ -77,20 +81,18 @@ def toggle_error(_, eid: int) -> Response:
     data = request.get_json()
     new_resolved_state = data.get("resolved")
 
-    if new_resolved_state is None:
-        return jsonify({"message": "Resolved state required"}), 400
+    if not new_resolved_state:
+        return jsonify({"status": "error", "message": "Missing resolved state"}), 400
 
     try:
         success = update_error_resolved(eid, new_resolved_state)
         if success:
-            return jsonify({"message": "Error state updated successfully"}), 200
+            return jsonify({"status": "success", "message": "Error resolved state updated successfully"}), 200
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
-        return (
-            jsonify({"message": "Failed to update error state", "error": str(e)}),
-            500,
-        )
+        print(f"Error in toggle_error: {e}")
+        return jsonify({"status": "error", "message": "Failed to update error state"}), 500
 
 
 @bp.route("/rejections/<rid>", methods=["PATCH"])
@@ -100,19 +102,17 @@ def toggle_rejection(_, rid: int) -> Response:
     new_resolved_state = data.get("resolved")
 
     if new_resolved_state is None:
-        return jsonify({"message": "Resolved state required"}), 400
+        return jsonify({"status": "error", "message": "Missing resolved state"}), 400
 
     try:
         success = update_rejection_resolved(rid, new_resolved_state)
         if success:
-            return jsonify({"message": "Error state updated successfully"}), 200
+            return jsonify({"status": "success", "message": "Rejection resolved state updated successfully"}), 200
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Rejection not found"}), 404
     except Exception as e:
-        return (
-            jsonify({"message": "Failed to update error state", "error": str(e)}),
-            500,
-        )
+        print(f"Error in toggle_rejection: {e}")
+        return jsonify({"status": "error", "message": "Failed to update error state"}), 500
 
 
 @bp.route("/errors/<eid>", methods=["DELETE"])
@@ -123,9 +123,10 @@ def delete_error(_, eid: int) -> Response:
         if success:
             return "", 204
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete error", "error": str(e)}), 500
+        print(f"Error in delete_error: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete error"}), 500
 
 
 @bp.route("/rejections/<rid>", methods=["DELETE"])
@@ -136,6 +137,7 @@ def delete_rejection(_, rid: int) -> Response:
         if success:
             return "", 204
         else:
-            return jsonify({"message": "Error not found"}), 404
+            return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete error", "error": str(e)}), 500
+        print(f"Error in delete_rejection: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete error"}), 500
