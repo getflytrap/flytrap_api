@@ -53,7 +53,7 @@ def get_project_users(pid: str) -> Response:
 
 @bp.route("/", methods=["POST"])
 @root_auth.require_root_access
-def add_project_user(pid: str, user_id: int) -> Response:
+def add_project_user(pid: str) -> Response:
     """Adds a user to a specified project.
 
     Args:
