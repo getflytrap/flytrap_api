@@ -26,7 +26,7 @@ from app.routes import (
     project_users_bp,
     users_bp,
     auth_bp,
-    webhook_bp
+    webhook_bp,
 )
 from app.config import secret_key
 from app.utils.auth import JWTAuth, RootAuth

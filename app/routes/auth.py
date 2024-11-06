@@ -110,7 +110,8 @@ def logout() -> Response:
     # Note: No access_token clearing needed since it's client-managed in memory
     return response
 
-@bp.route('/refresh', methods=['POST'])
+
+@bp.route("/refresh", methods=["POST"])
 def refresh() -> Response:
     """
     Refreshes the user's access token.
