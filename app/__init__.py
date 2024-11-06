@@ -1,4 +1,23 @@
-from flask import Flask
+"""App initialization module.
+
+This module defines the `create_app` function, which initializes and configures
+the Flask application.
+It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
+configures error handling,
+and initializes authentication mechanisms.
+
+Functions:
+    create_app() -> Flask: Creates and configures the Flask application instance.
+
+Attributes:
+    projects_bp (Blueprint): Blueprint for project-related routes.
+    issues_bp (Blueprint): Blueprint for project issue routes.
+    project_users_bp (Blueprint): Blueprint for project user routes.
+    users_bp (Blueprint): Blueprint for user management routes.
+    auth_bp (Blueprint): Blueprint for authentication routes.
+"""
+
+from flask import Flask, jsonify
 from flask_cors import CORS
 from app.routes import projects_bp, issues_bp, project_users_bp, users_bp, auth_bp
 from app.config import secret_key
@@ -8,6 +27,10 @@ from app.utils.auth import JWTAuth, RootAuth
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app)
+
+    @app.errorhandler(Exception)
+    def handle_generic_error(e):
+        return jsonify({"status": "error", "message": str(e)}), 500
 
     jwt_auth = JWTAuth(secret_key=secret_key)
     root_auth = RootAuth(secret_key=secret_key)

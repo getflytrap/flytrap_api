@@ -1,3 +1,18 @@
+"""Project Users routes module.
+
+This module provides routes for managing user associations with specific projects.
+It allows fetching users associated with a project, adding users to a project,
+and removing users from a project. Access is restricted to users with root access.
+
+Routes:
+    / (GET): Fetches a list of users associated with a project.
+    / (POST): Adds a user to a project.
+    /<user_id> (DELETE): Removes a user from a project.
+
+Attributes:
+    bp (Blueprint): Blueprint for project users routes.
+"""
+
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app import root_auth
@@ -13,31 +28,60 @@ bp = Blueprint("project_users", __name__)
 @bp.route("/", methods=["GET"])
 @root_auth.require_root_access
 def get_project_users(pid: str) -> Response:
+    """Fetches all users associated with a specified project.
+
+    Args:
+        pid (str): The project ID.
+
+    Returns:
+        Response: JSON response with a list of associated users and a 200 status code,
+                  or an error message with a 500 status code if fetching fails.
+    """
+
     try:
         users = fetch_project_users(pid)
-        if users:
-            return jsonify(users), 200
-        else:
-            return jsonify({"message": "No users found for this project"}), 404
+        return jsonify({"status": "success", "data": users}), 200
     except Exception as e:
-        return jsonify({"message": "Failed to fetch users", "error": str(e)}), 500
+        print(f"Error in get_project_users: {e}")
+        return (
+            jsonify(
+                {"status": "error", "message": "Failed to fetch users for project"}
+            ),
+            500,
+        )
 
 
 @bp.route("/", methods=["POST"])
 @root_auth.require_root_access
 def add_project_user(pid: str, user_id: int) -> Response:
+    """Adds a user to a specified project.
+
+    Args:
+        pid (str): The project ID.
+
+    Returns:
+        Response: JSON response with a success message and a 201 status code if
+        successful, or an error message with a 400 status code if the user_id is
+        missing.
+    """
     data = request.get_json()
     user_id = data.get("user_id")
 
     if not user_id:
-        return jsonify({"message": "User ID is required"}), 400
+        return jsonify({"status": "error", "message": "Missing user id"}), 400
 
     try:
         add_user_to_project(pid, user_id)
-        return jsonify({"message": "Successfully added user to project"}), 201
-    except Exception as e:
         return (
-            jsonify({"message": "Failed to add user to project", "error": str(e)}),
+            jsonify(
+                {"status": "success", "message": "Successfully added user to project"}
+            ),
+            201,
+        )
+    except Exception as e:
+        print(f"Error in add_project_user: {e}")
+        return (
+            jsonify({"status": "error", "message": "Failed to add user to project"}),
             500,
         )
 
@@ -45,14 +89,38 @@ def add_project_user(pid: str, user_id: int) -> Response:
 @bp.route("/<user_id>", methods=["DELETE"])
 @root_auth.require_root_access
 def remove_project_user(pid: str, user_id: int) -> Response:
+    """Removes a user from a specified project.
+
+    Args:
+        pid (str): The project ID.
+        user_id (int): The ID of the user to remove.
+
+    Returns:
+        Response: JSON response with a 204 status code if successful,
+                  or a 404 status code if the project or user is not found.
+    """
     try:
         success = remove_user_from_project(pid, user_id)
         if success:
-            return jsonify({"message": "Successfully removed user from project"}), 204
+            return (
+                jsonify(
+                    {
+                        "status": "success",
+                        "message": "Successfully removed user from project",
+                    }
+                ),
+                204,
+            )
         else:
-            return jsonify({"message": "Project or user was not found"}), 404
+            return (
+                jsonify({"status": "error", "message": "Project or user not found"}),
+                404,
+            )
     except Exception as e:
+        print(f"Error in remove_project_user: {e}")
         return (
-            jsonify({"message": "failed to remove user from project", "error": str(e)}),
+            jsonify(
+                {"status": "error", "message": "failed to remove user from project"}
+            ),
             500,
         )

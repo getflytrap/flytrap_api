@@ -1,3 +1,20 @@
+"""Users routes module.
+
+This module provides routes for managing user accounts, including creating new users,
+fetching all users, deleting users, and updating user passwords. Each route enforces
+root access authorization, except for password updates, which require user session
+authentication.
+
+Routes:
+    / (GET): Fetches a list of all users.
+    / (POST): Creates a new user.
+    /<user_id> (DELETE): Deletes a specified user by ID.
+    /<user_id> (PATCH): Updates the password of a specified user.
+
+Attributes:
+    bp (Blueprint): Blueprint for user management routes.
+"""
+
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
@@ -12,20 +29,36 @@ bp = Blueprint("users", __name__)
 @bp.route("/", methods=["GET"])
 @root_auth.require_root_access
 def get_users() -> Response:
+    """Fetches a list of all users.
+
+    Returns:
+        Response: JSON response with a list of all users and a 200 status code,
+                  or an error message with a 500 status code if fetching fails.
+    """
     try:
         users = fetch_all_users()
-        return (
-            jsonify({"message": "Successfully fetched all users", "users": users}),
-            200,
-        )
+        return jsonify({"status": "success", "data": users}), 200
     except Exception as e:
-        print("Error: " + str(e))
-        return jsonify({"message": "Failed to fetch data"}), 500
+        print(f"Error in get_users: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch users"}), 500
 
 
 @bp.route("/", methods=["POST"])
 @root_auth.require_root_access
 def create_user() -> Response:
+    """Creates a new user with specified attributes.
+
+    JSON Payload:
+        first_name (str): First name of the user.
+        last_name (str): Last name of the user.
+        email (str): Email address of the user.
+        password (str): Password for the user.
+        confirmed_password (str): Confirmation of the password.
+
+    Returns:
+        Response: JSON response with user data and a 201 status code if successful,
+                  or error messages with a 400 status code if input validation fails.
+    """
     data = request.json
     first_name = data.get("first_name")
     last_name = data.get("last_name")
@@ -41,58 +74,83 @@ def create_user() -> Response:
         or not last_name
     ):
         return (
-            jsonify({"message": "Missing input data."}),
+            jsonify({"status": "error", "message": "Missing input data"}),
             400,
         )
 
     if password != confirmed_password:
-        return jsonify({"message": "Passwords do not match"}), 400
+        return jsonify({"status": "error", "message": "Passwords do not match"}), 400
 
     if not is_valid_email(email):
-        return jsonify({"message": "invalid email format"}), 400
+        return jsonify({"status": "error", "message": "Invalid email format"}), 400
 
     salt = bcrypt.gensalt()
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
 
     try:
         user_id = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
+        data = {"user_id": user_id, "first_name": first_name, "last_name": last_name}
         return (
-            jsonify({"message": "User created successfully", "user_id": user_id}),
+            jsonify({"status": "success", "data": data}),
             201,
         )
     except Exception as e:
-        print("error: " + str(e))
-        return jsonify({"message": "Failed to create user"}), 500
+        print(f"Error in create_user: {e}")
+        return jsonify({"status": "error", "message": "Failed to create new user"}), 500
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
 @root_auth.require_root_access
 def delete_user(user_id: int) -> Response:
+    """Deletes a specified user by their user ID.
+
+    Args:
+        user_id (int): The user ID of the user to delete.
+
+    Returns:
+        Response: 204 status code if successful, or a 404 status code if the user is not
+        found.
+    """
     try:
         success = delete_user_by_id(user_id)
         if success:
-            return jsonify({"message:" "Successfully delete user"}), 204
+            return "", 204
         else:
-            return jsonify({"message": "User was not found"}), 404
+            return jsonify({"status": "error", "message": "User not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete user", "error": str(e)}), 500
+        print(f"Error in delete_user: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete user"}), 500
 
 
 @bp.route("/<user_id>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization
 def update_user_password(user_id: int) -> Response:
+    """Updates the password of a specified user.
+
+    Args:
+        user_id (int): The user ID of the user whose password is being updated.
+
+    JSON Payload:
+        password (str): The new password for the user.
+
+    Returns:
+        Response: 204 status code if the password update is successful,
+                  or a 400 status code if the new password is missing.
+    """
     data = request.json
     new_password = data.get("password")
 
     if not new_password:
-        return jsonify({"message": "Password is required"}), 400
+        return jsonify({"status": "error", "message": "Missing password"}), 400
 
     password_hash = bcrypt.hashpw(
         new_password.encode("utf-8"), bcrypt.gensalt()
     ).decode("utf-8")
 
     try:
-        update_password(user_id, password_hash)
-        return jsonify({"message": "Password updated successfully"}), 200
+        success = update_password(user_id, password_hash)
+        if success:
+            return "", 204
     except Exception as e:
-        return jsonify({"message": "Failed to update password", "error": str(e)}), 500
+        print(f"Error in update_user_password: {e}")
+        return jsonify({"status": "error", "message": "Failed to update password"}), 500

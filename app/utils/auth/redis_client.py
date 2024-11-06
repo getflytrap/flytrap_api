@@ -1,3 +1,14 @@
+"""Redis caching utility for root access information.
+
+This module provides a function to retrieve and cache user root access status
+in Redis. It checks Redis for the cached data first; if not available, it retrieves
+the information from the database and stores it in Redis for future requests.
+
+Functions:
+    get_user_root_info_from_cache: Retrieves the root access status of a user from
+    the cache or database, caching the result in Redis.
+"""
+
 import redis
 from typing import Optional
 from app.models import get_user_root_info
@@ -8,6 +19,19 @@ redis_client = redis.StrictRedis(
 
 
 def get_user_root_info_from_cache(user_id: str) -> Optional[bool]:
+    """Retrieves the root access status of a user from Redis cache or the database.
+
+    This function first checks Redis for the root access status of a user. If the
+    information is not cached, it queries the database and stores the result in Redis
+    with a 15-minute expiration for future requests.
+
+    Args:
+        user_id (str): The ID of the user whose root access status is being requested.
+
+    Returns:
+        Optional[bool]: True if the user has root access, False if not, and None if the
+        user information is not found in the database.
+    """
     is_root = redis_client.get(f"is_root:{user_id}")
 
     if is_root is not None:

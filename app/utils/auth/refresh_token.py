@@ -1,3 +1,14 @@
+"""Refresh token utility.
+
+This module provides a function to handle access token refresh requests. It checks the
+refresh token from the client's cookies, validates it, and issues a new access token if
+the refresh token is valid. If the refresh token is expired or invalid, it returns an
+appropriate error message.
+
+Functions:
+    refresh_token: Validates the refresh token and generates a new access token.
+"""
+
 import jwt
 import datetime
 from typing import Tuple
@@ -6,6 +17,22 @@ from .redis_client import get_user_root_info_from_cache
 
 
 def refresh_token() -> Tuple[Response, int]:
+    """Generates a new access token using a valid refresh token.
+
+    This function:
+        - Extracts the refresh token from cookies.
+        - Decodes and validates the refresh token.
+        - Retrieves user information, including root status, from the cache.
+        - Issues a new access token valid for a specified time.
+
+    Returns:
+        Tuple[Response, int]: A JSON response containing a new access token with a 200
+        status code if successful, or an error message with a 401 status code if the
+        refresh token is missing, expired, or invalid.
+
+    Raises:
+        Exception: Propagates unexpected errors during token processing.
+    """
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         return jsonify({"message": "Token is missing!"}), 401

@@ -1,9 +1,32 @@
+"""Project Users models module.
+
+This module provides functions for managing the association between users and projects
+in the database. It includes functions to fetch users associated with a project, add a
+user to a project, and remove a user from a project. Each function is decorated to
+ensure the correct database connection context for reading or writing.
+
+Functions:
+    fetch_project_users: Retrieves a list of user IDs associated with a specific
+    project.
+    add_user_to_project: Adds a user to a specific project.
+    remove_user_from_project: Removes a user from a specific project.
+"""
+
 from typing import List
 from app.utils import db_read_connection, db_write_connection
 
 
 @db_read_connection
 def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
+    """Retrieves a list of user IDs associated with a specific project.
+
+    Args:
+        pid (int): The project ID.
+
+    Returns:
+        List[int]: A list of user IDs associated with the specified project.
+                   Returns an empty list if no users are found.
+    """
     cursor = kwargs["cursor"]
 
     query = """
@@ -22,6 +45,15 @@ def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
 
 @db_write_connection
 def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
+    """Adds a user to a specified project.
+
+    Args:
+        pid (int): The project ID.
+        user_id (int): The user ID to add to the project.
+
+    Returns:
+        None
+    """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -39,6 +71,15 @@ def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
 
 @db_write_connection
 def remove_user_from_project(project_pid: int, user_id: int, **kwargs: dict) -> bool:
+    """Removes a user from a specified project.
+
+    Args:
+        project_pid (int): The project ID.
+        user_id (int): The user ID to remove from the project.
+
+    Returns:
+        bool: True if the user was successfully removed, False otherwise.
+    """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
