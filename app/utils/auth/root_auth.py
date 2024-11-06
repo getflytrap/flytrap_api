@@ -16,7 +16,7 @@ import jwt
 import json
 from functools import wraps
 from flask import request, jsonify, make_response
-from .refresh_token import refresh_token
+from .get_new_access_token import get_new_access_token
 
 
 class RootAuth:
@@ -68,56 +68,74 @@ class RootAuth:
                 else:
                     return jsonify({"message": "Invalid token"}), 401
             except jwt.ExpiredSignatureError:
-                new_access_token = self.handle_expired_token(f, *args, **kwargs)
-                return self.check_root_access(new_access_token, f, *args, **kwargs)
+                # new_access_token = self.handle_expired_token(f, *args, **kwargs)
+                # return self.check_root_access(new_access_token, f, *args, **kwargs)
+                return self.handle_expired_token_and_check_root(f, *args, **kwargs)
             except jwt.InvalidTokenError:
                 return jsonify({"message": "Invalid token."}), 401
 
         return wrapper
-
-    def handle_expired_token(self, f, *args, **kwargs):
-        """Handles an expired token by attempting to refresh it.
-
-        Args:
-            f (callable): The function to wrap with token refresh logic.
-            *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments for the wrapped function.
-
-        Returns:
-            str | None: The new access token if refreshed successfully, or None if the
-                        refresh token is expired or invalid.
-        """
-        refresh_token_response_data = json.loads(
-            refresh_token()[0].get_data().decode("utf-8")
-        )
+    
+    def handle_expired_token_and_check_root(self, func, *args, **kwargs):
+        refresh_token_response_data = json.loads(get_new_access_token()[0].get_data().decode('utf-8'))
+        print(refresh_token_response_data)
+        print('hello from handle expired token', refresh_token_response_data)
         new_access_token = refresh_token_response_data.get("access_token")
-        return new_access_token
-
-    def check_root_access(self, new_access_token, f, *args, **kwargs):
-        """Validates root access for a new access token.
-
-        Args:
-            new_access_token (str): The refreshed access token.
-            f (callable): The function to wrap with root access validation.
-            *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments for the wrapped function.
-
-        Returns:
-            Response: The original response if root access is confirmed, or an error
-            response if the user lacks root privileges or the token is invalid.
-        """
         if new_access_token:
-            is_root = (
-                jwt.decode(new_access_token, self.secret_key, algorithms=["HS256"]).get(
-                    "is_root"
-                )
-                is True
-            )
+            is_root = jwt.decode(new_access_token, self.secret_key, algorithms=["HS256"]).get('is_root') == True
             if is_root:
-                response = make_response(f(*args, **kwargs))
-                response.headers["Authorization"] = f"Bearer {new_access_token}"
+                response = make_response(func(*args, **kwargs))
+                response.headers["New-Access-Token"] = new_access_token
                 return response
             else:
                 return jsonify({"message": "Unauthorized. Root users only"}), 403
         else:
+            print('hello')
             return jsonify({"message": "Refresh token expired or invalid."}), 401
+
+    # def handle_expired_token(self, f, *args, **kwargs):
+    #     """Handles an expired token by attempting to refresh it.
+
+    #     Args:
+    #         f (callable): The function to wrap with token refresh logic.
+    #         *args (tuple): Additional arguments for the wrapped function.
+    #         **kwargs (dict): Keyword arguments for the wrapped function.
+
+    #     Returns:
+    #         str | None: The new access token if refreshed successfully, or None if the
+    #                     refresh token is expired or invalid.
+    #     """
+    #     refresh_token_response_data = json.loads(
+    #         refresh_token()[0].get_data().decode("utf-8")
+    #     )
+    #     new_access_token = refresh_token_response_data.get("access_token")
+    #     return new_access_token
+
+    # def check_root_access(self, new_access_token, f, *args, **kwargs):
+    #     """Validates root access for a new access token.
+
+    #     Args:
+    #         new_access_token (str): The refreshed access token.
+    #         f (callable): The function to wrap with root access validation.
+    #         *args (tuple): Additional arguments for the wrapped function.
+    #         **kwargs (dict): Keyword arguments for the wrapped function.
+
+    #     Returns:
+    #         Response: The original response if root access is confirmed, or an error
+    #         response if the user lacks root privileges or the token is invalid.
+    #     """
+    #     if new_access_token:
+    #         is_root = (
+    #             jwt.decode(new_access_token, self.secret_key, algorithms=["HS256"]).get(
+    #                 "is_root"
+    #             )
+    #             is True
+    #         )
+    #         if is_root:
+    #             response = make_response(f(*args, **kwargs))
+    #             response.headers["Authorization"] = f"Bearer {new_access_token}"
+    #             return response
+    #         else:
+    #             return jsonify({"message": "Unauthorized. Root users only"}), 403
+    #     else:
+    #         return jsonify({"message": "Refresh token expired or invalid."}), 401

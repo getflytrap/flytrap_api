@@ -34,7 +34,7 @@ from app.routes import (
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):

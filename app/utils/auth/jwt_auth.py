@@ -18,7 +18,7 @@ from flask import request, jsonify, Response
 from typing import Any
 from functools import wraps
 from app.models import fetch_project_users
-from .refresh_token import refresh_token
+from .get_new_access_token import get_new_access_token
 
 
 class JWTAuth:
@@ -113,7 +113,7 @@ class JWTAuth:
                       the refresh token is invalid or expired.
         """
         # error-handling is built-in in the refresh_token method definition
-        parsed_json_data = json.loads(refresh_token()[0].get_data().decode("utf-8"))
+        parsed_json_data = json.loads(get_new_access_token()[0].get_data().decode("utf-8"))
         new_access_token = parsed_json_data.get("access_token")
 
         if new_access_token:
