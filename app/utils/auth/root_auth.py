@@ -66,7 +66,7 @@ class RootAuth:
                 if token_payload.get("is_root"):
                     return f(*args, **kwargs)
                 else:
-                    return jsonify({"message": "Invalid token"}), 401
+                    return jsonify({"message": "Unauthorized"}), 403
             except jwt.ExpiredSignatureError:
                 # new_access_token = self.handle_expired_token(f, *args, **kwargs)
                 # return self.check_root_access(new_access_token, f, *args, **kwargs)
