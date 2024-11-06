@@ -18,6 +18,7 @@ Attributes:
     webhook_bp (Blueprint): Blueprint for receiving webhook notifications.
 """
 
+import traceback
 from flask import Flask, jsonify
 from flask_cors import CORS
 from app.routes import (
@@ -39,6 +40,7 @@ def create_app() -> Flask:
     @app.errorhandler(Exception)
     def handle_generic_error(e):
         print('Error: ', e)
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
     # jwt_auth = JWTAuth(secret_key=secret_key)
