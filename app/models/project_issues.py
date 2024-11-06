@@ -116,7 +116,7 @@ def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT * FROM error_logs WHERE error_id = %s"
+    query = "SELECT * FROM error_logs WHERE id = %s"
     cursor.execute(query, [eid])
     error = cursor.fetchone()
 
