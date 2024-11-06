@@ -120,7 +120,7 @@ def remove_project_user(pid: str, user_id: int) -> Response:
         print(f"Error in remove_project_user: {e}")
         return (
             jsonify(
-                {"status": "error", "message": "failed to remove user from project"}
+                {"status": "error", "message": "Failed to remove user from project"}
             ),
             500,
         )
