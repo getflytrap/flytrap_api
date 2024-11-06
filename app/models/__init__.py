@@ -14,7 +14,7 @@ Imported Functions:
     - Project users functions: fetch_project_users, add_user_to_project,
       remove_user_from_project
     - User management functions: fetch_all_users, add_user, delete_user_by_id,
-      update_password, fetch_user_by_email, get_user_root_info
+      update_password, fetch_user_by_email, get_user_root_info, fetch_projects_for_user
 """
 
 from .projects import (
@@ -45,6 +45,7 @@ from .users import (
     update_password,
     fetch_user_by_email,
     get_user_root_info,
+    fetch_projects_for_user,
 )
 
 __all__ = [
@@ -69,4 +70,5 @@ __all__ = [
     "update_password",
     "fetch_user_by_email",
     "get_user_root_info",
+    "fetch_projects_for_user",
 ]

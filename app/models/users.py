@@ -13,6 +13,7 @@ Functions:
     fetch_user_by_email: Retrieves user data by email, including password hash and root
     status.
     get_user_root_info: Retrieves the root access status for a specific user.
+    fetch_projects_for_user: Retrieves all projects a user is assigned to.
 """
 
 from typing import List, Dict, Optional, Union
@@ -182,3 +183,32 @@ def get_user_root_info(user_id, **kwargs):
     is_root = cursor.fetchone()[0]
 
     return is_root
+
+
+@db_read_connection
+def fetch_projects_for_user(user_id, **kwargs):
+    """
+    Fetches all projects assigned to a specific user by user ID.
+
+    Args:
+    - user_id (int): The ID of the user whose projects are to be retrieved.
+
+    Returns:
+    - List[dict]: A list of dictionaries, each containing the 'pid' and 'name' of a
+      projectassigned to the specified user.
+    """
+    cursor = kwargs["cursor"]
+
+    query = """
+    SELECT p.pid, p.name
+    FROM projects p
+    JOIN projects_users pu ON p.id = pu.project_id
+    WHERE pu.user_id = %s;
+    """
+
+    cursor.execute(query, (user_id,))
+    rows = cursor.fetchall()
+
+    projects = [{"pid": project[0], "name": project[1]} for project in rows]
+
+    return projects

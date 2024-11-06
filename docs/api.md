@@ -82,6 +82,31 @@ Updates a user's password.
 #### Example Response
 Empty response with status 204 on success.
 
+### 1.5 GET /api/<user_id>/projects
+Retrieves all projects assigned to a specific user by user ID.
+
+**Authorization**: Requires user access.
+
+#### URL Parameters
+- `user_id` (int): The ID of the user for whom to retrieve projects.
+
+#### Example Response (Success)
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "pid": "1234-5678-90ab-cdef",
+      "name": "Project Alpha"
+    },
+    {
+      "pid": "abcd-1234-efgh-5678",
+      "name": "Project Beta"
+    }
+  ]
+}
+```
+
 ---
 
 
