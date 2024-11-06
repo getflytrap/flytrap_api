@@ -93,7 +93,8 @@ class JWTAuth:
             else:
                 return jsonify({"message": "Unauthorized for this project"}), 403
 
-        return f(*args)
+        print('f args', args)
+        return f(*args, **kwargs)
 
     def handle_expired_access_token(
         self, f: callable, *args: tuple, **kwargs: dict
