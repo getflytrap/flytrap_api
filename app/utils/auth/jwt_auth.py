@@ -79,7 +79,28 @@ class JWTAuth:
         
         return decorator
 
+    def _authenticate_root(
+        self, f: callable, token: str, *args: tuple, **kwargs: dict
+    ) -> Response | Any:
+        """Method to check whether the current user has root privileges necessary
+        to perform sensitive operations.
 
+        Args:
+            f (callable): The function to wrap with authorization checks.
+            token (str): The JWT access token.
+            *args (tuple): Additional arguments for the wrapped function.
+            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
+
+        Returns:
+            Response | Any: The response from the wrapped function if authorized, or an
+                            error response with status 403 or 404 if unauthorized
+        """
+        token_payload = self._decode_token(token)
+        if token_payload.get("is_root") == True:
+            return f(*args, **kwargs)
+        else:
+            return jsonify({"message": "Unathorized"}), 403
+        
     def _get_token(self) -> str | None:
         """Extracts the token from the Authorization header.
 
@@ -194,25 +215,3 @@ class JWTAuth:
         else:
             # return message for invalid or expired refresh token
             return parsed_json_data
-        
-    def _authenticate_root(
-        self, f: callable, token: str, *args: tuple, **kwargs: dict
-    ) -> Response | Any:
-        """Method to check whether the current user has root privileges necessary
-        to perform sensitive operations.
-
-        Args:
-            f (callable): The function to wrap with authorization checks.
-            token (str): The JWT access token.
-            *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
-
-        Returns:
-            Response | Any: The response from the wrapped function if authorized, or an
-                            error response with status 403 or 404 if unauthorized
-        """
-        token_payload = self._decode_token(token)
-        if token_payload.get("is_root") == True:
-            return f(*args, **kwargs)
-        else:
-            return jsonify({"message": "Unathorized"}), 403
