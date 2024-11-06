@@ -47,12 +47,10 @@ def login() -> Response:
         successful, or error messages with appropriate status codes if login fails.
     """
     data = request.json
-    print('data: ', data)
     email = data.get("email")
     password = data.get("password")
 
     user = fetch_user_by_email(email)
-    print('user: ', user)
 
     if not user:
         return jsonify({"message": "User does not exist"}), 404
@@ -60,10 +58,6 @@ def login() -> Response:
     id = user.get('id')
     password_hash = user.get('password_hash')
     is_root = user.get('is_root')
-
-    print('id', id)
-    print('password hash', password_hash)
-    print('is_root', is_root)
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
         print('password matches')
