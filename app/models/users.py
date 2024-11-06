@@ -22,7 +22,7 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
         for user in rows
     ]
 
-    return users if users else None
+    return users
 
 
 @db_write_connection
@@ -69,7 +69,10 @@ def update_password(user_id: int, password_hash: str, **kwargs) -> None:
     """
 
     cursor.execute(query, (password_hash, user_id))
+    rows_updated = cursor.rowcount
     connection.commit()
+
+    return rows_updated > 0
 
 
 @db_read_connection

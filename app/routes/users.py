@@ -14,13 +14,10 @@ bp = Blueprint("users", __name__)
 def get_users() -> Response:
     try:
         users = fetch_all_users()
-        return (
-            jsonify({"message": "Successfully fetched all users", "users": users}),
-            200,
-        )
+        return jsonify({"status": "success", "data": users}), 200
     except Exception as e:
-        print("Error: " + str(e))
-        return jsonify({"message": "Failed to fetch data"}), 500
+        print(f"Error in get_users: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch users"}), 500
 
 
 @bp.route("/", methods=["POST"])
@@ -41,28 +38,29 @@ def create_user() -> Response:
         or not last_name
     ):
         return (
-            jsonify({"message": "Missing input data."}),
+            jsonify({"status": "error", "message": "Missing input data"}),
             400,
         )
 
     if password != confirmed_password:
-        return jsonify({"message": "Passwords do not match"}), 400
+        return jsonify({"status": "error", "message": "Passwords do not match"}), 400
 
     if not is_valid_email(email):
-        return jsonify({"message": "invalid email format"}), 400
+        return jsonify({"status": "error", "message": "Invalid email format"}), 400
 
     salt = bcrypt.gensalt()
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
 
     try:
         user_id = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
+        data = {"user_id": user_id, "first_name": first_name, "last_name": last_name}
         return (
-            jsonify({"message": "User created successfully", "user_id": user_id}),
+            jsonify({"status": "success", "data": data}),
             201,
         )
     except Exception as e:
-        print("error: " + str(e))
-        return jsonify({"message": "Failed to create user"}), 500
+        print(f"Error in create_user: {e}")
+        return jsonify({"status": "error", "message": "Failed to create new user"}), 500
 
 
 @bp.route("/<user_id>", methods=["DELETE"])
@@ -71,11 +69,12 @@ def delete_user(user_id: int) -> Response:
     try:
         success = delete_user_by_id(user_id)
         if success:
-            return jsonify({"message:" "Successfully delete user"}), 204
+            return "", 204
         else:
-            return jsonify({"message": "User was not found"}), 404
+            return jsonify({"status": "error", "message": "User not found"}), 404
     except Exception as e:
-        return jsonify({"message": "Failed to delete user", "error": str(e)}), 500
+        print(f"Error in delete_user: {e}")
+        return jsonify({"status": "error", "message": "Failed to delete user"}), 500
 
 
 @bp.route("/<user_id>", methods=["PATCH"])
@@ -85,14 +84,16 @@ def update_user_password(user_id: int) -> Response:
     new_password = data.get("password")
 
     if not new_password:
-        return jsonify({"message": "Password is required"}), 400
+        return jsonify({"status": "error", "message": "Missing password"}), 400
 
     password_hash = bcrypt.hashpw(
         new_password.encode("utf-8"), bcrypt.gensalt()
     ).decode("utf-8")
 
     try:
-        update_password(user_id, password_hash)
-        return jsonify({"message": "Password updated successfully"}), 200
+        success = update_password(user_id, password_hash)
+        if success:
+            return "", 204
     except Exception as e:
-        return jsonify({"message": "Failed to update password", "error": str(e)}), 500
+        print(f"Error in update_user_password: {e}")
+        return jsonify({"status": "error", "message": "Failed to update password"}), 500
