@@ -158,15 +158,7 @@ def toggle_error(pid, eid: int) -> Response:
     try:
         success = update_error_resolved(eid, new_resolved_state)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Error resolved state updated successfully",
-                    }
-                ),
-                200,
-            )
+            return "", 204
         else:
             return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
@@ -198,15 +190,7 @@ def toggle_rejection(pid, rid: int) -> Response:
     try:
         success = update_rejection_resolved(rid, new_resolved_state)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Rejection resolved state updated successfully",
-                    }
-                ),
-                200,
-            )
+            return "", 204
         else:
             return jsonify({"status": "error", "message": "Rejection not found"}), 404
     except Exception as e:

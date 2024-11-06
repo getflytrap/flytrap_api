@@ -149,7 +149,7 @@ def fetch_rejection(rid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
         or None if not found.
     """
     cursor = kwargs["cursor"]
-    query = "SELECT * FROM rejection_logs WHERE error_id = %s"
+    query = "SELECT * FROM rejection_logs WHERE id = %s"
     cursor.execute(query, [rid])
     rejection = cursor.fetchone()
 
