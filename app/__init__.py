@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from psycopg2 import OperationalError
 from app.routes import projects_bp, issues_bp, project_users_bp, users_bp, auth_bp
 from app.config import secret_key
 from app.utils.auth import JWTAuth, RootAuth
@@ -8,6 +9,10 @@ from app.utils.auth import JWTAuth, RootAuth
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app)
+
+    @app.errorhandler(OperationalError)
+    def handle_db_error(e):
+        return jsonify({"status": "error", "message": "A database error occurred"}), 500
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):
