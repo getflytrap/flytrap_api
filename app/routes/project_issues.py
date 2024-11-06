@@ -19,9 +19,10 @@ Attributes:
     bp (Blueprint): Blueprint for project issues routes.
 """
 
+import traceback
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app import jwt_auth
+from app.auth_manager import jwt_auth
 from app.models import (
     fetch_issues_by_project,
     delete_issues_by_project,
@@ -59,6 +60,7 @@ def get_issues(pid: str) -> Response:
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_issues: {e}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": "Failed to fetch data"}), 500
 
 
@@ -90,7 +92,7 @@ def delete_issues(pid: str) -> Response:
 
 @bp.route("/errors/<eid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization
-def get_error(_, eid: int) -> Response:
+def get_error(pid, eid: int) -> Response:
     """Retrieves a specific error by its ID.
 
     Args:
@@ -108,12 +110,13 @@ def get_error(_, eid: int) -> Response:
             return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
         print(f"Error in get_error: {e}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": "Failed to fetch error"}), 500
 
 
 @bp.route("/rejections/<rid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization
-def get_rejection(_, rid: int) -> Response:
+def get_rejection(pid, rid: int) -> Response:
     """Retrieves a specific rejection by its ID.
 
     Args:
@@ -136,7 +139,7 @@ def get_rejection(_, rid: int) -> Response:
 
 @bp.route("/errors/<eid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization
-def toggle_error(_, eid: int) -> Response:
+def toggle_error(pid, eid: int) -> Response:
     """Toggles the resolved state of a specific error.
 
     Args:
@@ -155,15 +158,7 @@ def toggle_error(_, eid: int) -> Response:
     try:
         success = update_error_resolved(eid, new_resolved_state)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Error resolved state updated successfully",
-                    }
-                ),
-                200,
-            )
+            return "", 204
         else:
             return jsonify({"status": "error", "message": "Error not found"}), 404
     except Exception as e:
@@ -176,7 +171,7 @@ def toggle_error(_, eid: int) -> Response:
 
 @bp.route("/rejections/<rid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization
-def toggle_rejection(_, rid: int) -> Response:
+def toggle_rejection(pid, rid: int) -> Response:
     """Toggles the resolved state of a specific rejection.
 
     Args:
@@ -195,15 +190,7 @@ def toggle_rejection(_, rid: int) -> Response:
     try:
         success = update_rejection_resolved(rid, new_resolved_state)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Rejection resolved state updated successfully",
-                    }
-                ),
-                200,
-            )
+            return "", 204
         else:
             return jsonify({"status": "error", "message": "Rejection not found"}), 404
     except Exception as e:
@@ -216,7 +203,7 @@ def toggle_rejection(_, rid: int) -> Response:
 
 @bp.route("/errors/<eid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization
-def delete_error(_, eid: int) -> Response:
+def delete_error(pid, eid: int) -> Response:
     """Deletes a specific error by its ID.
 
     Args:
@@ -239,7 +226,7 @@ def delete_error(_, eid: int) -> Response:
 
 @bp.route("/rejections/<rid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization
-def delete_rejection(_, rid: int) -> Response:
+def delete_rejection(pid, rid: int) -> Response:
     """Deletes a specific rejection by its ID.
 
     Args:

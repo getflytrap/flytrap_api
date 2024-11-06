@@ -9,14 +9,18 @@ Functions:
     refresh_token: Validates the refresh token and generates a new access token.
 """
 
+import os
 import jwt
 import datetime
 from typing import Tuple
 from flask import request, jsonify, Response
+from dotenv import load_dotenv
 from .redis_client import get_user_root_info_from_cache
 
+load_dotenv()
 
-def refresh_token() -> Tuple[Response, int]:
+
+def get_new_access_token() -> Tuple[Response, int]:
     """Generates a new access token using a valid refresh token.
 
     This function:
@@ -38,7 +42,7 @@ def refresh_token() -> Tuple[Response, int]:
         return jsonify({"message": "Token is missing!"}), 401
     try:
         decoded_refresh_token = jwt.decode(
-            refresh_token, "SECRET", algorithms=["HS256"]
+            refresh_token, os.getenv("JWT_SECRET_KEY"), algorithms=["HS256"]
         )
         user_id = decoded_refresh_token.get("user_id")
         is_root = get_user_root_info_from_cache(user_id)
@@ -49,7 +53,7 @@ def refresh_token() -> Tuple[Response, int]:
                 "is_root": is_root,
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
             },
-            "SECRET",
+            os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
         )
 

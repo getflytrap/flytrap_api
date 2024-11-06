@@ -18,7 +18,7 @@ from flask import request, jsonify, Response
 from typing import Any
 from functools import wraps
 from app.models import fetch_project_users
-from .refresh_token import refresh_token
+from .get_new_access_token import get_new_access_token
 
 
 class JWTAuth:
@@ -80,22 +80,20 @@ class JWTAuth:
             Response | Any: The response from the wrapped function if authorized, or an
                             error response with status 403 or 404 if unauthorized.
         """
-        decoded_token = self._decode_token(token)
-        user_id = decoded_token.get("user_id")
+        token_payload = self._decode_token(token)
+        user_id = token_payload.get("user_id")
         project_pid = kwargs.get("pid")
 
+        print("token_payload: ", token_payload)
         if project_pid:
             authorized_user_ids = fetch_project_users(project_pid)
-            if not authorized_user_ids:
-                return (
-                    jsonify({"message": "Project was not found or has no users"}),
-                    404,
-                )
-            if user_id not in authorized_user_ids:
-                print("user", user_id, authorized_user_ids)
+
+            if user_id in authorized_user_ids or token_payload.get("is_root") is True:
+                return f(*args, **kwargs)
+            else:
                 return jsonify({"message": "Unauthorized for this project"}), 403
 
-        return f(*args, **kwargs)
+        return f(*args)
 
     def handle_expired_access_token(
         self, f: callable, *args: tuple, **kwargs: dict
@@ -113,7 +111,9 @@ class JWTAuth:
                       the refresh token is invalid or expired.
         """
         # error-handling is built-in in the refresh_token method definition
-        parsed_json_data = json.loads(refresh_token()[0].get_data().decode("utf-8"))
+        parsed_json_data = json.loads(
+            get_new_access_token()[0].get_data().decode("utf-8")
+        )
         new_access_token = parsed_json_data.get("access_token")
 
         if new_access_token:

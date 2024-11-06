@@ -16,7 +16,7 @@ Attributes:
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app.utils import generate_uuid
-from app import root_auth
+from app.auth_manager import root_auth
 from app.models import (
     fetch_projects,
     add_project,

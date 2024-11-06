@@ -98,7 +98,6 @@ def fetch_errors_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-    cursor.close()
 
     errors = [
         {
@@ -173,7 +172,6 @@ def fetch_rejections_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-    cursor.close()
 
     rejections = [
         {
@@ -201,18 +199,24 @@ def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
     Returns:
         int: The total number of pages required to display all error and rejection logs.
     """
-    error_count_query = "SELECT COUNT(*) FROM error_logs WHERE pid = %s"
-    error_count_query = "SELECT COUNT(*) FROM error_logs WHERE project_id = %s"
+    error_count_query = """
+    SELECT COUNT(*) FROM error_logs e
+    JOIN projects p ON e.project_id = p.id
+    WHERE p.pid = %s
+    """
     cursor.execute(error_count_query, [pid])
     error_count = cursor.fetchone()[0]
 
-    rejection_count_query = "SELECT COUNT(*) FROM rejection_logs WHERE pid = %s"
-    rejection_count_query = "SELECT COUNT(*) FROM rejection_logs WHERE project_id = %s"
+    rejection_count_query = """
+    SELECT COUNT(*)
+    FROM rejection_logs r
+    JOIN projects p ON r.project_id = p.id
+    WHERE p.pid = %s
+    """
     cursor.execute(rejection_count_query, [pid])
     rejection_count = cursor.fetchone()[0]
 
     total_count = error_count + rejection_count
     total_pages = math.ceil(total_count / limit)
 
-    cursor.close()
     return total_pages

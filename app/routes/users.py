@@ -19,7 +19,7 @@ Attributes:
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app import jwt_auth, root_auth
+from app.auth_manager import jwt_auth, root_auth
 from app.models import (
     fetch_all_users,
     add_user,

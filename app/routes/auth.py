@@ -14,6 +14,7 @@ Attributes:
     bp (Blueprint): Blueprint for the authentication routes.
 """
 
+import os
 import bcrypt
 import datetime
 import jwt
@@ -22,9 +23,18 @@ from flask import Blueprint
 from app.models import (
     fetch_user_by_email,
 )
-from app.utils.auth import refresh_token
+from app.utils.auth import get_new_access_token
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bp = Blueprint("auth", __name__)
+
+# secure: set to False for local testing
+httponly = True if os.getenv("HTTPONLY") == "True" else False
+secure = True if os.getenv("SECURE") == "True" else False
+samesite = os.getenv("SAMESITE")
+path = os.getenv("PATH")
 
 
 @bp.route("/login", methods=["POST"])
@@ -51,39 +61,43 @@ def login() -> Response:
     if not user:
         return jsonify({"message": "User does not exist"}), 404
 
-    user_id, password_hash, is_root = user
+    id = user.get("id")
+    password_hash = user.get("password_hash")
+    is_root = user.get("is_root")
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
+        print("password matches")
         access_token = jwt.encode(
             {
-                "user_id": user_id,
+                "user_id": id,
                 "is_root": is_root,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(minutes=1),
+                + datetime.timedelta(minutes=60),
             },
-            "SECRET",
+            os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
         )
 
         refresh_token = jwt.encode(
             {
-                "user_id": user_id,
+                "user_id": id,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
                 + datetime.timedelta(days=7),
             },
-            "SECRET",
+            os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
         )
 
         response = make_response(jsonify({"access_token": access_token}), 200)
-        # secure: set to False for local testing
         response.set_cookie(
             "refresh_token",
             refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="Strict",
+            httponly=httponly,
+            secure=secure,
+            samesite=samesite,
+            path=path,
         )
+        print(response.headers)
         return response
     else:
         return jsonify({"message": "Invalid password"}), 401
@@ -105,7 +119,9 @@ def logout() -> Response:
         cleared.
     """
     response = make_response(redirect("/login"), 302)
-    response.set_cookie("refresh_token", "", expires=0, httponly=True, secure=True)
+    response.set_cookie(
+        "refresh_token", "", expires=0, httponly=httponly, secure=secure
+    )
 
     # Note: No access_token clearing needed since it's client-managed in memory
     return response
@@ -124,4 +140,4 @@ def refresh() -> Response:
         Response: JSON response containing a new access token, or an error message if
         the refresh token is invalid or missing.
     """
-    return refresh_token()
+    return get_new_access_token()

@@ -15,7 +15,7 @@ Attributes:
 
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app import root_auth
+from app.auth_manager import root_auth
 from app.models import (
     fetch_project_users,
     add_user_to_project,
@@ -53,7 +53,7 @@ def get_project_users(pid: str) -> Response:
 
 @bp.route("/", methods=["POST"])
 @root_auth.require_root_access
-def add_project_user(pid: str, user_id: int) -> Response:
+def add_project_user(pid: str) -> Response:
     """Adds a user to a specified project.
 
     Args:

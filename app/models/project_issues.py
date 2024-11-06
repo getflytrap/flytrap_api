@@ -84,11 +84,17 @@ def delete_issues_by_project(pid: int, **kwargs: dict) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "DELETE FROM error_logs WHERE project_id = %s"
+    query = """
+    DELETE FROM error_logs
+    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    """
     cursor.execute(query, (pid,))
     error_rows_deleted = cursor.rowcount
 
-    rejection_query = "DELETE FROM rejection_logs WHERE project_id = %s"
+    rejection_query = """
+    DELETE FROM rejection_logs
+    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    """
     cursor.execute(rejection_query, (pid,))
     rejection_rows_deleted = cursor.rowcount
 
@@ -110,7 +116,7 @@ def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT * FROM error_logs WHERE error_id = %s"
+    query = "SELECT * FROM error_logs WHERE id = %s"
     cursor.execute(query, [eid])
     error = cursor.fetchone()
 
@@ -143,7 +149,7 @@ def fetch_rejection(rid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
         or None if not found.
     """
     cursor = kwargs["cursor"]
-    query = "SELECT * FROM rejection_logs WHERE error_id = %s"
+    query = "SELECT * FROM rejection_logs WHERE id = %s"
     cursor.execute(query, [rid])
     rejection = cursor.fetchone()
 
