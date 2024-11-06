@@ -1,3 +1,22 @@
+"""App initialization module.
+
+This module defines the `create_app` function, which initializes and configures
+the Flask application.
+It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
+configures error handling,
+and initializes authentication mechanisms.
+
+Functions:
+    create_app() -> Flask: Creates and configures the Flask application instance.
+
+Attributes:
+    projects_bp (Blueprint): Blueprint for project-related routes.
+    issues_bp (Blueprint): Blueprint for project issue routes.
+    project_users_bp (Blueprint): Blueprint for project user routes.
+    users_bp (Blueprint): Blueprint for user management routes.
+    auth_bp (Blueprint): Blueprint for authentication routes.
+"""
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from app.routes import projects_bp, issues_bp, project_users_bp, users_bp, auth_bp

@@ -1,3 +1,18 @@
+"""Authentication routes module.
+
+This module provides authentication routes for user login and logout. It verifies user
+credentials, generates access and refresh tokens, and manages token-based authentication
+using JWT. Passwords are securely verified using bcrypt.
+
+Routes:
+    /login (POST): Authenticates a user, issuing JWT access and refresh tokens upon
+    successful login.
+    /logout (GET): Logs out a user by clearing the refresh token cookie.
+
+Attributes:
+    bp (Blueprint): Blueprint for the authentication routes.
+"""
+
 import bcrypt
 import datetime
 import jwt
@@ -12,6 +27,19 @@ bp = Blueprint("auth", __name__)
 
 @bp.route("/login", methods=["POST"])
 def login() -> Response:
+    """Logs in a user by verifying credentials and issuing JWT tokens.
+
+    This endpoint:
+        - Accepts a JSON payload with 'email' and 'password'.
+        - Validates the email and password against stored user data.
+        - Issues a short-lived JWT access token and a longer-lived refresh token if
+          authentication succeeds.
+        - Sets the refresh token in an HTTP-only cookie to improve security.
+
+    Returns:
+        Response: JSON response containing the access token with a 200 status if
+        successful, or error messages with appropriate status codes if login fails.
+    """
     data = request.json
     email = data.get("email")
     password = data.get("password")
@@ -61,6 +89,19 @@ def login() -> Response:
 
 @bp.route("/logout", methods=["GET"])
 def logout() -> Response:
+    """Logs out a user by clearing the refresh token cookie.
+
+    This endpoint:
+        - Redirects the user to the login page.
+        - Clears the refresh token from the cookie by setting its expiration date to the
+          past.
+        - Does not clear the access token, as it is typically stored in memory on the
+          client side.
+
+    Returns:
+        Response: A redirection response to the login page with the refresh token cookie
+        cleared.
+    """
     response = make_response(redirect("/login"), 302)
     response.set_cookie("refresh_token", "", expires=0, httponly=True, secure=True)
 

@@ -1,9 +1,33 @@
+"""Users models module.
+
+This module provides functions for managing users in the database, including fetching
+all users, adding new users, deleting users, updating user passwords, and retrieving
+user information by email or user ID. Each function is decorated to ensure the
+appropriate database connection context for reading or writing.
+
+Functions:
+    fetch_all_users: Retrieves a list of all users.
+    add_user: Adds a new user to the database and returns the user ID.
+    delete_user_by_id: Deletes a user by their unique ID.
+    update_password: Updates the password hash for a specific user.
+    fetch_user_by_email: Retrieves user data by email, including password hash and root
+    status.
+    get_user_root_info: Retrieves the root access status for a specific user.
+"""
+
 from typing import List, Dict, Optional, Union
 from app.utils import db_read_connection, db_write_connection
 
 
 @db_read_connection
 def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
+    """Retrieves a list of all users in the database.
+
+    Returns:
+        Optional[List[Dict[str, str]]]: A list of dictionaries with user information
+        (id, first_name, last_name, email, is_root, created_at), or None if no users are
+        found.
+    """
     cursor = kwargs["cursor"]
 
     query = "SELECT * FROM users;"
@@ -29,6 +53,17 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 def add_user(
     first_name: str, last_name: str, email: str, password_hash: str, **kwargs
 ) -> int:
+    """Adds a new user to the database with the specified information.
+
+    Args:
+        first_name (str): The user's first name.
+        last_name (str): The user's last name.
+        email (str): The user's email address.
+        password_hash (str): The hashed password for the user.
+
+    Returns:
+        int: The unique ID of the newly added user.
+    """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -47,6 +82,14 @@ def add_user(
 
 @db_write_connection
 def delete_user_by_id(user_id: int, **kwargs) -> bool:
+    """Deletes a user by their unique user ID.
+
+    Args:
+        user_id (int): The unique ID of the user to delete.
+
+    Returns:
+        bool: True if the user was deleted, False otherwise.
+    """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "DELETE FROM users WHERE id = %s"
@@ -58,7 +101,16 @@ def delete_user_by_id(user_id: int, **kwargs) -> bool:
 
 
 @db_write_connection
-def update_password(user_id: int, password_hash: str, **kwargs) -> None:
+def update_password(user_id: int, password_hash: str, **kwargs) -> bool:
+    """Updates the password hash for a specific user.
+
+    Args:
+        user_id (int): The unique ID of the user.
+        password_hash (str): The new hashed password for the user.
+
+    Returns:
+        bool: True if the password was updated, False otherwise.
+    """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -79,6 +131,15 @@ def update_password(user_id: int, password_hash: str, **kwargs) -> None:
 def fetch_user_by_email(
     email: str, **kwargs
 ) -> Optional[Dict[str, Union[int, str, bool]]]:
+    """Retrieves user data by email, including password hash and root status.
+
+    Args:
+        email (str): The user's email address.
+
+    Returns:
+        Optional[Dict[str, Union[int, str, bool]]]: A dictionary with user ID, password
+        hash, and root status if the user exists, or None if the user is not found.
+    """
     cursor = kwargs["cursor"]
 
     query = """
@@ -102,6 +163,14 @@ def fetch_user_by_email(
 
 @db_read_connection
 def get_user_root_info(user_id, **kwargs):
+    """Retrieves the root access status for a specific user by their unique ID.
+
+    Args:
+        user_id (int): The unique ID of the user.
+
+    Returns:
+        bool: True if the user has root access, False otherwise.
+    """
     cursor = kwargs["cursor"]
 
     query = """
