@@ -84,11 +84,17 @@ def delete_issues_by_project(pid: int, **kwargs: dict) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "DELETE FROM error_logs WHERE project_id = %s"
+    query = """
+    DELETE FROM error_logs
+    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    """
     cursor.execute(query, (pid,))
     error_rows_deleted = cursor.rowcount
 
-    rejection_query = "DELETE FROM rejection_logs WHERE project_id = %s"
+    rejection_query = """
+    DELETE FROM rejection_logs 
+    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    """
     cursor.execute(rejection_query, (pid,))
     rejection_rows_deleted = cursor.rowcount
 
