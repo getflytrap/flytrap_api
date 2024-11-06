@@ -15,11 +15,19 @@ Attributes:
     project_users_bp (Blueprint): Blueprint for project user routes.
     users_bp (Blueprint): Blueprint for user management routes.
     auth_bp (Blueprint): Blueprint for authentication routes.
+    webhook_bp (Blueprint): Blueprint for receiving webhook notifications.
 """
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from app.routes import projects_bp, issues_bp, project_users_bp, users_bp, auth_bp
+from app.routes import (
+    projects_bp,
+    issues_bp,
+    project_users_bp,
+    users_bp,
+    auth_bp,
+    webhook_bp
+)
 from app.config import secret_key
 from app.utils.auth import JWTAuth, RootAuth
 
@@ -42,5 +50,6 @@ def create_app() -> Flask:
     app.register_blueprint(project_users_bp, url_prefix="/api/projects/<pid>/users")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(webhook_bp, url_prefix="/api/webhook")
 
     return app
