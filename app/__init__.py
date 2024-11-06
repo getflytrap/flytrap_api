@@ -29,6 +29,7 @@ from app.routes import (
     auth_bp,
     webhook_bp,
 )
+
 # from app.config import secret_key
 # from app.utils.auth import JWTAuth, RootAuth
 
@@ -39,7 +40,7 @@ def create_app() -> Flask:
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):
-        print('Error: ', e)
+        print("Error: ", e)
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 

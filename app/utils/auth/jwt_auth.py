@@ -84,11 +84,11 @@ class JWTAuth:
         user_id = token_payload.get("user_id")
         project_pid = kwargs.get("pid")
 
-        print('token_payload: ', token_payload)
+        print("token_payload: ", token_payload)
         if project_pid:
             authorized_user_ids = fetch_project_users(project_pid)
 
-            if user_id in authorized_user_ids or token_payload.get('is_root') == True:
+            if user_id in authorized_user_ids or token_payload.get("is_root") is True:
                 return f(*args, **kwargs)
             else:
                 return jsonify({"message": "Unauthorized for this project"}), 403
@@ -111,7 +111,9 @@ class JWTAuth:
                       the refresh token is invalid or expired.
         """
         # error-handling is built-in in the refresh_token method definition
-        parsed_json_data = json.loads(get_new_access_token()[0].get_data().decode("utf-8"))
+        parsed_json_data = json.loads(
+            get_new_access_token()[0].get_data().decode("utf-8")
+        )
         new_access_token = parsed_json_data.get("access_token")
 
         if new_access_token:

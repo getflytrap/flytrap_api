@@ -31,10 +31,11 @@ load_dotenv()
 bp = Blueprint("auth", __name__)
 
 # secure: set to False for local testing
-httponly = True if os.getenv('HTTPONLY') == 'True' else False
-secure = True if os.getenv('SECURE') == 'True' else False
-samesite = os.getenv('SAMESITE')
-path = os.getenv('PATH')
+httponly = True if os.getenv("HTTPONLY") == "True" else False
+secure = True if os.getenv("SECURE") == "True" else False
+samesite = os.getenv("SAMESITE")
+path = os.getenv("PATH")
+
 
 @bp.route("/login", methods=["POST"])
 def login() -> Response:
@@ -60,12 +61,12 @@ def login() -> Response:
     if not user:
         return jsonify({"message": "User does not exist"}), 404
 
-    id = user.get('id')
-    password_hash = user.get('password_hash')
-    is_root = user.get('is_root')
+    id = user.get("id")
+    password_hash = user.get("password_hash")
+    is_root = user.get("is_root")
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
-        print('password matches')
+        print("password matches")
         access_token = jwt.encode(
             {
                 "user_id": id,
@@ -73,7 +74,7 @@ def login() -> Response:
                 "exp": datetime.datetime.now(datetime.timezone.utc)
                 + datetime.timedelta(minutes=60),
             },
-            os.getenv('JWT_SECRET_KEY'),
+            os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
         )
 
@@ -83,7 +84,7 @@ def login() -> Response:
                 "exp": datetime.datetime.now(datetime.timezone.utc)
                 + datetime.timedelta(days=7),
             },
-            os.getenv('JWT_SECRET_KEY'),
+            os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
         )
 
@@ -94,7 +95,7 @@ def login() -> Response:
             httponly=httponly,
             secure=secure,
             samesite=samesite,
-            path=path
+            path=path,
         )
         print(response.headers)
         return response
@@ -118,7 +119,9 @@ def logout() -> Response:
         cleared.
     """
     response = make_response(redirect("/login"), 302)
-    response.set_cookie("refresh_token", "", expires=0, httponly=httponly, secure=secure)
+    response.set_cookie(
+        "refresh_token", "", expires=0, httponly=httponly, secure=secure
+    )
 
     # Note: No access_token clearing needed since it's client-managed in memory
     return response

@@ -92,7 +92,7 @@ def delete_issues_by_project(pid: int, **kwargs: dict) -> bool:
     error_rows_deleted = cursor.rowcount
 
     rejection_query = """
-    DELETE FROM rejection_logs 
+    DELETE FROM rejection_logs
     WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
     """
     cursor.execute(rejection_query, (pid,))

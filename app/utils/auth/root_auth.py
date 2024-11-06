@@ -75,14 +75,21 @@ class RootAuth:
                 return jsonify({"message": "Invalid token."}), 401
 
         return wrapper
-    
+
     def handle_expired_token_and_check_root(self, func, *args, **kwargs):
-        refresh_token_response_data = json.loads(get_new_access_token()[0].get_data().decode('utf-8'))
+        refresh_token_response_data = json.loads(
+            get_new_access_token()[0].get_data().decode("utf-8")
+        )
         print(refresh_token_response_data)
-        print('hello from handle expired token', refresh_token_response_data)
+        print("hello from handle expired token", refresh_token_response_data)
         new_access_token = refresh_token_response_data.get("access_token")
         if new_access_token:
-            is_root = jwt.decode(new_access_token, self.secret_key, algorithms=["HS256"]).get('is_root') == True
+            is_root = (
+                jwt.decode(new_access_token, self.secret_key, algorithms=["HS256"]).get(
+                    "is_root"
+                )
+                is True
+            )
             if is_root:
                 response = make_response(func(*args, **kwargs))
                 response.headers["New-Access-Token"] = new_access_token
@@ -90,7 +97,7 @@ class RootAuth:
             else:
                 return jsonify({"message": "Unauthorized. Root users only"}), 403
         else:
-            print('hello')
+            print("hello")
             return jsonify({"message": "Refresh token expired or invalid."}), 401
 
     # def handle_expired_token(self, f, *args, **kwargs):
