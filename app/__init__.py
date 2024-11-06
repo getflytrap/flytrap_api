@@ -38,6 +38,7 @@ def create_app() -> Flask:
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):
+        print('Error: ', e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
     # jwt_auth = JWTAuth(secret_key=secret_key)

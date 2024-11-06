@@ -14,6 +14,7 @@ Attributes:
     bp (Blueprint): Blueprint for the authentication routes.
 """
 
+import os
 import bcrypt
 import datetime
 import jwt
@@ -23,6 +24,9 @@ from app.models import (
     fetch_user_by_email,
 )
 from app.utils.auth import refresh_token
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bp = Blueprint("auth", __name__)
 
@@ -43,46 +47,60 @@ def login() -> Response:
         successful, or error messages with appropriate status codes if login fails.
     """
     data = request.json
+    print('data: ', data)
     email = data.get("email")
     password = data.get("password")
 
     user = fetch_user_by_email(email)
+    print('user: ', user)
 
     if not user:
         return jsonify({"message": "User does not exist"}), 404
 
-    user_id, password_hash, is_root = user
+    id = user.get('id')
+    password_hash = user.get('password_hash')
+    is_root = user.get('is_root')
+
+    print('id', id)
+    print('password hash', password_hash)
+    print('is_root', is_root)
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
+        print('password matches')
         access_token = jwt.encode(
             {
-                "user_id": user_id,
+                "user_id": id,
                 "is_root": is_root,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(minutes=1),
+                + datetime.timedelta(minutes=60),
             },
-            "SECRET",
+            os.getenv('JWT_SECRET_KEY'),
             algorithm="HS256",
         )
 
         refresh_token = jwt.encode(
             {
-                "user_id": user_id,
+                "user_id": id,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
                 + datetime.timedelta(days=7),
             },
-            "SECRET",
+            os.getenv('JWT_SECRET_KEY'),
             algorithm="HS256",
         )
 
         response = make_response(jsonify({"access_token": access_token}), 200)
         # secure: set to False for local testing
+        httponly = True if os.getenv('HTTPONLY') == 'True' else False
+        secure = True if os.getenv('SECURE') == 'True' else False
+        samesite = os.getenv('SAMESITE')
+        path = os.getenv('PATH')
         response.set_cookie(
             "refresh_token",
             refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="Strict",
+            httponly=httponly,
+            secure=secure,
+            samesite=samesite,
+            path=path
         )
         return response
     else:
