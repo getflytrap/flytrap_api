@@ -80,19 +80,17 @@ class JWTAuth:
             Response | Any: The response from the wrapped function if authorized, or an
                             error response with status 403 or 404 if unauthorized.
         """
-        decoded_token = self._decode_token(token)
-        user_id = decoded_token.get("user_id")
+        token_payload = self._decode_token(token)
+        user_id = token_payload.get("user_id")
         project_pid = kwargs.get("pid")
 
+        print('token_payload: ', token_payload)
         if project_pid:
             authorized_user_ids = fetch_project_users(project_pid)
-            if not authorized_user_ids:
-                return (
-                    jsonify({"message": "Project was not found or has no users"}),
-                    404,
-                )
-            if user_id not in authorized_user_ids:
-                print("user", user_id, authorized_user_ids)
+
+            if user_id in authorized_user_ids or token_payload.get('is_root') == True:
+                return f(*args, **kwargs)
+            else:
                 return jsonify({"message": "Unauthorized for this project"}), 403
 
         return f(*args, **kwargs)

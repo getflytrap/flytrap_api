@@ -98,7 +98,6 @@ def fetch_errors_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-    cursor.close()
 
     errors = [
         {
@@ -173,7 +172,6 @@ def fetch_rejections_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-    cursor.close()
 
     rejections = [
         {
@@ -204,7 +202,7 @@ def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
     error_count_query = """
     SELECT COUNT(*) FROM error_logs e
     JOIN projects p ON e.project_id = p.id
-    WHERE p.pid = %s"
+    WHERE p.pid = %s
     """
     cursor.execute(error_count_query, [pid])
     error_count = cursor.fetchone()[0]
@@ -221,5 +219,4 @@ def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
     total_count = error_count + rejection_count
     total_pages = math.ceil(total_count / limit)
 
-    cursor.close()
     return total_pages

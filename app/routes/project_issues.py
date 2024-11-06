@@ -19,6 +19,7 @@ Attributes:
     bp (Blueprint): Blueprint for project issues routes.
 """
 
+import traceback
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app.auth_manager import jwt_auth
@@ -59,6 +60,7 @@ def get_issues(pid: str) -> Response:
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_issues: {e}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": "Failed to fetch data"}), 500
 
 
