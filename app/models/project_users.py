@@ -42,6 +42,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     cursor.execute(query, (project_uuid,))
     user_ids = cursor.fetchall()
 
+    # TODO: construct user object
     return [user_id[0] for user_id in user_ids]
 
 
