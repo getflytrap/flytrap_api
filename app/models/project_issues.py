@@ -30,7 +30,7 @@ from app.utils import (
 
 @db_read_connection
 def fetch_issues_by_project(
-    pid: int,
+    project_uuid: str,
     page: int,
     limit: int,
     handled: Optional[bool],
@@ -41,7 +41,7 @@ def fetch_issues_by_project(
     """Retrieves a paginated list of issues (errors and rejections) for a project.
 
     Args:
-        pid (int): The project ID.
+        project_uuid (str): The project uuid.
         page (int): The page number for pagination.
         limit (int): The number of items per page.
         handled (Optional[bool]): Filter for handled issues.
@@ -54,18 +54,18 @@ def fetch_issues_by_project(
     """
     cursor = kwargs["cursor"]
 
-    errors = fetch_errors_by_project(cursor, pid, page, limit, handled, time, resolved)
+    errors = fetch_errors_by_project(cursor, project_uuid, page, limit, handled, time, resolved)
     rejections = fetch_rejections_by_project(
-        cursor, pid, page, limit, handled, time, resolved
+        cursor, project_uuid, page, limit, handled, time, resolved
     )
 
     combined_logs = sorted(
         errors + rejections, key=lambda x: x["created_at"], reverse=True
     )
-    total_pages = calculate_total_error_pages(cursor, pid, limit)
+    total_pages = calculate_total_error_pages(cursor, project_uuid, limit)
 
     return {
-        "errors": combined_logs[:limit],
+        "issues": combined_logs[:limit],
         "total_pages": total_pages,
         "current_page": int(page),
     }

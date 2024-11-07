@@ -45,7 +45,7 @@ def calculate_total_project_pages(cursor: Cursor, limit: int) -> int:
 
 def fetch_errors_by_project(
     cursor: Cursor,
-    pid: int,
+    project_uuid: str,
     page: int,
     limit: int,
     handled: Optional[bool],
@@ -57,7 +57,7 @@ def fetch_errors_by_project(
 
     Args:
         cursor (Cursor): The database cursor for executing SQL queries.
-        pid (int): The project ID.
+        project_uuid (str): The project uuid.
         page (int): The page number for pagination.
         limit (int): The number of items per page.
         handled (Optional[bool]): Filter for handled errors.
@@ -71,14 +71,14 @@ def fetch_errors_by_project(
     # Base query
     query = """
     SELECT
-        e.id, e.name, e.message, e.created_at, e.line_number,
-        e.col_number, e.project_id, e.handled, e.resolved
+        e.uuid, e.name, e.message, e.created_at, e.line_number,
+        e.col_number, e.handled, e.resolved
     FROM error_logs e
     JOIN projects p ON e.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
 
-    params = [pid]
+    params = [project_uuid]
 
     # Add optional filters to query
     if handled is not None:
@@ -101,25 +101,26 @@ def fetch_errors_by_project(
 
     errors = [
         {
-            "error_id": row[0],
+            "uuid": row[0],
             "name": row[1],
             "message": row[2],
             "created_at": row[3],
             "line_number": row[4],
             "col_number": row[5],
-            "project_id": row[6],
-            "handled": row[7],
-            "resolved": row[8],
+            "project_uuid": project_uuid,
+            "handled": row[6],
+            "resolved": row[7],
+            # TODO: add a type property to distinguish between errors and rejections?
         }
         for row in rows
     ]
 
-    return errors if errors else []
+    return errors
 
 
 def fetch_rejections_by_project(
     cursor: Cursor,
-    pid: int,
+    project_uuid: str,
     page: int,
     limit: int,
     handled: Optional[bool],
@@ -131,7 +132,7 @@ def fetch_rejections_by_project(
 
     Args:
         cursor (Cursor): The database cursor for executing SQL queries.
-        pid (int): The project ID.
+        project_uuid (str): The project uuid.
         page (int): The page number for pagination.
         limit (int): The number of items per page.
         handled (Optional[bool]): Filter for handled rejections.
@@ -145,13 +146,13 @@ def fetch_rejections_by_project(
     # Base query
     query = """
     SELECT
-        r.id, r.value, r.created_at, r.project_id, r.handled, r.resolved
+        r.uuid, r.value, r.created_at, r.handled, r.resolved
     FROM rejection_logs r
     JOIN projects p ON r.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
 
-    params = [pid]
+    params = [project_uuid]
 
     # Add optional filters to query
     if handled is not None:
@@ -175,25 +176,25 @@ def fetch_rejections_by_project(
 
     rejections = [
         {
-            "rejection_id": row[0],
+            "uuid": row[0],
             "value": row[1],
             "created_at": row[2],
-            "pid": row[3],
-            "handled": row[4],
-            "resolved": row[5],
+            "project_uuid": project_uuid,
+            "handled": row[3],
+            "resolved": row[4],
         }
         for row in rows
     ]
 
-    return rejections if rejections else []
+    return rejections
 
 
-def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
+def calculate_total_error_pages(cursor: Cursor, project_uuid: str, limit: int):
     """Calculates the total pages for combined error and rejection logs for a project.
 
     Args:
         cursor (Cursor): The database cursor for executing SQL queries.
-        pid (int): The project ID.
+        project_uuid (str): The project uuid.
         limit (int): The number of items per page.
 
     Returns:
@@ -202,18 +203,18 @@ def calculate_total_error_pages(cursor: Cursor, pid: int, limit: int):
     error_count_query = """
     SELECT COUNT(*) FROM error_logs e
     JOIN projects p ON e.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
-    cursor.execute(error_count_query, [pid])
+    cursor.execute(error_count_query, [project_uuid])
     error_count = cursor.fetchone()[0]
 
     rejection_count_query = """
     SELECT COUNT(*)
     FROM rejection_logs r
     JOIN projects p ON r.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
-    cursor.execute(rejection_count_query, [pid])
+    cursor.execute(rejection_count_query, [project_uuid])
     rejection_count = cursor.fetchone()[0]
 
     total_count = error_count + rejection_count

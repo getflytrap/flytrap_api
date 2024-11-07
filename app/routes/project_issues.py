@@ -39,11 +39,11 @@ bp = Blueprint("project_issues", __name__)
 
 @bp.route("/", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
-def get_issues(pid: str) -> Response:
+def get_issues(project_uuid: str) -> Response:
     """Fetches a paginated list of issues for a specified project.
 
     Args:
-        pid (str): The project ID.
+        project_uuid (str): The project uuid.
 
     Returns:
         Response: JSON response with a list of issues and a 200 status code on success,
@@ -56,7 +56,7 @@ def get_issues(pid: str) -> Response:
     resolved = request.args.get("resolved", None)
 
     try:
-        data = fetch_issues_by_project(pid, page, limit, handled, time, resolved)
+        data = fetch_issues_by_project(project_uuid, page, limit, handled, time, resolved)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_issues: {e}")

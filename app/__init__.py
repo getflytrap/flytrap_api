@@ -50,8 +50,8 @@ def create_app() -> Flask:
     # app.root_auth = root_auth
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
-    app.register_blueprint(issues_bp, url_prefix="/api/projects/<pid>/issues")
-    app.register_blueprint(project_users_bp, url_prefix="/api/projects/<pid>/users")
+    app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")
+    app.register_blueprint(project_users_bp, url_prefix="/api/projects/<project_uuid>/users")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(webhook_bp, url_prefix="/api/webhook")
