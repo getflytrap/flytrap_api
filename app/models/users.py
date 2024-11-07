@@ -17,7 +17,7 @@ Functions:
 """
 
 from typing import List, Dict, Optional, Union
-from app.utils import db_read_connection, db_write_connection
+from app.utils import db_read_connection, db_write_connection, generate_uuid
 
 
 @db_read_connection
@@ -31,21 +31,24 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT * FROM users;"
+    query = "SELECT uuid, first_name, last_name, email, is_root, created_at FROM users;"
     cursor.execute(query)
     rows = cursor.fetchall()
 
+    print(rows)
     users = [
         {
-            "id": user[0],
+            "user_uuid": user[0],
             "first_name": user[1],
             "last_name": user[2],
             "email": user[3],
-            "is_root": user[5],
-            "created_at": user[6],
+            "is_root": user[4],
+            "created_at": user[5],
         }
         for user in rows
     ]
+
+    print('users:', users)
 
     return users
 
@@ -68,13 +71,15 @@ def add_user(
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
+    user_uuid = generate_uuid()
+
     query = """
     INSERT INTO users
-    (first_name, last_name, email, password_hash)
-    VALUES (%s, %s, %s, %s)
+    (uuid, first_name, last_name, email, password_hash)
+    VALUES (%s, %s, %s, %s, %s)
     RETURNING id;
     """
-    cursor.execute(query, (first_name, last_name, email, password_hash))
+    cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
     user_id = cursor.fetchone()[0]
     connection.commit()
 
