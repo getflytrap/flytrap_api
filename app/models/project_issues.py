@@ -169,11 +169,11 @@ def fetch_rejection(project_uuid: str, rejection_uuid: int, **kwargs: dict) -> O
 
 
 @db_write_connection
-def update_error_resolved(eid: int, new_resolved_state: bool, **kwargs: dict) -> bool:
+def update_error_resolved(error_uuid: str, new_resolved_state: bool, **kwargs: dict) -> bool:
     """Updates the resolved state of a specific error log.
 
     Args:
-        eid (int): The error log ID.
+        error_uuid (str): The error uuid.
         new_resolved_state (bool): The new resolved state.
 
     Returns:
@@ -181,8 +181,8 @@ def update_error_resolved(eid: int, new_resolved_state: bool, **kwargs: dict) ->
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "UPDATE error_logs SET resolved = %s WHERE id = %s"
-    cursor.execute(query, [new_resolved_state, eid])
+    query = "UPDATE error_logs SET resolved = %s WHERE uuid = %s"
+    cursor.execute(query, [new_resolved_state, error_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
 
@@ -191,12 +191,12 @@ def update_error_resolved(eid: int, new_resolved_state: bool, **kwargs: dict) ->
 
 @db_write_connection
 def update_rejection_resolved(
-    rid: int, new_resolved_state: bool, **kwargs: dict
+    rejection_uuid: int, new_resolved_state: bool, **kwargs: dict
 ) -> bool:
     """Updates the resolved state of a specific rejection log.
 
     Args:
-        rid (int): The rejection log ID.
+        rejection_uuid (str): The rejection uuid.
         new_resolved_state (bool): The new resolved state.
 
     Returns:
@@ -204,8 +204,8 @@ def update_rejection_resolved(
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "UPDATE rejection_logs SET resolved = %s WHERE id = %s"
-    cursor.execute(query, [new_resolved_state, rid])
+    query = "UPDATE rejection_logs SET resolved = %s WHERE uuid = %s"
+    cursor.execute(query, [new_resolved_state, rejection_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
 

@@ -139,13 +139,14 @@ def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
         return jsonify({"message": "Failed to retrieve rejection"}), 500
 
 
-@bp.route("/errors/<eid>", methods=["PATCH"])
+@bp.route("/errors/<error_uuid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization()
-def toggle_error(pid, eid: int) -> Response:
+def toggle_error(project_uuid: str, error_uuid: str) -> Response:
     """Toggles the resolved state of a specific error.
 
     Args:
-        eid (int): The error ID.
+        project_uuid (str): The project uuid.
+        error_uuid (str): The error uuid.
 
     Returns:
         Response: JSON response with a success message and a 200 status code if
@@ -158,7 +159,7 @@ def toggle_error(pid, eid: int) -> Response:
         return jsonify({"status": "error", "message": "Missing resolved state"}), 400
 
     try:
-        success = update_error_resolved(eid, new_resolved_state)
+        success = update_error_resolved(error_uuid, new_resolved_state)
         if success:
             return "", 204
         else:
@@ -171,13 +172,14 @@ def toggle_error(pid, eid: int) -> Response:
         )
 
 
-@bp.route("/rejections/<rid>", methods=["PATCH"])
+@bp.route("/rejections/<rejection_uuid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization()
-def toggle_rejection(pid, rid: int) -> Response:
+def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
     """Toggles the resolved state of a specific rejection.
 
     Args:
-        rid (int): The rejection ID.
+        project_uuid (str): The project uuid.
+        rejection_uuid (str): The rejection uuid.
 
     Returns:
         Response: JSON response with a success message and a 200 status code if
@@ -190,7 +192,7 @@ def toggle_rejection(pid, rid: int) -> Response:
         return jsonify({"status": "error", "message": "Missing resolved state"}), 400
 
     try:
-        success = update_rejection_resolved(rid, new_resolved_state)
+        success = update_rejection_resolved(rejection_uuid, new_resolved_state)
         if success:
             return "", 204
         else:
