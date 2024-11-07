@@ -47,12 +47,12 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
 
 
 @db_write_connection
-def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
+def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> None:
     """Adds a user to a specified project.
 
     Args:
-        pid (int): The project ID.
-        user_id (int): The user ID to add to the project.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The user uuid to add to the project.
 
     Returns:
         None
@@ -62,13 +62,12 @@ def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
 
     query = """
     INSERT INTO projects_users (project_id, user_id)
-    SELECT p.id, %s
-    FROM projects p
-    WHERE p.pid = %s
-    RETURNING id
+    SELECT p.id, u.id
+    FROM projects p, users u
+    WHERE p.uuid = %s AND u.uuid = %s
     """
 
-    cursor.execute(query, (user_id, pid))
+    cursor.execute(query, (project_uuid, user_uuid))
     connection.commit()
 
 
