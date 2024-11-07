@@ -205,20 +205,21 @@ def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
         )
 
 
-@bp.route("/errors/<eid>", methods=["DELETE"])
+@bp.route("/errors/<error_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization()
-def delete_error(pid, eid: int) -> Response:
-    """Deletes a specific error by its ID.
+def delete_error(project_uuid: str, error_uuid: str) -> Response:
+    """Deletes a specific error by its UUID.
 
     Args:
-        eid (int): The error ID.
+        project_uuid (str): The project uuid.
+        error_uuid (str): The error uuid.
 
     Returns:
         Response: 204 status code if successful, or a 404 status if the error is not
         found.
     """
     try:
-        success = delete_error_by_id(eid)
+        success = delete_error_by_id(error_uuid)
         if success:
             return "", 204
         else:
@@ -228,20 +229,21 @@ def delete_error(pid, eid: int) -> Response:
         return jsonify({"status": "error", "message": "Failed to delete error"}), 500
 
 
-@bp.route("/rejections/<rid>", methods=["DELETE"])
+@bp.route("/rejections/<rejection_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization()
-def delete_rejection(pid, rid: int) -> Response:
-    """Deletes a specific rejection by its ID.
+def delete_rejection(project_uuid: str, rejection_uuid: str) -> Response:
+    """Deletes a specific rejection by its UUID.
 
     Args:
-        rid (int): The rejection ID.
+        project_uuid (str): The project uuid.
+        rejection_uuid (str): The rejection uuid.
 
     Returns:
         Response: 204 status code if successful, or a 404 status if the rejection is not
         found.
     """
     try:
-        success = delete_rejection_by_id(rid)
+        success = delete_rejection_by_id(rejection_uuid)
         if success:
             return "", 204
         else:

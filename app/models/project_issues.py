@@ -213,19 +213,19 @@ def update_rejection_resolved(
 
 
 @db_write_connection
-def delete_error_by_id(eid: int, **kwargs: dict) -> bool:
-    """Deletes a specific error log by its ID.
+def delete_error_by_id(error_uuid: str, **kwargs: dict) -> bool:
+    """Deletes a specific error log by its UUID.
 
     Args:
-        eid (int): The error log ID.
+        error_uuid (str): The error uuid.
 
     Returns:
         bool: True if the error log was deleted, False otherwise.
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "DELETE FROM error_logs WHERE id = %s"
-    cursor.execute(query, [eid])
+    query = "DELETE FROM error_logs WHERE uuid = %s"
+    cursor.execute(query, [error_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
 
@@ -233,11 +233,11 @@ def delete_error_by_id(eid: int, **kwargs: dict) -> bool:
 
 
 @db_write_connection
-def delete_rejection_by_id(rid: int, **kwargs: dict) -> bool:
+def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
     """Deletes a specific rejection log by its ID.
 
     Args:
-        rid (int): The rejection log ID.
+        rejection_uuid (str): The rejection log uuid.
 
     Returns:
         bool: True if the rejection log was deleted, False otherwise.
@@ -245,8 +245,8 @@ def delete_rejection_by_id(rid: int, **kwargs: dict) -> bool:
 
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "DELETE FROM rejection_logs WHERE id = %s"
-    cursor.execute(query, [rid])
+    query = "DELETE FROM rejection_logs WHERE uuid = %s"
+    cursor.execute(query, [rejection_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
 
