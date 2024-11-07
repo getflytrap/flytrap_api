@@ -64,7 +64,7 @@ class JWTAuth:
                     
                     if 'pid' in kwargs:
                         return self.authorize_user_for_project(f, token, *args, **kwargs)
-                    elif 'user_id' in kwargs:
+                    elif 'user_uuid' in kwargs:
                         return self.authorize_for_user_specific_operation(f, token, *args, **kwargs)
 
                     # If no specific project or user authorization is required, proceed
@@ -96,7 +96,6 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized
         """
         token_payload = self._decode_token(token)
-        print('root token', token_payload)
         if token_payload.get("is_root") == True:
             return f(*args, **kwargs)
         else:
@@ -142,12 +141,10 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized.
         """
         token_payload = self._decode_token(token)
-        user_id = kwargs.get("user_id")
+        user_id = kwargs.get("user_uuid")
         if user_id:
-            current_user_id = token_payload.get('user_id')
-            print('hereree', user_id, current_user_id)
+            current_user_id = token_payload.get('user_uuid')
             if str(current_user_id) != str(user_id):
-                print('unequal')
                 return jsonify({"message": "Unauthorized"}), 403
             else:
                 return f(*args, **kwargs)
@@ -206,7 +203,7 @@ class JWTAuth:
         if new_access_token:
             try:
                 response = make_response(
-                    self.authorize_user_for_project(
+                    self.check_session_and_authorization(
                     f, new_access_token, *args, **kwargs
                 ))
                 response.headers['New-Access-Token'] = new_access_token
