@@ -12,10 +12,10 @@ CREATE TABLE projects (
 
 CREATE TABLE error_logs (
     id SERIAL PRIMARY KEY,
-    eid VARCHAR(36) NOT NULL
+    eid VARCHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     line_number INT,
     col_number INT,
     project_id INT REFERENCES projects(id) ON DELETE CASCADE,
@@ -26,9 +26,9 @@ CREATE TABLE error_logs (
 
 CREATE TABLE rejection_logs (
   id SERIAL PRIMARY KEY,
-  rid VARCHAR(36) NOT NULL
+  rid VARCHAR(36) NOT NULL,
   value TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
   handled BOOLEAN NOT NULL,
   resolved BOOLEAN NOT NULL DEFAULT FALSE
@@ -36,7 +36,7 @@ CREATE TABLE rejection_logs (
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    uid VARCHAR(36) NOT NULL
+    uid VARCHAR(36) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
