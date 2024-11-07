@@ -13,9 +13,9 @@ Attributes:
     bp (Blueprint): Blueprint for project management routes.
 """
 
+import traceback
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.utils import generate_uuid
 from app.auth_manager import jwt_auth
 from app.models import (
     fetch_projects,
@@ -64,16 +64,14 @@ def create_project() -> Response:
         code, or an error message with a 400 status code if project name is missing.
     """
     data = request.get_json()
-    project_name = data.get("name")
+    name = data.get("name")
 
-    if not project_name:
+    if not name:
         return jsonify({"status": "error", "message": "Missing project name"}), 400
 
-    pid = generate_uuid()
-
     try:
-        add_project(pid, project_name)
-        data = {"project_id": pid, "project_name": project_name}
+        uuid = add_project(name)
+        data = {"uuid": uuid, "name": name}
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         print(f"Error in create_project: {e}")
@@ -83,13 +81,13 @@ def create_project() -> Response:
         )
 
 
-@bp.route("/<pid>", methods=["DELETE"])
+@bp.route("/<project_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def delete_project(pid: str) -> Response:
-    """Deletes a specified project by its project ID.
+def delete_project(project_uuid: str) -> Response:
+    """Deletes a specified project by its project UUID.
 
     Args:
-        pid (str): The project ID of the project to delete.
+        project_uuid (str): The project uuid of the project to delete.
 
     Returns:
         Response: 204 status code if successful, or a 404 status code if the project is
@@ -97,7 +95,7 @@ def delete_project(pid: str) -> Response:
     """
 
     try:
-        success = delete_project_by_id(pid)
+        success = delete_project_by_id(project_uuid)
         if success:
             return "", 204
         else:
@@ -107,13 +105,13 @@ def delete_project(pid: str) -> Response:
         return jsonify({"status": "error", "message": "Failed to delete project"}), 500
 
 
-@bp.route("/<pid>", methods=["PATCH"])
+@bp.route("/<project_uuid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def update_project(pid: str) -> Response:
+def update_project(project_uuid: str) -> Response:
     """Updates the name of a specified project.
 
     Args:
-        pid (str): The project ID of the project to update.
+        project_uuid (str): The project ID of the project to update.
 
     JSON Payload:
         new_name (str): The new name for the project.
@@ -129,9 +127,9 @@ def update_project(pid: str) -> Response:
         return jsonify({"status": "error", "message": "Missing project name"}), 400
 
     try:
-        success = update_project_name(pid, new_name)
+        success = update_project_name(project_uuid, new_name)
         if success:
-            data = {"project_id": pid, "project_name": new_name}
+            data = {"uuid": project_uuid, "name": new_name}
             return jsonify({"status": "success", "data": data}), 200
         else:
             return jsonify({"status": "error", "message": "Project not found"}), 404
