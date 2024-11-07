@@ -104,11 +104,12 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
 
 
 @db_read_connection
-def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
-    """Retrieves a specific error log by its ID.
+def fetch_error(project_uuid: str, error_uuid: str, **kwargs: dict) -> Optional[Dict[str, str]]:
+    """Retrieves a specific error log by its UUID.
 
     Args:
-        eid (int): The error log ID.
+        project_uuid (str): The project uuid.
+        error_uuid (str): The error uuid.
 
     Returns:
         Optional[Dict[str, str]]: Dictionary containing error log details if found, or
@@ -116,50 +117,52 @@ def fetch_error(eid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT * FROM error_logs WHERE id = %s"
-    cursor.execute(query, [eid])
+    query = "SELECT name, message, created_at, line_number, col_number, stack_trace, handled, resolved FROM error_logs WHERE uuid = %s"
+    cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
     if error:
         return {
-            "error_id": error[0],
-            "name": error[1],
-            "message": error[2],
-            "created_at": error[3],
-            "line_number": error[4],
-            "col_number": error[5],
-            "project_id": error[6],
-            "stack_trace": error[7],
-            "handled": error[8],
-            "resolved": error[9],
+            "uuid": error_uuid,
+            "name": error[0],
+            "message": error[1],
+            "created_at": error[2],
+            "line_number": error[3],
+            "col_number": error[4],
+            "project_uuid": project_uuid,
+            "stack_trace": error[5],
+            "handled": error[6],
+            "resolved": error[7],
         }
 
     return None
 
 
 @db_read_connection
-def fetch_rejection(rid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
-    """Retrieves a specific rejection log by its ID.
+def fetch_rejection(project_uuid: str, rejection_uuid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
+    """Retrieves a specific rejection log by its UUID.
 
     Args:
-        rid (int): The rejection log ID.
+        project_uuid (str): The project uuid.
+        rejection_uuid (str): The rejection uuid.
 
     Returns:
         Optional[Dict[str, str]]: Dictionary containing rejection log details if found,
         or None if not found.
     """
     cursor = kwargs["cursor"]
-    query = "SELECT * FROM rejection_logs WHERE id = %s"
-    cursor.execute(query, [rid])
+    query = "SELECT value, created_at, handled, resolved FROM rejection_logs WHERE uuid = %s"
+    cursor.execute(query, [rejection_uuid])
     rejection = cursor.fetchone()
 
     if rejection:
         return {
+            "uuid": rejection_uuid,
             "value": rejection[0],
             "created_at": rejection[1],
-            "project_id": rejection[2],
-            "handled": rejection[3],
-            "resolved": rejection[4],
+            "project_id": project_uuid,
+            "handled": rejection[2],
+            "resolved": rejection[3],
         }
 
     return None

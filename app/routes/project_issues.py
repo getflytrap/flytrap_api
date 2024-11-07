@@ -90,20 +90,21 @@ def delete_issues(project_uuid: str) -> Response:
         return jsonify({"status": "error", "message": "Failed to delete issues"}), 500
 
 
-@bp.route("/errors/<eid>", methods=["GET"])
+@bp.route("/errors/<error_uuid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
-def get_error(pid, eid: int) -> Response:
+def get_error(project_uuid: str, error_uuid: str) -> Response:
     """Retrieves a specific error by its ID.
 
     Args:
-        eid (int): The error ID.
+        project_uuid (str): The project uuid.
+        error_uuid (str): The error uuid.
 
     Returns:
         Response: JSON response with error data and a 200 status code, or a 404 if not
         found.
     """
     try:
-        error = fetch_error(eid)
+        error = fetch_error(project_uuid, error_uuid)
         if error:
             return jsonify({"status": "success", "data": error}), 200
         else:
@@ -114,20 +115,21 @@ def get_error(pid, eid: int) -> Response:
         return jsonify({"status": "error", "message": "Failed to fetch error"}), 500
 
 
-@bp.route("/rejections/<rid>", methods=["GET"])
+@bp.route("/rejections/<rejection_uuid>", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
-def get_rejection(pid, rid: int) -> Response:
-    """Retrieves a specific rejection by its ID.
+def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
+    """Retrieves a specific rejection by its UUID.
 
     Args:
-        rid (int): The rejection ID.
+        project_uuid (str): The project uuid.
+        rejection_uuid (str): The rejection uuid.
 
     Returns:
         Response: JSON response with rejection data and a 200 status code, or a 404 if
         not found.
     """
     try:
-        rejection = fetch_rejection(rid)
+        rejection = fetch_rejection(project_uuid, rejection_uuid)
         if rejection:
             return jsonify({"status": "success", "data": rejection}), 200
         else:
