@@ -35,10 +35,9 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     cursor.execute(query)
     rows = cursor.fetchall()
 
-    print(rows)
     users = [
         {
-            "user_uuid": user[0],
+            "uuid": user[0],
             "first_name": user[1],
             "last_name": user[2],
             "email": user[3],
@@ -47,8 +46,6 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
         }
         for user in rows
     ]
-
-    print('users:', users)
 
     return users
 
@@ -80,10 +77,9 @@ def add_user(
     RETURNING id;
     """
     cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
-    user_id = cursor.fetchone()[0]
     connection.commit()
 
-    return user_id
+    return user_uuid
 
 
 @db_write_connection
@@ -215,6 +211,6 @@ def fetch_projects_for_user(user_uuid, **kwargs):
     cursor.execute(query, (user_uuid,))
     rows = cursor.fetchall()
 
-    projects = [{"pid": project[0], "name": project[1]} for project in rows]
+    projects = [{"project_uuid": project[0], "name": project[1]} for project in rows]
 
     return projects

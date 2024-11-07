@@ -95,8 +95,8 @@ def create_user() -> Response:
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
 
     try:
-        user_id = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
-        data = {"user_id": user_id, "first_name": first_name, "last_name": last_name}
+        uuid = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
+        data = {"uuid": uuid, "first_name": first_name, "last_name": last_name}
         return (
             jsonify({"status": "success", "data": data}),
             201,
