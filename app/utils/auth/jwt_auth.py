@@ -169,13 +169,13 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized.
         """
         token_payload = self._decode_token(token)
-        user_id = token_payload.get("user_id")
-        project_pid = kwargs.get("pid")
+        user_uuid = token_payload.get("user_uuid")
+        project_pid = kwargs.get("project_uuid")
 
         if project_pid:
-            authorized_user_ids = fetch_project_users(project_pid)
+            authorized_user_uuids = fetch_project_users(project_pid)
 
-            if user_id in authorized_user_ids or token_payload.get("is_root") is True:
+            if user_uuid in authorized_user_uuids or token_payload.get("is_root") is True:
                 return f(*args, **kwargs)
             else:
                 return jsonify({"message": "Unauthorized for this project"}), 403
