@@ -56,5 +56,6 @@ CREATE INDEX idx_user_uuid ON users(uuid);
 CREATE TABLE projects_users (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
-  user_id INT REFERENCES users(id) ON DELETE CASCADE
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE (project_id, user_id)
 );
