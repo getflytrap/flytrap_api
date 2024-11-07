@@ -61,7 +61,7 @@ def login() -> Response:
     if not user:
         return jsonify({"message": "User does not exist"}), 404
 
-    id = user.get("id")
+    uuid = user.get("uuid")
     password_hash = user.get("password_hash")
     is_root = user.get("is_root")
 
@@ -69,10 +69,10 @@ def login() -> Response:
         print("password matches")
         access_token = jwt.encode(
             {
-                "user_id": id,
+                "user_uuid": uuid,
                 "is_root": is_root,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(minutes=60),
+                + datetime.timedelta(seconds=20),
             },
             os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",
@@ -80,7 +80,7 @@ def login() -> Response:
 
         refresh_token = jwt.encode(
             {
-                "user_id": id,
+                "user_uuid": uuid,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
                 + datetime.timedelta(days=7),
             },
@@ -95,9 +95,9 @@ def login() -> Response:
             httponly=httponly,
             secure=secure,
             samesite=samesite,
-            path=path,
+            path="/"
         )
-        print(response.headers)
+        print('login response', response.headers)
         return response
     else:
         return jsonify({"message": "Invalid password"}), 401

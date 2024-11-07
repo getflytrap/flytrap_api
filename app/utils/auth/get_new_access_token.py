@@ -38,6 +38,7 @@ def get_new_access_token() -> Tuple[Response, int]:
         Exception: Propagates unexpected errors during token processing.
     """
     refresh_token = request.cookies.get("refresh_token")
+    print ('coooooookies', request.cookies)
     if not refresh_token:
         return jsonify({"message": "Token is missing!"}), 401
     try:
@@ -46,7 +47,7 @@ def get_new_access_token() -> Tuple[Response, int]:
         )
 
         print('refresh', refresh_token_payload)
-        user_id = refresh_token_payload.get("user_id")
+        user_id = refresh_token_payload.get("user_uuid")
         is_root = get_user_root_info_from_cache(user_id)
 
         access_token = jwt.encode(
