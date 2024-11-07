@@ -6,13 +6,15 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
-  pid VARCHAR(36) NOT NULL,
+  uuid VARCHAR(36) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL
 );
 
+CREATE INDEX idx_project_uuid ON projects(uuid);
+
 CREATE TABLE error_logs (
     id SERIAL PRIMARY KEY,
-    eid VARCHAR(36) NOT NULL,
+    uuid VARCHAR(36) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -24,9 +26,11 @@ CREATE TABLE error_logs (
     resolved BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE INDEX idx_error_log_uuid ON error_logs(uuid); 
+
 CREATE TABLE rejection_logs (
   id SERIAL PRIMARY KEY,
-  rid VARCHAR(36) NOT NULL,
+  uuid VARCHAR(36) NOT NULL UNIQUE,
   value TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
@@ -34,9 +38,11 @@ CREATE TABLE rejection_logs (
   resolved BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE INDEX idx_rejection_log_uuid ON rejection_logs(uuid);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    uid VARCHAR(36) NOT NULL,
+    uuid VARCHAR(36) NOT NULL UNIQUE,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -44,6 +50,8 @@ CREATE TABLE users (
     is_root BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_user_uuid ON users(uuid); 
 
 CREATE TABLE projects_users (
   id SERIAL PRIMARY KEY,
