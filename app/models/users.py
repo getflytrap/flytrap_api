@@ -107,11 +107,11 @@ def delete_user_by_id(user_id: int, **kwargs) -> bool:
 
 
 @db_write_connection
-def update_password(user_id: int, password_hash: str, **kwargs) -> bool:
+def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
     """Updates the password hash for a specific user.
 
     Args:
-        user_id (int): The unique ID of the user.
+        user_id (str): The unique uuid of the user.
         password_hash (str): The new hashed password for the user.
 
     Returns:
@@ -123,10 +123,10 @@ def update_password(user_id: int, password_hash: str, **kwargs) -> bool:
     query = """
     UPDATE users
     SET password_hash = %s
-    WHERE id = %s
+    WHERE uuid = %s
     """
 
-    cursor.execute(query, (password_hash, user_id))
+    cursor.execute(query, (password_hash, user_uuid))
     rows_updated = cursor.rowcount
     connection.commit()
 

@@ -129,13 +129,13 @@ def delete_user(user_id: int) -> Response:
         return jsonify({"status": "error", "message": "Failed to delete user"}), 500
 
 
-@bp.route("/<user_id>", methods=["PATCH"])
+@bp.route("/<user_uuid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization()
-def update_user_password(user_id: int) -> Response:
+def update_user_password(user_uuid: str) -> Response:
     """Updates the password of a specified user.
 
     Args:
-        user_id (int): The user ID of the user whose password is being updated.
+        user_id (str): The user uuid of the user whose password is being updated.
 
     JSON Payload:
         password (str): The new password for the user.
@@ -155,7 +155,7 @@ def update_user_password(user_id: int) -> Response:
     ).decode("utf-8")
 
     try:
-        success = update_password(user_id, password_hash)
+        success = update_password(user_uuid, password_hash)
         if success:
             return "", 204
     except Exception as e:
