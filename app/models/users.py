@@ -168,11 +168,11 @@ def fetch_user_by_email(
 
 
 @db_read_connection
-def get_user_root_info(user_id, **kwargs):
+def get_user_root_info(user_uuid, **kwargs):
     """Retrieves the root access status for a specific user by their unique ID.
 
     Args:
-        user_id (int): The unique ID of the user.
+        user_id (str): The unique uuid of the user.
 
     Returns:
         bool: True if the user has root access, False otherwise.
@@ -182,21 +182,21 @@ def get_user_root_info(user_id, **kwargs):
     query = """
     SELECT is_root
     FROM users
-    WHERE id = %s
+    WHERE uuid = %s
     """
-    cursor.execute(query, (user_id,))
+    cursor.execute(query, (user_uuid,))
     is_root = cursor.fetchone()[0]
 
     return is_root
 
 
 @db_read_connection
-def fetch_projects_for_user(user_id, **kwargs):
+def fetch_projects_for_user(user_uuid, **kwargs):
     """
     Fetches all projects assigned to a specific user by user ID.
 
     Args:
-    - user_id (int): The ID of the user whose projects are to be retrieved.
+    - user_id (str): The uuid of the user whose projects are to be retrieved.
 
     Returns:
     - List[dict]: A list of dictionaries, each containing the 'pid' and 'name' of a
@@ -205,13 +205,14 @@ def fetch_projects_for_user(user_id, **kwargs):
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT p.pid, p.name
+    SELECT p.uuid, p.name
     FROM projects p
     JOIN projects_users pu ON p.id = pu.project_id
-    WHERE pu.user_id = %s;
+    JOIN users u ON pu.user_id = u.id
+    WHERE u.uuid = %s;
     """
 
-    cursor.execute(query, (user_id,))
+    cursor.execute(query, (user_uuid,))
     rows = cursor.fetchall()
 
     projects = [{"pid": project[0], "name": project[1]} for project in rows]

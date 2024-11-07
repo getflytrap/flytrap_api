@@ -163,20 +163,20 @@ def update_user_password(user_uuid: str) -> Response:
         return jsonify({"status": "error", "message": "Failed to update password"}), 500
 
 
-@bp.route("/<user_id>/projects", methods=["GET"])
+@bp.route("/<user_uuid>/projects", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
-def get_user_projects(user_id: int) -> Response:
+def get_user_projects(user_uuid: str) -> Response:
     """
     Retrieves all projects assigned to a specific user by user ID.
 
     Args:
-    - user_id (int): The ID of the user for whom to retrieve projects.
+    - user_id (str): The uuid of the user for whom to retrieve projects.
 
     Returns:
         Response: 200 status code and the project data.
     """
     try:
-        data = fetch_projects_for_user(user_id)
+        data = fetch_projects_for_user(user_uuid)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_user_projects: {e}")
