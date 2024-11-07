@@ -87,31 +87,23 @@ def add_project_user(project_uuid: str) -> Response:
         )
 
 
-@bp.route("/<user_id>", methods=["DELETE"])
+@bp.route("/<user_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def remove_project_user(pid: str, user_id: int) -> Response:
+def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project.
 
     Args:
-        pid (str): The project ID.
-        user_id (int): The ID of the user to remove.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The uuid of the user to remove.
 
     Returns:
         Response: JSON response with a 204 status code if successful,
                   or a 404 status code if the project or user is not found.
     """
     try:
-        success = remove_user_from_project(pid, user_id)
+        success = remove_user_from_project(project_uuid, user_uuid)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Successfully removed user from project",
-                    }
-                ),
-                204,
-            )
+            return "", 204
         else:
             return (
                 jsonify({"status": "error", "message": "Project or user not found"}),

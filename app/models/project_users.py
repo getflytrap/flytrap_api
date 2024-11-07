@@ -72,12 +72,12 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
 
 
 @db_write_connection
-def remove_user_from_project(project_pid: int, user_id: int, **kwargs: dict) -> bool:
+def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> bool:
     """Removes a user from a specified project.
 
     Args:
-        project_pid (int): The project ID.
-        user_id (int): The user ID to remove from the project.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The user uuid to remove from the project.
 
     Returns:
         bool: True if the user was successfully removed, False otherwise.
@@ -90,16 +90,20 @@ def remove_user_from_project(project_pid: int, user_id: int, **kwargs: dict) -> 
     WHERE project_id = (
         SELECT p.id
         FROM projects p
-        WHERE p.pid = %s
+        WHERE p.uuid = %s
     )
-    AND user_id = %s
+    AND user_id = (
+        SELECT u.id 
+        FROM users u
+        WHERE u.uuid = %s
+    )
     """
 
     cursor.execute(
         query,
         (
-            project_pid,
-            user_id,
+            project_uuid,
+            user_uuid,
         ),
     )
     connection.commit()
