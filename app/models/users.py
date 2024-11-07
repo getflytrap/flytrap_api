@@ -87,19 +87,19 @@ def add_user(
 
 
 @db_write_connection
-def delete_user_by_id(user_id: int, **kwargs) -> bool:
+def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
     """Deletes a user by their unique user ID.
 
     Args:
-        user_id (int): The unique ID of the user to delete.
+        user_id (str): The unique uuid of the user to delete.
 
     Returns:
         bool: True if the user was deleted, False otherwise.
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "DELETE FROM users WHERE id = %s"
-    cursor.execute(query, (user_id,))
+    query = "DELETE FROM users WHERE uuid = %s"
+    cursor.execute(query, (user_uuid,))
     rows_deleted = cursor.rowcount
     connection.commit()
 

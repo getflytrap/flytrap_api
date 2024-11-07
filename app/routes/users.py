@@ -106,20 +106,20 @@ def create_user() -> Response:
         return jsonify({"status": "error", "message": "Failed to create new user"}), 500
 
 
-@bp.route("/<user_id>", methods=["DELETE"])
+@bp.route("/<user_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def delete_user(user_id: int) -> Response:
+def delete_user(user_uuid: str) -> Response:
     """Deletes a specified user by their user ID.
 
     Args:
-        user_id (int): The user ID of the user to delete.
+        user_id (str): The user uuid of the user to delete.
 
     Returns:
         Response: 204 status code if successful, or a 404 status code if the user is not
         found.
     """
     try:
-        success = delete_user_by_id(user_id)
+        success = delete_user_by_id(user_uuid)
         if success:
             return "", 204
         else:
