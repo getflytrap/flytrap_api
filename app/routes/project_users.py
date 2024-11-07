@@ -39,7 +39,6 @@ def get_project_users(project_uuid: str) -> Response:
     """
 
     try:
-        # TODO: return user objects not just IDs
         users = fetch_project_users(project_uuid)
         return jsonify({"status": "success", "data": users}), 200
     except Exception as e:

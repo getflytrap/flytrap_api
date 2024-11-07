@@ -30,7 +30,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT u.uuid
+    SELECT u.uuid, u.first_name, u.last_name
     FROM users u
     JOIN projects_users pu
     ON u.id = pu.user_id
@@ -40,10 +40,18 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     """
 
     cursor.execute(query, (project_uuid,))
-    user_ids = cursor.fetchall()
+    rows = cursor.fetchall()
 
-    # TODO: construct user object
-    return [user_id[0] for user_id in user_ids]
+    users = [
+        {
+            "uuid": row[0],
+            "first_name": row[1],
+            "last_name": row[2]
+        }
+        for row in rows
+    ]
+
+    return users
 
 
 @db_write_connection
