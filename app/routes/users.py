@@ -95,8 +95,8 @@ def create_user() -> Response:
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
 
     try:
-        user_id = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
-        data = {"user_id": user_id, "first_name": first_name, "last_name": last_name}
+        uuid = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
+        data = {"uuid": uuid, "first_name": first_name, "last_name": last_name}
         return (
             jsonify({"status": "success", "data": data}),
             201,
@@ -106,20 +106,20 @@ def create_user() -> Response:
         return jsonify({"status": "error", "message": "Failed to create new user"}), 500
 
 
-@bp.route("/<user_id>", methods=["DELETE"])
+@bp.route("/<user_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def delete_user(user_id: int) -> Response:
+def delete_user(user_uuid: str) -> Response:
     """Deletes a specified user by their user ID.
 
     Args:
-        user_id (int): The user ID of the user to delete.
+        user_id (str): The user uuid of the user to delete.
 
     Returns:
         Response: 204 status code if successful, or a 404 status code if the user is not
         found.
     """
     try:
-        success = delete_user_by_id(user_id)
+        success = delete_user_by_id(user_uuid)
         if success:
             return "", 204
         else:
@@ -129,13 +129,13 @@ def delete_user(user_id: int) -> Response:
         return jsonify({"status": "error", "message": "Failed to delete user"}), 500
 
 
-@bp.route("/<user_id>", methods=["PATCH"])
+@bp.route("/<user_uuid>", methods=["PATCH"])
 @jwt_auth.check_session_and_authorization()
-def update_user_password(user_id: int) -> Response:
+def update_user_password(user_uuid: str) -> Response:
     """Updates the password of a specified user.
 
     Args:
-        user_id (int): The user ID of the user whose password is being updated.
+        user_id (str): The user uuid of the user whose password is being updated.
 
     JSON Payload:
         password (str): The new password for the user.
@@ -155,7 +155,7 @@ def update_user_password(user_id: int) -> Response:
     ).decode("utf-8")
 
     try:
-        success = update_password(user_id, password_hash)
+        success = update_password(user_uuid, password_hash)
         if success:
             return "", 204
     except Exception as e:
@@ -163,20 +163,20 @@ def update_user_password(user_id: int) -> Response:
         return jsonify({"status": "error", "message": "Failed to update password"}), 500
 
 
-@bp.route("/<user_id>/projects", methods=["GET"])
+@bp.route("/<user_uuid>/projects", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
-def get_user_projects(user_id: int) -> Response:
+def get_user_projects(user_uuid: str) -> Response:
     """
     Retrieves all projects assigned to a specific user by user ID.
 
     Args:
-    - user_id (int): The ID of the user for whom to retrieve projects.
+    - user_id (str): The uuid of the user for whom to retrieve projects.
 
     Returns:
         Response: 200 status code and the project data.
     """
     try:
-        data = fetch_projects_for_user(user_id)
+        data = fetch_projects_for_user(user_uuid)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_user_projects: {e}")

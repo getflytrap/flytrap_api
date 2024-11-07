@@ -17,6 +17,7 @@ from app.utils import (
     db_read_connection,
     db_write_connection,
     calculate_total_project_pages,
+    generate_uuid
 )
 
 
@@ -40,7 +41,7 @@ def fetch_projects(
 
     query = """
     SELECT
-        p.pid,
+        p.uuid,
         p.name,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
@@ -51,7 +52,7 @@ def fetch_projects(
     LEFT JOIN
         rejection_logs r ON r.project_id = p.id
     GROUP BY
-        p.pid, p.name
+        p.uuid, p.name
     ORDER BY p.name
     LIMIT %s OFFSET %s
     """
@@ -60,8 +61,8 @@ def fetch_projects(
 
     projects = [
         {
-            "project_id": row[0],
-            "project_name": row[1],
+            "uuid": row[0],
+            "name": row[1],
             "issue_count": row[2] + row[3],
         }
         for row in rows
@@ -77,11 +78,10 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(pid: int, name: str, **kwargs) -> None:
+def add_project(name: str, **kwargs) -> None:
     """Adds a new project with a specified unique ID and name.
 
     Args:
-        pid (int): The unique project ID.
         name (str): The name of the project.
 
     Returns:
@@ -90,17 +90,21 @@ def add_project(pid: int, name: str, **kwargs) -> None:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "INSERT INTO projects (pid, name) VALUES (%s, %s)"
-    cursor.execute(query, [pid, name])
+    uuid = generate_uuid()
+
+    query = "INSERT INTO projects (uuid, name) VALUES (%s, %s)"
+    cursor.execute(query, [uuid, name])
     connection.commit()
+
+    return uuid
 
 
 @db_write_connection
-def delete_project_by_id(pid: int, **kwargs) -> bool:
-    """Deletes a project by its unique project ID.
+def delete_project_by_id(uuid: str, **kwargs) -> bool:
+    """Deletes a project by its unique project UUID.
 
     Args:
-        pid (int): The unique project ID.
+        uuid (str): The unique project uuid.
 
     Returns:
         bool: True if the project was deleted, False otherwise.
@@ -108,8 +112,8 @@ def delete_project_by_id(pid: int, **kwargs) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "DELETE FROM projects WHERE pid = %s"
-    cursor.execute(query, [pid])
+    query = "DELETE FROM projects WHERE uuid = %s"
+    cursor.execute(query, [uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
 
@@ -117,11 +121,11 @@ def delete_project_by_id(pid: int, **kwargs) -> bool:
 
 
 @db_write_connection
-def update_project_name(pid: int, new_name: str, **kwargs) -> bool:
-    """Updates the name of a project by its unique project ID.
+def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
+    """Updates the name of a project by its unique project UUID.
 
     Args:
-        pid (int): The unique project ID.
+        uuid (int): The unique project uuid.
         new_name (str): The new name for the project.
 
     Returns:
@@ -130,9 +134,9 @@ def update_project_name(pid: int, new_name: str, **kwargs) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "UPDATE projects SET name = %s WHERE pid = %s"
+    query = "UPDATE projects SET name = %s WHERE uuid = %s"
 
-    cursor.execute(query, [new_name, pid])
+    cursor.execute(query, [new_name, uuid])
     rows_updated = cursor.rowcount
     connection.commit()
 

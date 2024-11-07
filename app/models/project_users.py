@@ -17,11 +17,11 @@ from app.utils import db_read_connection, db_write_connection
 
 
 @db_read_connection
-def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
+def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     """Retrieves a list of user IDs associated with a specific project.
 
     Args:
-        pid (int): The project ID.
+        project_uuid (str): The project ID.
 
     Returns:
         List[int]: A list of user IDs associated with the specified project.
@@ -30,26 +30,29 @@ def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT pu.user_id
-    FROM projects_users pu
+    SELECT u.uuid
+    FROM users u
+    JOIN projects_users pu
+    ON u.id = pu.user_id
     JOIN projects p
     ON pu.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
 
-    cursor.execute(query, (pid,))
+    cursor.execute(query, (project_uuid,))
     user_ids = cursor.fetchall()
 
-    return [user_id[0] for user_id in user_ids] if user_ids else []
+    # TODO: construct user object
+    return [user_id[0] for user_id in user_ids]
 
 
 @db_write_connection
-def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
+def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> None:
     """Adds a user to a specified project.
 
     Args:
-        pid (int): The project ID.
-        user_id (int): The user ID to add to the project.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The user uuid to add to the project.
 
     Returns:
         None
@@ -59,23 +62,22 @@ def add_user_to_project(pid: int, user_id: int, **kwargs: dict) -> None:
 
     query = """
     INSERT INTO projects_users (project_id, user_id)
-    SELECT p.id, %s
-    FROM projects p
-    WHERE p.pid = %s
-    RETURNING id
+    SELECT p.id, u.id
+    FROM projects p, users u
+    WHERE p.uuid = %s AND u.uuid = %s
     """
 
-    cursor.execute(query, (user_id, pid))
+    cursor.execute(query, (project_uuid, user_uuid))
     connection.commit()
 
 
 @db_write_connection
-def remove_user_from_project(project_pid: int, user_id: int, **kwargs: dict) -> bool:
+def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> bool:
     """Removes a user from a specified project.
 
     Args:
-        project_pid (int): The project ID.
-        user_id (int): The user ID to remove from the project.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The user uuid to remove from the project.
 
     Returns:
         bool: True if the user was successfully removed, False otherwise.
@@ -88,16 +90,20 @@ def remove_user_from_project(project_pid: int, user_id: int, **kwargs: dict) -> 
     WHERE project_id = (
         SELECT p.id
         FROM projects p
-        WHERE p.pid = %s
+        WHERE p.uuid = %s
     )
-    AND user_id = %s
+    AND user_id = (
+        SELECT u.id 
+        FROM users u
+        WHERE u.uuid = %s
+    )
     """
 
     cursor.execute(
         query,
         (
-            project_pid,
-            user_id,
+            project_uuid,
+            user_uuid,
         ),
     )
     connection.commit()

@@ -27,11 +27,11 @@ bp = Blueprint("project_users", __name__)
 
 @bp.route("/", methods=["GET"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def get_project_users(pid: str) -> Response:
+def get_project_users(project_uuid: str) -> Response:
     """Fetches all users associated with a specified project.
 
     Args:
-        pid (str): The project ID.
+        project_uuid (str): The project uuid.
 
     Returns:
         Response: JSON response with a list of associated users and a 200 status code,
@@ -39,7 +39,8 @@ def get_project_users(pid: str) -> Response:
     """
 
     try:
-        users = fetch_project_users(pid)
+        # TODO: return user objects not just IDs
+        users = fetch_project_users(project_uuid)
         return jsonify({"status": "success", "data": users}), 200
     except Exception as e:
         print(f"Error in get_project_users: {e}")
@@ -53,11 +54,11 @@ def get_project_users(pid: str) -> Response:
 
 @bp.route("/", methods=["POST"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def add_project_user(pid: str) -> Response:
+def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project.
 
     Args:
-        pid (str): The project ID.
+        project_uuid (str): The project uuid.
 
     Returns:
         Response: JSON response with a success message and a 201 status code if
@@ -65,13 +66,13 @@ def add_project_user(pid: str) -> Response:
         missing.
     """
     data = request.get_json()
-    user_id = data.get("user_id")
+    user_uuid = data.get("user_uuid")
 
-    if not user_id:
-        return jsonify({"status": "error", "message": "Missing user id"}), 400
+    if not user_uuid:
+        return jsonify({"status": "error", "message": "Missing user uuid"}), 400
 
     try:
-        add_user_to_project(pid, user_id)
+        add_user_to_project(project_uuid, user_uuid)
         return (
             jsonify(
                 {"status": "success", "message": "Successfully added user to project"}
@@ -86,31 +87,23 @@ def add_project_user(pid: str) -> Response:
         )
 
 
-@bp.route("/<user_id>", methods=["DELETE"])
+@bp.route("/<user_uuid>", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization(root_required=True)
-def remove_project_user(pid: str, user_id: int) -> Response:
+def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project.
 
     Args:
-        pid (str): The project ID.
-        user_id (int): The ID of the user to remove.
+        project_uuid (str): The project uuid.
+        user_uuid (str): The uuid of the user to remove.
 
     Returns:
         Response: JSON response with a 204 status code if successful,
                   or a 404 status code if the project or user is not found.
     """
     try:
-        success = remove_user_from_project(pid, user_id)
+        success = remove_user_from_project(project_uuid, user_uuid)
         if success:
-            return (
-                jsonify(
-                    {
-                        "status": "success",
-                        "message": "Successfully removed user from project",
-                    }
-                ),
-                204,
-            )
+            return "", 204
         else:
             return (
                 jsonify({"status": "error", "message": "Project or user not found"}),

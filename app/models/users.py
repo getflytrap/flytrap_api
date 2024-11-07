@@ -17,7 +17,7 @@ Functions:
 """
 
 from typing import List, Dict, Optional, Union
-from app.utils import db_read_connection, db_write_connection
+from app.utils import db_read_connection, db_write_connection, generate_uuid
 
 
 @db_read_connection
@@ -31,18 +31,18 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT * FROM users;"
+    query = "SELECT uuid, first_name, last_name, email, is_root, created_at FROM users;"
     cursor.execute(query)
     rows = cursor.fetchall()
 
     users = [
         {
-            "id": user[0],
+            "uuid": user[0],
             "first_name": user[1],
             "last_name": user[2],
             "email": user[3],
-            "is_root": user[5],
-            "created_at": user[6],
+            "is_root": user[4],
+            "created_at": user[5],
         }
         for user in rows
     ]
@@ -68,33 +68,34 @@ def add_user(
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
+    user_uuid = generate_uuid()
+
     query = """
     INSERT INTO users
-    (first_name, last_name, email, password_hash)
-    VALUES (%s, %s, %s, %s)
+    (uuid, first_name, last_name, email, password_hash)
+    VALUES (%s, %s, %s, %s, %s)
     RETURNING id;
     """
-    cursor.execute(query, (first_name, last_name, email, password_hash))
-    user_id = cursor.fetchone()[0]
+    cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
     connection.commit()
 
-    return user_id
+    return user_uuid
 
 
 @db_write_connection
-def delete_user_by_id(user_id: int, **kwargs) -> bool:
+def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
     """Deletes a user by their unique user ID.
 
     Args:
-        user_id (int): The unique ID of the user to delete.
+        user_id (str): The unique uuid of the user to delete.
 
     Returns:
         bool: True if the user was deleted, False otherwise.
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-    query = "DELETE FROM users WHERE id = %s"
-    cursor.execute(query, (user_id,))
+    query = "DELETE FROM users WHERE uuid = %s"
+    cursor.execute(query, (user_uuid,))
     rows_deleted = cursor.rowcount
     connection.commit()
 
@@ -102,11 +103,11 @@ def delete_user_by_id(user_id: int, **kwargs) -> bool:
 
 
 @db_write_connection
-def update_password(user_id: int, password_hash: str, **kwargs) -> bool:
+def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
     """Updates the password hash for a specific user.
 
     Args:
-        user_id (int): The unique ID of the user.
+        user_id (str): The unique uuid of the user.
         password_hash (str): The new hashed password for the user.
 
     Returns:
@@ -118,10 +119,10 @@ def update_password(user_id: int, password_hash: str, **kwargs) -> bool:
     query = """
     UPDATE users
     SET password_hash = %s
-    WHERE id = %s
+    WHERE uuid = %s
     """
 
-    cursor.execute(query, (password_hash, user_id))
+    cursor.execute(query, (password_hash, user_uuid))
     rows_updated = cursor.rowcount
     connection.commit()
 
@@ -163,11 +164,11 @@ def fetch_user_by_email(
 
 
 @db_read_connection
-def get_user_root_info(user_id, **kwargs):
+def get_user_root_info(user_uuid, **kwargs):
     """Retrieves the root access status for a specific user by their unique ID.
 
     Args:
-        user_id (int): The unique ID of the user.
+        user_id (str): The unique uuid of the user.
 
     Returns:
         bool: True if the user has root access, False otherwise.
@@ -177,21 +178,21 @@ def get_user_root_info(user_id, **kwargs):
     query = """
     SELECT is_root
     FROM users
-    WHERE id = %s
+    WHERE uuid = %s
     """
-    cursor.execute(query, (user_id,))
+    cursor.execute(query, (user_uuid,))
     is_root = cursor.fetchone()[0]
 
     return is_root
 
 
 @db_read_connection
-def fetch_projects_for_user(user_id, **kwargs):
+def fetch_projects_for_user(user_uuid, **kwargs):
     """
     Fetches all projects assigned to a specific user by user ID.
 
     Args:
-    - user_id (int): The ID of the user whose projects are to be retrieved.
+    - user_id (str): The uuid of the user whose projects are to be retrieved.
 
     Returns:
     - List[dict]: A list of dictionaries, each containing the 'pid' and 'name' of a
@@ -200,15 +201,16 @@ def fetch_projects_for_user(user_id, **kwargs):
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT p.pid, p.name
+    SELECT p.uuid, p.name
     FROM projects p
     JOIN projects_users pu ON p.id = pu.project_id
-    WHERE pu.user_id = %s;
+    JOIN users u ON pu.user_id = u.id
+    WHERE u.uuid = %s;
     """
 
-    cursor.execute(query, (user_id,))
+    cursor.execute(query, (user_uuid,))
     rows = cursor.fetchall()
 
-    projects = [{"pid": project[0], "name": project[1]} for project in rows]
+    projects = [{"project_uuid": project[0], "name": project[1]} for project in rows]
 
     return projects
