@@ -17,11 +17,11 @@ from app.utils import db_read_connection, db_write_connection
 
 
 @db_read_connection
-def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
+def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     """Retrieves a list of user IDs associated with a specific project.
 
     Args:
-        pid (int): The project ID.
+        project_uuid (str): The project ID.
 
     Returns:
         List[int]: A list of user IDs associated with the specified project.
@@ -30,17 +30,19 @@ def fetch_project_users(pid: int, **kwargs: dict) -> List[int]:
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT pu.user_id
-    FROM projects_users pu
+    SELECT u.uuid
+    FROM users u
+    JOIN projects_users pu
+    ON u.id = pu.user_id
     JOIN projects p
     ON pu.project_id = p.id
-    WHERE p.pid = %s
+    WHERE p.uuid = %s
     """
 
-    cursor.execute(query, (pid,))
+    cursor.execute(query, (project_uuid,))
     user_ids = cursor.fetchall()
 
-    return [user_id[0] for user_id in user_ids] if user_ids else []
+    return [user_id[0] for user_id in user_ids]
 
 
 @db_write_connection
