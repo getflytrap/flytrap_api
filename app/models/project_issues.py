@@ -72,11 +72,11 @@ def fetch_issues_by_project(
 
 
 @db_write_connection
-def delete_issues_by_project(pid: int, **kwargs: dict) -> bool:
+def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
     """Deletes all issues (errors and rejections) associated with a specified project.
 
     Args:
-        pid (int): The project ID.
+        project_uuid (str): The project uuid.
 
     Returns:
         bool: True if any issues were deleted, False otherwise.
@@ -86,16 +86,16 @@ def delete_issues_by_project(pid: int, **kwargs: dict) -> bool:
 
     query = """
     DELETE FROM error_logs
-    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
-    cursor.execute(query, (pid,))
+    cursor.execute(query, (project_uuid,))
     error_rows_deleted = cursor.rowcount
 
     rejection_query = """
     DELETE FROM rejection_logs
-    WHERE project_id IN (SELECT id FROM projects WHERE pid = %s)
+    WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
-    cursor.execute(rejection_query, (pid,))
+    cursor.execute(rejection_query, (project_uuid,))
     rejection_rows_deleted = cursor.rowcount
 
     connection.commit()

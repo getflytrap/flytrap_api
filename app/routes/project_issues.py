@@ -66,7 +66,7 @@ def get_issues(project_uuid: str) -> Response:
 
 @bp.route("/", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization()
-def delete_issues(pid: str) -> Response:
+def delete_issues(project_uuid: str) -> Response:
     """Deletes all issues for a specified project.
 
     Args:
@@ -77,7 +77,7 @@ def delete_issues(pid: str) -> Response:
         found.
     """
     try:
-        success = delete_issues_by_project(pid)
+        success = delete_issues_by_project(project_uuid)
         if success:
             return "", 204
         else:
