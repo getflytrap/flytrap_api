@@ -14,7 +14,7 @@ Usage:
 
 import jwt
 import json
-from flask import request, jsonify, Response
+from flask import request, jsonify, make_response, Response
 from typing import Any
 from functools import wraps
 from app.models import fetch_project_users
@@ -96,6 +96,7 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized
         """
         token_payload = self._decode_token(token)
+        print('root token', token_payload)
         if token_payload.get("is_root") == True:
             return f(*args, **kwargs)
         else:
@@ -142,7 +143,6 @@ class JWTAuth:
         """
         token_payload = self._decode_token(token)
         user_id = kwargs.get("user_id")
-
         if user_id:
             current_user_id = token_payload.get('user_id')
             print('hereree', user_id, current_user_id)
@@ -202,12 +202,15 @@ class JWTAuth:
             get_new_access_token()[0].get_data().decode("utf-8")
         )
         new_access_token = parsed_json_data.get("access_token")
-        print('new', new_access_token)
+        print('new toke', new_access_token)
         if new_access_token:
             try:
-                return self.authorize_user_for_project(
+                response = make_response(
+                    self.authorize_user_for_project(
                     f, new_access_token, *args, **kwargs
-                )
+                ))
+                response.headers['New-Access-Token'] = new_access_token
+                return response
             except jwt.ExpiredSignatureError:
                 return self.handle_expired_access_token(f, *args, **kwargs)
             except jwt.InvalidTokenError:
