@@ -146,16 +146,15 @@ def fetch_user_by_email(
 
     query = """
     SELECT
-        u.id, u.password_hash, u.is_root
+        u.uuid, u.password_hash, u.is_root
     FROM users u
     WHERE u.email = %s;
     """
     cursor.execute(query, (email,))
     user = cursor.fetchone()
-
     if user:
         return {
-            "id": user[0],
+            "uuid": user[0],
             "password_hash": user[1],
             "is_root": user[2],
         }
@@ -180,6 +179,7 @@ def get_user_root_info(user_uuid, **kwargs):
     FROM users
     WHERE uuid = %s
     """
+    print('root query', user_uuid)
     cursor.execute(query, (user_uuid,))
     is_root = cursor.fetchone()[0]
 
