@@ -19,7 +19,7 @@ Fetches all users.
   "status": "success",
   "data": [
     {
-      "id": 1,
+      "uuid": "056ec265-79e0-4c03-8017-895eccd2cc05",
       "first_name": "John",
       "last_name": "Doe",
       "email": "john.doe@example.com",
@@ -51,15 +51,15 @@ Creates a new user.
 {
   "status": "success",
   "data": {
-    "user_id": 1,
+    "uuid": "056ec265-79e0-4c03-8017-895eccd2cc05",
     "first_name": "John",
     "last_name": "Doe"
   }
 }
 ```
 
-### 1.3 DELETE /api/users/:user_id
-Deletes a specific user by ID.
+### 1.3 DELETE /api/users/:user_uuid
+Deletes a specific user by UUID.
 
 **Authorization**: Requires root access.
 
@@ -67,7 +67,7 @@ Deletes a specific user by ID.
 Empty response with status 204 on success.
 
 
-### 1.4 PATCH /api/users/:user_id
+### 1.4 PATCH /api/users/:user_uuid
 Updates a user's password.
 
 **Authorization**: Requires user access.
@@ -82,13 +82,10 @@ Updates a user's password.
 #### Example Response
 Empty response with status 204 on success.
 
-### 1.5 GET /api/<user_id>/projects
-Retrieves all projects assigned to a specific user by user ID.
+### 1.5 GET /api/:user_uuid/projects
+Retrieves all projects assigned to a specific user by user UUID.
 
 **Authorization**: Requires user access.
-
-#### URL Parameters
-- `user_id` (int): The ID of the user for whom to retrieve projects.
 
 #### Example Response (Success)
 ```json
@@ -96,11 +93,11 @@ Retrieves all projects assigned to a specific user by user ID.
   "status": "success",
   "data": [
     {
-      "pid": "1234-5678-90ab-cdef",
+      "uuid": "1234-5678-90ab-cdef",
       "name": "Project Alpha"
     },
     {
-      "pid": "abcd-1234-efgh-5678",
+      "uuid": "abcd-1234-efgh-5678",
       "name": "Project Beta"
     }
   ]
@@ -130,8 +127,8 @@ Fetches all projects from the database with pagination.
   "data": {
     "projects": [
       {
-        "project_id": "6f4c2c48-bf42-4f8e-ae1c-f5c53e87bcd1",
-        "project_name": "React Shopping Cart App",
+        "uuid": "6f4c2c48-bf42-4f8e-ae1c-f5c53e87bcd1",
+        "name": "React Shopping Cart App",
         "issue_count": 3
       }
     ],
@@ -158,14 +155,14 @@ Creates a new project.
 {
   "status": "success",
   "data": {
-    "project_id": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
-    "project_name": "My Project Name"
+    "uuid": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
+    "name": "My Project Name"
   }
 }
 ```
 
-### 2.3 DELETE /api/projects/:pid
-Deletes a project with the specified project ID.
+### 2.3 DELETE /api/projects/:project_uuid
+Deletes a project with the specified project UUID.
 
 **Authorization**: Requires root access.
 
@@ -173,7 +170,7 @@ Deletes a project with the specified project ID.
 Empty response with status 204 on success.
 
 
-### 2.4 PATCH /api/projects/:pid
+### 2.4 PATCH /api/projects/:project_uuid
 Updates the name of a project.
 
 **Authorization**: Requires root access.
@@ -190,8 +187,8 @@ Updates the name of a project.
 {
   "status": "success",
   "data": {
-    "project_id": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
-    "project_name": "Updated Project Name"
+    "uuid": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
+    "name": "Updated Project Name"
   }
 }
 ```
@@ -199,7 +196,7 @@ Updates the name of a project.
 ---
 ## 3. Issue Management for Projects
 
-### 3.1 GET /api/projects/:pid/issues
+### 3.1 GET /api/projects/:project_uuid/issues
 Fetches issues (errors and rejections) associated with a project.
 
 **Authorization**: Requires user access.
@@ -218,15 +215,15 @@ Fetches issues (errors and rejections) associated with a project.
 {
   "status": "success",
   "data": {
-    "errors": [
+    "issues": [
       {
-        "error_id": 1,
+        "uuid": "789g4567-e89b-12d3-a456-4266141741111",
         "name": "Database Connection Error",
         "message": "Unable to connect to the database.",
         "created_at": "2024-10-03T09:20:00Z",
         "line_number": 45,
         "col_number": 15,
-        "project_id": "123e4567-e89b-12d3-a456-426614174000",
+        "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
         "handled": false,
         "resolved": false
       }
@@ -237,7 +234,7 @@ Fetches issues (errors and rejections) associated with a project.
 }
 ```
 
-### 3.2 DELETE /api/projects/:pid/issues
+### 3.2 DELETE /api/projects/:project_uuid/issues
 Deletes all issues related to a project.
 
 **Authorization**: Requires user access.
@@ -245,7 +242,7 @@ Deletes all issues related to a project.
 #### Example Response
 Empty response with status 204 on success.
 
-### 3.3 GET /api/projects/:pid/errors/:eid
+### 3.3 GET /api/projects/:project_uuid/errors/:error_uuid
 Retrieves a specific error by ID.
 
 **Authorization**: Requires user access.
@@ -255,13 +252,13 @@ Retrieves a specific error by ID.
 {
   "status": "success",
   "data": {
-    "error_id": 1,
+    "uuid": "sample-uuid-1234-5678",
     "name": "Database Connection Error",
     "message": "Unable to connect to the database.",
     "created_at": "2024-10-03T09:20:00Z",
     "line_number": 45,
     "col_number": 15,
-    "project_id": "123e4567-e89b-12d3-a456-426614174000",
+    "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
     "stack_trace": "Traceback (most recent call last):...",
     "handled": false,
     "resolved": false
@@ -269,7 +266,7 @@ Retrieves a specific error by ID.
 }
 ```
 
-### 3.4 GET /api/projects/:pid/rejections/:rid
+### 3.4 GET /api/projects/:project_uuid/rejections/:rejection_uuid
 Retrieves a specific rejection by ID.
 
 **Authorization**: Requires user access.
@@ -279,15 +276,16 @@ Retrieves a specific rejection by ID.
 {
   "status": "success",
   "data": {
-    "rejection_id": 1,
+    "uuid": "sample-uuid-1234-5678",
     "value": "Promise rejected",
+    "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
     "handled": false,
     "resolved": false
   }
 }
 ```
 
-### 3.5 PATCH /api/projects/:pid/errors/:eid
+### 3.5 PATCH /api/projects/:project_uuid/errors/:error_uuid
 Updates the resolved state of an error.
 
 **Authorization**: Requires user access.
@@ -307,7 +305,7 @@ Updates the resolved state of an error.
 }
 ```
 
-### 3.6 PATCH /api/projects/:pid/rejections/:rid
+### 3.6 PATCH /api/projects/:project_uuid/rejections/:rejection_uuid
 Updates the resolved state of an error.
 
 **Authorization**: Requires user access.
@@ -327,7 +325,7 @@ Updates the resolved state of an error.
 }
 ```
 
-### 3.7 DELETE /api/projects/:pid/errors/:eid
+### 3.7 DELETE /api/projects/:project_uuid/errors/:error_uuid
 Deletes a specific error by ID.
 
 **Authorization**: Requires user access.
@@ -335,7 +333,7 @@ Deletes a specific error by ID.
 #### Example Response
 Empty response with status 204 on success.
 
-### 3.8 DELETE /api/projects/:pid/rejections/:rid
+### 3.8 DELETE /api/projects/:project_uuid/rejections/:rejection_uuid
 Deletes a specific rejection by ID.
 
 **Authorization**: Requires user access.
@@ -348,7 +346,7 @@ Empty response with status 204 on success.
 
 ## 4. Project-User Management
 
-### 4.1 GET /api/projects/:pid/users
+### 4.1 GET /api/projects/:project_uuid/users
 Fetches users associated with a project.
 
 **Authorization**: Requires root access.
@@ -361,7 +359,7 @@ Fetches users associated with a project.
 }
 ```
 
-### 4.2 POST /api/projects/:pid/users
+### 4.2 POST /api/projects/:project_uuid/users
 Adds a user to a project.
 
 **Authorization**: Requires user access.
@@ -369,7 +367,7 @@ Adds a user to a project.
 #### Expected Payload
 ```json
 {
-  "user_id": 1
+  "user_uuid": "d614a8c7-0288-4850-a9a8-a647b1133d15"
 }
 ```
 
@@ -381,18 +379,13 @@ Adds a user to a project.
 }
 ```
 
-### 4.3 DELETE /api/projects/:pid/users/:id
+### 4.3 DELETE /api/projects/:project_uuid/users/:user_uuid
 Removes a user from a project.
 
 **Authorization**: Requires user access.
 
 #### Example Response
-```json
-{
-  "status": "success",
-  "message": "Successfully removed user from project"
-}
-```
+Empty response with 204 status on success.
 
 ---
 
