@@ -214,4 +214,4 @@ class JWTAuth:
                 return jsonify({"message": "Invalid token."}), 401
         else:
             # return message for invalid or expired refresh token
-            return parsed_json_data
+            return jsonify(parsed_json_data), 403
