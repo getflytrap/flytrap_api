@@ -64,7 +64,7 @@ def get_new_access_token() -> Tuple[Response, int]:
         return jsonify({"access_token": access_token}), 200
     except jwt.ExpiredSignatureError:
         # the frontend should handle these responses by redirecting to the login view
-        return jsonify({"message": "Token expired. Please log in again."}), 401
+        return jsonify({"message": "Token expired"}), 401
     except jwt.InvalidTokenError as e:
         return jsonify({"message": "Invalid token", "error": str(e)}), 401
     except Exception as e:
