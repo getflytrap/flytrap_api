@@ -28,7 +28,7 @@ from app.models import (
     fetch_projects_for_user,
 )
 from app.utils import is_valid_email
-from app.utils.auth import redis_client
+from app.models import get_user_root_info
 from app.routes.projects import get_projects
 
 bp = Blueprint("users", __name__)
@@ -181,7 +181,7 @@ def get_user_projects(user_uuid: str) -> Response:
 
 
     try:
-        user_uuid_in_path_is_for_root_user = redis_client.get_user_root_info_from_cache(
+        user_uuid_in_path_is_for_root_user = get_user_root_info(
             user_uuid
         )
         if user_uuid_in_path_is_for_root_user:
