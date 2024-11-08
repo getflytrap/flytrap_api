@@ -98,7 +98,6 @@ def fetch_errors_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-
     errors = [
         {
             "uuid": row[0],
@@ -162,7 +161,6 @@ def fetch_rejections_by_project(
         query += " AND r.resolved = %s"
         params.append(resolved)
     if time is not None:
-        query += "AND r.created_at >= %s"
         query += " AND r.created_at >= %s"
         params.append(time)
 
@@ -173,7 +171,6 @@ def fetch_rejections_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
-
     rejections = [
         {
             "uuid": row[0],
