@@ -32,8 +32,8 @@ def get_user_root_info_from_cache(user_uuid: str) -> Optional[bool]:
         Optional[bool]: True if the user has root access, False if not, and None if the
         user information is not found in the database.
     """
-    is_root = redis_client.get(f"is_root:{user_uuid}") == True
-    print('cache root', is_root)
+    is_root = redis_client.get(f"is_root:{user_uuid}") is True
+    print("cache root", is_root)
     if is_root is not None:
         return is_root == "True"
     else:

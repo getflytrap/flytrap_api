@@ -54,7 +54,9 @@ def fetch_issues_by_project(
     """
     cursor = kwargs["cursor"]
 
-    errors = fetch_errors_by_project(cursor, project_uuid, page, limit, handled, time, resolved)
+    errors = fetch_errors_by_project(
+        cursor, project_uuid, page, limit, handled, time, resolved
+    )
     rejections = fetch_rejections_by_project(
         cursor, project_uuid, page, limit, handled, time, resolved
     )
@@ -104,7 +106,9 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
 
 
 @db_read_connection
-def fetch_error(project_uuid: str, error_uuid: str, **kwargs: dict) -> Optional[Dict[str, str]]:
+def fetch_error(
+    project_uuid: str, error_uuid: str, **kwargs: dict
+) -> Optional[Dict[str, str]]:
     """Retrieves a specific error log by its UUID.
 
     Args:
@@ -117,7 +121,13 @@ def fetch_error(project_uuid: str, error_uuid: str, **kwargs: dict) -> Optional[
     """
     cursor = kwargs["cursor"]
 
-    query = "SELECT name, message, created_at, line_number, col_number, stack_trace, handled, resolved FROM error_logs WHERE uuid = %s"
+    query = """
+    SELECT
+        name, message, created_at, line_number, col_number, stack_trace, handled,
+        resolved
+    FROM error_logs
+    WHERE uuid = %s
+    """
     cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
@@ -139,7 +149,9 @@ def fetch_error(project_uuid: str, error_uuid: str, **kwargs: dict) -> Optional[
 
 
 @db_read_connection
-def fetch_rejection(project_uuid: str, rejection_uuid: int, **kwargs: dict) -> Optional[Dict[str, str]]:
+def fetch_rejection(
+    project_uuid: str, rejection_uuid: int, **kwargs: dict
+) -> Optional[Dict[str, str]]:
     """Retrieves a specific rejection log by its UUID.
 
     Args:
@@ -151,7 +163,11 @@ def fetch_rejection(project_uuid: str, rejection_uuid: int, **kwargs: dict) -> O
         or None if not found.
     """
     cursor = kwargs["cursor"]
-    query = "SELECT value, created_at, handled, resolved FROM rejection_logs WHERE uuid = %s"
+    query = """
+    SELECT value, created_at, handled, resolved
+    FROM rejection_logs
+    WHERE uuid = %s
+    """
     cursor.execute(query, [rejection_uuid])
     rejection = cursor.fetchone()
 
@@ -169,7 +185,9 @@ def fetch_rejection(project_uuid: str, rejection_uuid: int, **kwargs: dict) -> O
 
 
 @db_write_connection
-def update_error_resolved(error_uuid: str, new_resolved_state: bool, **kwargs: dict) -> bool:
+def update_error_resolved(
+    error_uuid: str, new_resolved_state: bool, **kwargs: dict
+) -> bool:
     """Updates the resolved state of a specific error log.
 
     Args:

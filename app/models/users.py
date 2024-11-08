@@ -179,10 +179,10 @@ def get_user_root_info(user_uuid, **kwargs):
     FROM users
     WHERE uuid = %s
     """
-    print('root query', user_uuid)
+    print("root query", user_uuid)
     cursor.execute(query, (user_uuid,))
     is_root = cursor.fetchone()[0]
-    print('is root in models', is_root)
+    print("is root in models", is_root)
 
     return is_root
 
