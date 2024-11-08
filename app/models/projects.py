@@ -17,7 +17,7 @@ from app.utils import (
     db_read_connection,
     db_write_connection,
     calculate_total_project_pages,
-    generate_uuid
+    generate_uuid,
 )
 
 

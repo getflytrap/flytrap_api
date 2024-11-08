@@ -56,7 +56,9 @@ def get_issues(project_uuid: str) -> Response:
     resolved = request.args.get("resolved", None)
 
     try:
-        data = fetch_issues_by_project(project_uuid, page, limit, handled, time, resolved)
+        data = fetch_issues_by_project(
+            project_uuid, page, limit, handled, time, resolved
+        )
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_issues: {e}")

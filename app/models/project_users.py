@@ -43,12 +43,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     rows = cursor.fetchall()
 
     users = [
-        {
-            "uuid": row[0],
-            "first_name": row[1],
-            "last_name": row[2]
-        }
-        for row in rows
+        {"uuid": row[0], "first_name": row[1], "last_name": row[2]} for row in rows
     ]
 
     return users
@@ -101,7 +96,7 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
         WHERE p.uuid = %s
     )
     AND user_id = (
-        SELECT u.id 
+        SELECT u.id
         FROM users u
         WHERE u.uuid = %s
     )

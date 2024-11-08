@@ -13,7 +13,6 @@ Attributes:
     bp (Blueprint): Blueprint for project management routes.
 """
 
-import traceback
 from flask import jsonify, request, Response
 from flask import Blueprint
 from app.auth_manager import jwt_auth
