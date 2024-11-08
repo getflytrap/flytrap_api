@@ -72,7 +72,7 @@ def login() -> Response:
                 "user_uuid": uuid,
                 "is_root": is_root,
                 "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(minutes=20),
+                + datetime.timedelta(seconds=20),
             },
             os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",

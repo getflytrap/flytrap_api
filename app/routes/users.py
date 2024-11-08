@@ -177,9 +177,8 @@ def get_user_projects(user_uuid: str) -> Response:
         Response: 200 status code and the project data.
     """
     try:
-        user_is_root = redis_client.get_user_root_info_from_cache(user_uuid)
-        print(user_is_root)
-        if user_is_root:
+        user_uuid_in_path_is_for_root_user = redis_client.get_user_root_info_from_cache(user_uuid)
+        if user_uuid_in_path_is_for_root_user:
             return get_projects()
         
         data = fetch_projects_for_user(user_uuid)

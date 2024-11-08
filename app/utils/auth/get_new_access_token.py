@@ -47,14 +47,15 @@ def get_new_access_token() -> Tuple[Response, int]:
         )
 
         print('refresh', refresh_token_payload)
-        user_id = refresh_token_payload.get("user_uuid")
-        is_root = get_user_root_info_from_cache(user_id)
+        user_uuid = refresh_token_payload.get("user_uuid")
+        is_root = get_user_root_info_from_cache(user_uuid)
+        print('new access token is root', is_root)
 
         access_token = jwt.encode(
             {
-                "user_id": user_id,
+                "user_uuid": user_uuid,
                 "is_root": is_root,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=20),
             },
             os.getenv("JWT_SECRET_KEY"),
             algorithm="HS256",

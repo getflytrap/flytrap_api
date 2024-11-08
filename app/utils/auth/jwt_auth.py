@@ -14,6 +14,7 @@ Usage:
 
 import jwt
 import json
+from . import redis_client
 from flask import request, jsonify, make_response, Response
 from typing import Any
 from functools import wraps
@@ -53,9 +54,14 @@ class JWTAuth:
 
         def decorator(f: callable) -> callable:
             @wraps(f)
-            def decorated_function(*args: tuple, **kwargs: dict) -> Response:                
+            def decorated_function(new_access_token=None, *args: tuple, **kwargs: dict) -> Response:                
                 try:
-                    token = self._get_token()
+                    if new_access_token:
+                        token = new_access_token
+                    else:
+                        token = self._get_token()
+
+                    print('root required call from decorator func', root_required)
                     if not token:
                         return jsonify({"message": "Token is missing"}), 401
 
@@ -71,7 +77,7 @@ class JWTAuth:
                     return f(*args, **kwargs)
                 
                 except jwt.ExpiredSignatureError:
-                    return self.handle_expired_access_token(f, *args, **kwargs)
+                    return self.handle_expired_access_token(f, root_required, *args, **kwargs)
                 except jwt.InvalidTokenError:
                     return jsonify({"message": "Invalid token."}), 401
             
@@ -96,6 +102,7 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized
         """
         token_payload = self._decode_token(token)
+        print('root authenticate method token payload', token_payload)
         if token_payload.get("is_root") == True:
             return f(*args, **kwargs)
         else:
@@ -141,13 +148,20 @@ class JWTAuth:
                             error response with status 403 or 404 if unauthorized.
         """
         token_payload = self._decode_token(token)
-        user_id = kwargs.get("user_uuid")
-        if user_id:
-            current_user_id = token_payload.get('user_uuid')
-            if str(current_user_id) != str(user_id):
+        user_uuid_in_path = kwargs.get("user_uuid")
+        current_session_user_uuid = token_payload.get("user_uuid")
+        if current_session_user_uuid:
+            # allow root user to bypass user_uuid checks 
+            current_session_user_is_root = redis_client.get_user_root_info_from_cache(current_session_user_uuid)
+            if current_session_user_is_root and f.__name__ == 'get_user_projects':
+                return f(*args, **kwargs)
+        
+            if str(current_session_user_uuid) != str(user_uuid_in_path):
                 return jsonify({"message": "Unauthorized"}), 403
             else:
                 return f(*args, **kwargs)
+        else:
+            return jsonify({"message": "user_uuid could not be extracted from token"}), 500
 
     def authorize_user_for_project(
         self, f: callable, token: str, *args: tuple, **kwargs: dict
@@ -180,7 +194,7 @@ class JWTAuth:
         return f(*args, **kwargs)
 
     def handle_expired_access_token(
-        self, f: callable, *args: tuple, **kwargs: dict
+        self, f: callable, root_required: bool, *args: tuple, **kwargs: dict
     ) -> Response:
         """Handles an expired access token by refreshing it and re-attempting
         authorization.
@@ -199,15 +213,14 @@ class JWTAuth:
             get_new_access_token()[0].get_data().decode("utf-8")
         )
         new_access_token = parsed_json_data.get("access_token")
-        print('new toke', new_access_token)
         if new_access_token:
             try:
+                print('root required on decorator', root_required)
                 response = make_response(
-                    self.check_session_and_authorization(
-                    f, new_access_token, *args, **kwargs
-                ))
+                    self.check_session_and_authorization(root_required)(f)(new_access_token, *args, **kwargs))
                 response.headers['New-Access-Token'] = new_access_token
                 return response
+            # To-do: delete except blocks - errors should be handled by check_session_and_authorization
             except jwt.ExpiredSignatureError:
                 return self.handle_expired_access_token(f, *args, **kwargs)
             except jwt.InvalidTokenError:
