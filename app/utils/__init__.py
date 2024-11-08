@@ -19,6 +19,7 @@ from .db_helpers import (
     fetch_errors_by_project,
     fetch_rejections_by_project,
     calculate_total_error_pages,
+    calculate_total_user_project_pages
 )
 from .uuid_generator import generate_uuid
 from .validation import is_valid_email
@@ -31,4 +32,5 @@ __all__ = [
     "calculate_total_error_pages",
     "generate_uuid",
     "is_valid_email",
+    "calculate_total_user_project_pages"
 ]

@@ -17,7 +17,7 @@ Functions:
 """
 
 from typing import List, Dict, Optional, Union
-from app.utils import db_read_connection, db_write_connection, generate_uuid
+from app.utils import db_read_connection, db_write_connection, generate_uuid, calculate_total_user_project_pages
 
 
 @db_read_connection
@@ -179,16 +179,14 @@ def get_user_root_info(user_uuid, **kwargs):
     FROM users
     WHERE uuid = %s
     """
-    print("root query", user_uuid)
     cursor.execute(query, (user_uuid,))
     is_root = cursor.fetchone()[0]
-    print("is root in models", is_root)
 
     return is_root
 
 
 @db_read_connection
-def fetch_projects_for_user(user_uuid, **kwargs):
+def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     """
     Fetches all projects assigned to a specific user by user ID.
 
@@ -200,18 +198,27 @@ def fetch_projects_for_user(user_uuid, **kwargs):
       projectassigned to the specified user.
     """
     cursor = kwargs["cursor"]
+    offset = (page - 1) * limit if limit else 0
 
     query = """
     SELECT p.uuid, p.name
     FROM projects p
     JOIN projects_users pu ON p.id = pu.project_id
     JOIN users u ON pu.user_id = u.id
-    WHERE u.uuid = %s;
+    WHERE u.uuid = %s
+    ORDER BY p.name
+    LIMIT %s OFFSET %s;
     """
 
-    cursor.execute(query, (user_uuid,))
+    cursor.execute(query, (user_uuid, limit, offset))
     rows = cursor.fetchall()
 
     projects = [{"project_uuid": project[0], "name": project[1]} for project in rows]
 
-    return projects
+    total_pages = calculate_total_user_project_pages(cursor, user_uuid, limit)
+
+    return {
+        "projects": projects,
+        "total_pages": total_pages,
+        "current_page": int(page),
+    }

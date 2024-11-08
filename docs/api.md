@@ -87,20 +87,30 @@ Retrieves all projects assigned to a specific user by user UUID.
 
 **Authorization**: Requires user access.
 
+#### Query Parameters
+| Parameter | Type    | Description                                            |
+|-----------|---------|--------------------------------------------------------|
+| `page`    | Integer | Page number for pagination. Defaults to 1.             |
+| `limit`   | Integer | Number of items per page. Defaults to 10.              |
+
 #### Example Response (Success)
 ```json
 {
   "status": "success",
-  "data": [
-    {
-      "uuid": "1234-5678-90ab-cdef",
-      "name": "Project Alpha"
-    },
-    {
-      "uuid": "abcd-1234-efgh-5678",
-      "name": "Project Beta"
-    }
-  ]
+  "data": {
+    "projects": [
+      {
+        "uuid": "1234-5678-90ab-cdef",
+        "name": "Project Alpha"
+      },
+      {
+        "uuid": "abcd-1234-efgh-5678",
+        "name": "Project Beta"
+      }
+    ],
+    "total_pages": 1,
+    "current_page": 1,
+  }
 }
 ```
 
