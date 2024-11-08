@@ -28,7 +28,8 @@ from app.models import (
     fetch_projects_for_user,
 )
 from app.utils import is_valid_email
-
+from app.utils.auth import redis_client
+from app.routes.projects import get_projects
 
 bp = Blueprint("users", __name__)
 
@@ -164,7 +165,7 @@ def update_user_password(user_uuid: str) -> Response:
 
 
 @bp.route("/<user_uuid>/projects", methods=["GET"])
-@jwt_auth.check_session_and_authorization()
+@jwt_auth.check_session_and_authorization(root_required=False)
 def get_user_projects(user_uuid: str) -> Response:
     """
     Retrieves all projects assigned to a specific user by user ID.
@@ -176,6 +177,10 @@ def get_user_projects(user_uuid: str) -> Response:
         Response: 200 status code and the project data.
     """
     try:
+        user_uuid_in_path_is_for_root_user = redis_client.get_user_root_info_from_cache(user_uuid)
+        if user_uuid_in_path_is_for_root_user:
+            return get_projects()
+        
         data = fetch_projects_for_user(user_uuid)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:

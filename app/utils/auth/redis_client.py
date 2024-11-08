@@ -18,7 +18,7 @@ redis_client = redis.StrictRedis(
 )
 
 
-def get_user_root_info_from_cache(user_id: str) -> Optional[bool]:
+def get_user_root_info_from_cache(user_uuid: str) -> Optional[bool]:
     """Retrieves the root access status of a user from Redis cache or the database.
 
     This function first checks Redis for the root access status of a user. If the
@@ -26,22 +26,22 @@ def get_user_root_info_from_cache(user_id: str) -> Optional[bool]:
     with a 15-minute expiration for future requests.
 
     Args:
-        user_id (str): The ID of the user whose root access status is being requested.
+        user_uuid (str): The ID of the user whose root access status is being requested.
 
     Returns:
         Optional[bool]: True if the user has root access, False if not, and None if the
         user information is not found in the database.
     """
-    is_root = redis_client.get(f"is_root:{user_id}")
-
+    is_root = redis_client.get(f"is_root:{user_uuid}") == True
+    print('cache root', is_root)
     if is_root is not None:
         return is_root == "True"
     else:
-        is_root = get_user_root_info(user_id)
+        is_root = get_user_root_info(user_uuid)
 
         if is_root is not None:
             redis_client.setex(
-                f"is_root:{user_id}", 900, "True" if is_root else "False"
+                f"is_root:{user_uuid}", 900, "True" if is_root else "False"
             )
 
         return is_root
