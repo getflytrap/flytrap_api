@@ -25,7 +25,7 @@ from app.models import (
 bp = Blueprint("project_users", __name__)
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def get_project_users(project_uuid: str) -> Response:
     """Fetches all users associated with a specified project.
@@ -51,7 +51,7 @@ def get_project_users(project_uuid: str) -> Response:
         )
 
 
-@bp.route("/", methods=["POST"])
+@bp.route("", methods=["POST"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project.

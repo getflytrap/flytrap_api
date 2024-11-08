@@ -27,7 +27,7 @@ from app.models import (
 bp = Blueprint("projects", __name__)
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def get_projects() -> Response:
     """Fetches a paginated list of all projects.
@@ -51,7 +51,7 @@ def get_projects() -> Response:
         return jsonify({"status": "error", "message": "Failed to fetch projects"}), 500
 
 
-@bp.route("/", methods=["POST"])
+@bp.route("", methods=["POST"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def create_project() -> Response:
     """Creates a new project with a unique project ID.

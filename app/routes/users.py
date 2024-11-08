@@ -33,7 +33,7 @@ from app.utils import is_valid_email
 bp = Blueprint("users", __name__)
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def get_users() -> Response:
     """Fetches a list of all users.
@@ -50,7 +50,7 @@ def get_users() -> Response:
         return jsonify({"status": "error", "message": "Failed to fetch users"}), 500
 
 
-@bp.route("/", methods=["POST"])
+@bp.route("", methods=["POST"])
 @jwt_auth.check_session_and_authorization(root_required=True)
 def create_user() -> Response:
     """Creates a new user with specified attributes.
