@@ -162,7 +162,7 @@ class JWTAuth:
             else:
                 return f(*args, **kwargs)
         else:
-            return jsonify({"message": "user_uuid could not be extracted from token"}), 500
+            return jsonify({"message": "Token error"}), 500
 
     def authorize_user_for_project(
         self, f: callable, token: str, *args: tuple, **kwargs: dict
