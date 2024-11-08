@@ -43,6 +43,32 @@ def calculate_total_project_pages(cursor: Cursor, limit: int) -> int:
     return total_pages
 
 
+def calculate_total_user_project_pages(cursor: Cursor, user_uuid: int, limit: int) -> int:
+    """Calculates the total number of pages for a paginated list of projects
+    a certain user is assigned to.
+
+    Args:
+        cursor (Cursor): The database cursor for executing SQL queries.
+        limit (int): The number of projects per page.
+
+    Returns:
+        int: The total number of pages required to display all projects of the user.
+    """
+
+    query = """
+    SELECT COUNT(DISTINCT p.id) 
+    FROM projects p
+    JOIN projects_users pu ON p.id = pu.project_id
+    JOIN users u ON pu.user_id = u.id
+    WHERE u.uuid = %s;
+    """
+    cursor.execute(query, (user_uuid,))
+    total_count = cursor.fetchone()[0]
+    total_pages = math.ceil(total_count / limit)
+
+    return total_pages
+
+
 def fetch_errors_by_project(
     cursor: Cursor,
     project_uuid: str,

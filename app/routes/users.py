@@ -176,6 +176,10 @@ def get_user_projects(user_uuid: str) -> Response:
     Returns:
         Response: 200 status code and the project data.
     """
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+
+
     try:
         user_uuid_in_path_is_for_root_user = redis_client.get_user_root_info_from_cache(
             user_uuid
@@ -183,7 +187,7 @@ def get_user_projects(user_uuid: str) -> Response:
         if user_uuid_in_path_is_for_root_user:
             return get_projects()
 
-        data = fetch_projects_for_user(user_uuid)
+        data = fetch_projects_for_user(user_uuid, page, limit)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
         print(f"Error in get_user_projects: {e}")
