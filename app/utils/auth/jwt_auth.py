@@ -63,14 +63,13 @@ class JWTAuth:
                     else:
                         token = self._get_token()
 
-                    print('root required call from decorator func', root_required)
                     if not token:
                         return jsonify({"message": "Token is missing"}), 401
 
                     if root_required:
                         return self._authenticate_root(f, token, *args, **kwargs)
                     
-                    if 'pid' in kwargs:
+                    if 'project_uuid' in kwargs:
                         return self.authorize_user_for_project(f, token, *args, **kwargs)
                     elif 'user_uuid' in kwargs:
                         return self.authorize_for_user_specific_operation(f, token, *args, **kwargs)
@@ -97,7 +96,7 @@ class JWTAuth:
             f (callable): The function to wrap with authorization checks.
             token (str): The JWT access token.
             *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
+            **kwargs (dict): Keyword arguments, including the project ID (`uuid`).
 
         Returns:
             Response | Any: The response from the wrapped function if authorized, or an
@@ -143,7 +142,7 @@ class JWTAuth:
             f (callable): The function to wrap with authorization checks.
             token (str): The JWT access token.
             *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
+            **kwargs (dict): Keyword arguments, including the project ID (`uuid`).
         
         Returns:
             Response | Any: The response from the wrapped function if authorized, or an
@@ -175,7 +174,7 @@ class JWTAuth:
             f (callable): The function to wrap with authorization checks.
             token (str): The JWT access token.
             *args (tuple): Additional arguments for the wrapped function.
-            **kwargs (dict): Keyword arguments, including the project ID (`pid`).
+            **kwargs (dict): Keyword arguments, including the project ID (`uuid`).
 
         Returns:
             Response | Any: The response from the wrapped function if authorized, or an
@@ -183,11 +182,11 @@ class JWTAuth:
         """
         token_payload = self._decode_token(token)
         user_uuid = token_payload.get("user_uuid")
-        project_pid = kwargs.get("project_uuid")
+        project_uuid = kwargs.get("project_uuid")
 
-        if project_pid:
-            authorized_user_uuids = fetch_project_users(project_pid)
-
+        if project_uuid:
+            authorized_user_uuids = list(map(lambda user: user['uuid'], fetch_project_users(project_uuid)))
+            print('authorized users', authorized_user_uuids)
             if user_uuid in authorized_user_uuids or token_payload.get("is_root") is True:
                 return f(*args, **kwargs)
             else:
