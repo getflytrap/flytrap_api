@@ -37,7 +37,7 @@ from app.models import (
 bp = Blueprint("project_issues", __name__)
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 @jwt_auth.check_session_and_authorization()
 def get_issues(project_uuid: str) -> Response:
     """Fetches a paginated list of issues for a specified project.
@@ -64,7 +64,7 @@ def get_issues(project_uuid: str) -> Response:
         return jsonify({"status": "error", "message": "Failed to fetch data"}), 500
 
 
-@bp.route("/", methods=["DELETE"])
+@bp.route("", methods=["DELETE"])
 @jwt_auth.check_session_and_authorization()
 def delete_issues(project_uuid: str) -> Response:
     """Deletes all issues for a specified project.
