@@ -15,7 +15,7 @@ import datetime
 from typing import Tuple
 from flask import request, jsonify, Response
 from dotenv import load_dotenv
-from .redis_client import get_user_root_info_from_cache
+from app.models import get_user_root_info
 
 load_dotenv()
 
@@ -48,7 +48,7 @@ def get_new_access_token() -> Tuple[Response, int]:
 
         print("refresh", refresh_token_payload)
         user_uuid = refresh_token_payload.get("user_uuid")
-        is_root = get_user_root_info_from_cache(user_uuid)
+        is_root = get_user_root_info(user_uuid)
         print("new access token is root", is_root)
 
         access_token = jwt.encode(

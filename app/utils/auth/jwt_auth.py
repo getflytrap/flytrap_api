@@ -14,11 +14,10 @@ Usage:
 
 import jwt
 import json
-from . import redis_client
 from flask import request, jsonify, make_response, Response
 from typing import Any
 from functools import wraps
-from app.models import fetch_project_users
+from app.models import fetch_project_users, get_user_root_info
 from .get_new_access_token import get_new_access_token
 
 
@@ -153,7 +152,7 @@ class JWTAuth:
         current_session_user_uuid = token_payload.get("user_uuid")
         if current_session_user_uuid:
             # allow root user to bypass user_uuid checks 
-            current_session_user_is_root = redis_client.get_user_root_info_from_cache(current_session_user_uuid)
+            current_session_user_is_root = get_user_root_info(current_session_user_uuid)
             if current_session_user_is_root and f.__name__ == 'get_user_projects':
                 return f(*args, **kwargs)
         
@@ -197,8 +196,8 @@ class JWTAuth:
     def handle_expired_access_token(
         self, f: callable, root_required: bool, *args: tuple, **kwargs: dict
     ) -> Response:
-        """Handles an expired access token by refreshing it and re-attempting
-        authorization.
+        """Handles an expired access token by refreshing it
+          and re-attempting authorization.
 
         Args:
             f (callable): The function to wrap with token refresh logic.
