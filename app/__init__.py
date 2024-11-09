@@ -19,7 +19,7 @@ Attributes:
 """
 
 import traceback
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from app.routes import (
     projects_bp,
@@ -30,10 +30,6 @@ from app.routes import (
     webhook_bp,
 )
 
-# from app.config import secret_key
-# from app.utils.auth import JWTAuth, RootAuth
-
-
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
@@ -43,11 +39,6 @@ def create_app() -> Flask:
         print("Error: ", e)
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
-
-    # jwt_auth = JWTAuth(secret_key=secret_key)
-    # root_auth = RootAuth(secret_key=secret_key)
-    # app.jwt_auth = jwt_auth
-    # app.root_auth = root_auth
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")

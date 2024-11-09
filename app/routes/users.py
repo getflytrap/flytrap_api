@@ -19,7 +19,6 @@ Attributes:
 import bcrypt
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import jwt_auth
 from app.models import (
     fetch_all_users,
     add_user,
@@ -30,12 +29,16 @@ from app.models import (
 from app.utils import is_valid_email
 from app.models import get_user_root_info
 from app.routes.projects import get_projects
+from app.utils.auth import TokenManager, AuthManager
+token_manager = TokenManager()
+auth_manager = AuthManager(token_manager)
 
 bp = Blueprint("users", __name__)
 
 
 @bp.route("", methods=["GET"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def get_users() -> Response:
     """Fetches a list of all users.
 
@@ -43,6 +46,7 @@ def get_users() -> Response:
         Response: JSON response with a list of all users and a 200 status code,
                   or an error message with a 500 status code if fetching fails.
     """
+    print("users cookies here", request.cookies)
     try:
         users = fetch_all_users()
         return jsonify({"status": "success", "data": users}), 200
@@ -52,7 +56,8 @@ def get_users() -> Response:
 
 
 @bp.route("", methods=["POST"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def create_user() -> Response:
     """Creates a new user with specified attributes.
 
@@ -108,7 +113,8 @@ def create_user() -> Response:
 
 
 @bp.route("/<user_uuid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def delete_user(user_uuid: str) -> Response:
     """Deletes a specified user by their user ID.
 
@@ -131,7 +137,8 @@ def delete_user(user_uuid: str) -> Response:
 
 
 @bp.route("/<user_uuid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_user
 def update_user_password(user_uuid: str) -> Response:
     """Updates the password of a specified user.
 
@@ -165,7 +172,8 @@ def update_user_password(user_uuid: str) -> Response:
 
 
 @bp.route("/<user_uuid>/projects", methods=["GET"])
-@jwt_auth.check_session_and_authorization(root_required=False)
+@auth_manager.authenticate
+@auth_manager.authorize_user
 def get_user_projects(user_uuid: str) -> Response:
     """
     Retrieves all projects assigned to a specific user by user ID.

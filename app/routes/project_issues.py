@@ -22,7 +22,6 @@ Attributes:
 import traceback
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import jwt_auth
 from app.models import (
     fetch_issues_by_project,
     delete_issues_by_project,
@@ -33,12 +32,15 @@ from app.models import (
     delete_error_by_id,
     delete_rejection_by_id,
 )
+from app.utils.auth import TokenManager, AuthManager
+token_manager = TokenManager()
+auth_manager = AuthManager(token_manager)
 
 bp = Blueprint("project_issues", __name__)
 
-
 @bp.route("", methods=["GET"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def get_issues(project_uuid: str) -> Response:
     """Fetches a paginated list of issues for a specified project.
 
@@ -67,7 +69,8 @@ def get_issues(project_uuid: str) -> Response:
 
 
 @bp.route("", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def delete_issues(project_uuid: str) -> Response:
     """Deletes all issues for a specified project.
 
@@ -93,7 +96,8 @@ def delete_issues(project_uuid: str) -> Response:
 
 
 @bp.route("/errors/<error_uuid>", methods=["GET"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def get_error(project_uuid: str, error_uuid: str) -> Response:
     """Retrieves a specific error by its ID.
 
@@ -118,7 +122,8 @@ def get_error(project_uuid: str, error_uuid: str) -> Response:
 
 
 @bp.route("/rejections/<rejection_uuid>", methods=["GET"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
     """Retrieves a specific rejection by its UUID.
 
@@ -142,7 +147,8 @@ def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
 
 
 @bp.route("/errors/<error_uuid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def toggle_error(project_uuid: str, error_uuid: str) -> Response:
     """Toggles the resolved state of a specific error.
 
@@ -175,7 +181,8 @@ def toggle_error(project_uuid: str, error_uuid: str) -> Response:
 
 
 @bp.route("/rejections/<rejection_uuid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
     """Toggles the resolved state of a specific rejection.
 
@@ -208,7 +215,8 @@ def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
 
 
 @bp.route("/errors/<error_uuid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def delete_error(project_uuid: str, error_uuid: str) -> Response:
     """Deletes a specific error by its UUID.
 
@@ -232,7 +240,8 @@ def delete_error(project_uuid: str, error_uuid: str) -> Response:
 
 
 @bp.route("/rejections/<rejection_uuid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization()
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
 def delete_rejection(project_uuid: str, rejection_uuid: str) -> Response:
     """Deletes a specific rejection by its UUID.
 

@@ -12,6 +12,7 @@ Attributes:
     __all__ (list): List of public classes available for import from the auth utilities.
 """
 
-from .jwt_auth import JWTAuth
+from .token_manager import TokenManager
+from .auth_manager import AuthManager
 
-__all__ = ["JWTAuth"]
+__all__ = ["TokenManager", "AuthManager"]
