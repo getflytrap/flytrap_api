@@ -38,18 +38,18 @@ def get_new_access_token() -> Tuple[Response, int]:
         Exception: Propagates unexpected errors during token processing.
     """
     refresh_token = request.cookies.get("refresh_token")
-    print("coooooookies", request.cookies)
+    print("cookies here", request.cookies)
     if not refresh_token:
-        return jsonify({"message": "Token is missing!"}), 401
+        return jsonify({"message": "No token"})
     try:
         refresh_token_payload = jwt.decode(
             refresh_token, os.getenv("JWT_SECRET_KEY"), algorithms=["HS256"]
         )
 
-        print("refresh", refresh_token_payload)
+        print("refresh token payload", refresh_token_payload)
         user_uuid = refresh_token_payload.get("user_uuid")
         is_root = get_user_root_info(user_uuid)
-        print("new access token is root", is_root)
+        print("new access token is root: ", is_root)
 
         access_token = jwt.encode(
             {
@@ -63,6 +63,7 @@ def get_new_access_token() -> Tuple[Response, int]:
 
         return jsonify({"access_token": access_token}), 200
     except jwt.ExpiredSignatureError:
+        print('refresh token expired')
         # the frontend should handle these responses by redirecting to the login view
         return jsonify({"message": "Token expired"}), 401
     except jwt.InvalidTokenError as e:

@@ -77,8 +77,10 @@ class JWTAuth:
                     return f(*args, **kwargs)
                 
                 except jwt.ExpiredSignatureError:
+                    print('access token expired')
                     return self.handle_expired_access_token(f, root_required, *args, **kwargs)
                 except jwt.InvalidTokenError:
+                    print('access token became invalid')
                     return jsonify({"message": "Invalid token."}), 401
             
             return decorated_function
@@ -215,7 +217,6 @@ class JWTAuth:
         new_access_token = parsed_json_data.get("access_token")
         if new_access_token:
             try:
-                print('root required on decorator', root_required)
                 response = make_response(
                     self.check_session_and_authorization(root_required)(f)(new_access_token, *args, **kwargs))
                 response.headers['New-Access-Token'] = new_access_token
@@ -227,4 +228,6 @@ class JWTAuth:
                 return jsonify({"message": "Invalid token."}), 401
         else:
             # return message for invalid or expired refresh token
+            print("couldn't get new access token")
+            # To-do: change to 401
             return jsonify(parsed_json_data), 403
