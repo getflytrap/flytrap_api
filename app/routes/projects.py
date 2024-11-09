@@ -15,19 +15,22 @@ Attributes:
 
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import jwt_auth
 from app.models import (
     fetch_projects,
     add_project,
     delete_project_by_id,
     update_project_name,
 )
+from app.utils.auth import TokenManager, AuthManager
+token_manager = TokenManager()
+auth_manager = AuthManager(token_manager)
 
 bp = Blueprint("projects", __name__)
 
 
 @bp.route("", methods=["GET"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def get_projects() -> Response:
     """Fetches a paginated list of all projects.
 
@@ -42,6 +45,8 @@ def get_projects() -> Response:
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
 
+    print("projects cookies here", request.cookies)
+
     try:
         data = fetch_projects(page, limit)
         return jsonify({"status": "success", "data": data}), 200
@@ -51,7 +56,8 @@ def get_projects() -> Response:
 
 
 @bp.route("", methods=["POST"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def create_project() -> Response:
     """Creates a new project with a unique project ID.
 
@@ -81,7 +87,8 @@ def create_project() -> Response:
 
 
 @bp.route("/<project_uuid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID.
 
@@ -105,7 +112,8 @@ def delete_project(project_uuid: str) -> Response:
 
 
 @bp.route("/<project_uuid>", methods=["PATCH"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def update_project(project_uuid: str) -> Response:
     """Updates the name of a specified project.
 

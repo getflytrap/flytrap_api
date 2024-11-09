@@ -15,18 +15,21 @@ Attributes:
 
 from flask import jsonify, request, Response
 from flask import Blueprint
-from app.auth_manager import jwt_auth
 from app.models import (
     fetch_project_users,
     add_user_to_project,
     remove_user_from_project,
 )
+from app.utils.auth import TokenManager, AuthManager
+token_manager = TokenManager()
+auth_manager = AuthManager(token_manager)
 
 bp = Blueprint("project_users", __name__)
 
 
 @bp.route("", methods=["GET"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def get_project_users(project_uuid: str) -> Response:
     """Fetches all users associated with a specified project.
 
@@ -52,7 +55,8 @@ def get_project_users(project_uuid: str) -> Response:
 
 
 @bp.route("", methods=["POST"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project.
 
@@ -87,7 +91,8 @@ def add_project_user(project_uuid: str) -> Response:
 
 
 @bp.route("/<user_uuid>", methods=["DELETE"])
-@jwt_auth.check_session_and_authorization(root_required=True)
+@auth_manager.authenticate
+@auth_manager.authorize_root
 def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project.
 
