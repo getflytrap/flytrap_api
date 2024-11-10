@@ -15,7 +15,7 @@ Attributes:
 """
 
 import bcrypt
-from flask import jsonify, request, make_response, Response
+from flask import jsonify, request, make_response, Response, g
 from flask import Blueprint
 from app.config import HTTPONLY, SECURE, SAMESITE, PATH
 from app.models import fetch_user_by_email
@@ -94,4 +94,9 @@ def refresh() -> Response:
 @bp.route('/status', methods=['GET'])
 @auth_manager.authenticate
 def auth_status():
-    return jsonify({"status": "success", "message": "Authenticated"}), 200
+    user_uuid = g.user_payload.get("user_uuid")
+
+    if not user_uuid:
+        return jsonify({"status": "error", "message": "User not found"}), 404
+    
+    return jsonify({"status": "success", "user_uuid": user_uuid }), 200
