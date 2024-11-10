@@ -65,7 +65,7 @@ def login() -> Response:
         return jsonify({"status": "error", "message": "Invalid password"}), 401
 
 
-@bp.route("/logout", methods=["GET"])
+@bp.route("/logout", methods=["POST"])
 def logout() -> Response:
     """Logs out a user by clearing the refresh token cookie."""
     response = make_response(jsonify({"status": "success", "message": "Succesfully logged out"}), 200)
