@@ -196,7 +196,7 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
 
     return {
         "user_uuid": user_uuid,
-        "first_name": user["first_name"],
-        "last_name": user["last_name"],
-        "is_root": user["is_root"],
+        "first_name": user[0],
+        "last_name": user[1],
+        "is_root": user[2],
     }
