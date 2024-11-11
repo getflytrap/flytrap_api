@@ -35,7 +35,6 @@ def login() -> Response:
     last_name = user.get("last_name")
     password_hash = user.get("password_hash")
     is_root = user.get("is_root")
-    print("login: is root", is_root)
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
         access_token = token_manager.create_access_token(uuid, is_root, expires_in=20)
@@ -43,6 +42,7 @@ def login() -> Response:
 
         data = {
             "access_token": access_token,
+            "user_uuid": uuid,
             "first_name": first_name,
             "last_name": last_name,
             "is_root": is_root,
