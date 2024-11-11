@@ -201,11 +201,25 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     offset = (page - 1) * limit if limit else 0
 
     query = """
-    SELECT p.uuid, p.name
-    FROM projects p
-    JOIN projects_users pu ON p.id = pu.project_id
-    JOIN users u ON pu.user_id = u.id
-    WHERE u.uuid = %s
+    SELECT 
+        p.uuid, 
+        p.name,
+        COUNT(DISTINCT e.id) AS error_count,
+        COUNT(DISTINCT r.id) AS rejection_count
+    FROM 
+        projects p
+    JOIN 
+        projects_users pu ON p.id = pu.project_id
+    JOIN 
+        users u ON pu.user_id = u.id
+    LEFT JOIN
+        error_logs e ON e.project_id = p.id
+    LEFT JOIN
+        rejection_logs r ON r.project_id = p.id
+    WHERE 
+        u.uuid = %s
+    GROUP BY
+        p.uuid, p.name
     ORDER BY p.name
     LIMIT %s OFFSET %s;
     """
@@ -213,7 +227,14 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     cursor.execute(query, (user_uuid, limit, offset))
     rows = cursor.fetchall()
 
-    projects = [{"project_uuid": project[0], "name": project[1]} for project in rows]
+    # TODO: return the issue count here too
+    projects = [
+        {"project_uuid": project[0], 
+         "name": project[1],
+         "issue_count": project[2] + project[3]
+        } 
+        for project in rows
+    ]
 
     total_pages = calculate_total_user_project_pages(cursor, user_uuid, limit)
 
