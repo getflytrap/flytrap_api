@@ -169,7 +169,6 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     cursor.execute(query, (user_uuid, limit, offset))
     rows = cursor.fetchall()
 
-    # TODO: return the issue count here too
     projects = [
         {"project_uuid": project[0], 
          "name": project[1],
@@ -184,4 +183,20 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
         "projects": projects,
         "total_pages": total_pages,
         "current_page": int(page),
+    }
+
+@db_read_connection
+def get_user_info(user_uuid: str, **kwargs) -> dict:
+    """Fetches a user's uuid, first and last name, and root status."""
+    cursor = kwargs["cursor"]
+
+    query = "SELECT first_name, last_name, is_root FROM users WHERE uuid = %s;"
+    cursor.execute(query, (user_uuid,))
+    user = cursor.fetchone()
+
+    return {
+        "user_uuid": user_uuid,
+        "first_name": user[0],
+        "last_name": user[1],
+        "is_root": user[2],
     }

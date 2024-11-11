@@ -8,8 +8,8 @@ using JWT. Passwords are securely verified using bcrypt.
 import bcrypt
 from flask import jsonify, request, make_response, Response, g
 from flask import Blueprint
-from app.config import HTTPONLY, SECURE, SAMESITE, PATH
-from app.models import fetch_user_by_email
+from app.config import HTTPONLY, SECURE, SAMESITE
+from app.models import fetch_user_by_email, get_user_info
 from app.utils.auth import TokenManager, AuthManager
 
 token_manager = TokenManager()
@@ -100,5 +100,7 @@ def auth_status():
 
     if not user_uuid:
         return jsonify({"status": "error", "message": "User not found"}), 404
+    
+    data = get_user_info(user_uuid)
 
-    return jsonify({"status": "success", "user_uuid": user_uuid}), 200
+    return jsonify({"status": "success", "data": data}), 200
