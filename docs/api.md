@@ -417,7 +417,12 @@ Logs in a user and issues JWT tokens.
 ```json
 {
   "status": "success",
-  "access_token": "JWT_TOKEN"
+  "data": {
+    "access_token": "JWT_TOKEN",
+    "first_name": "John",
+    "last_name": "Doe",
+    "is_root": "False",
+  }
 }
 ```
 
