@@ -102,7 +102,7 @@ def fetch_user_by_email(
 
     query = """
     SELECT
-        u.uuid, u.password_hash, u.is_root
+        u.uuid, u.first_name, u.last_name, u.password_hash, u.is_root
     FROM users u
     WHERE u.email = %s;
     """
@@ -111,8 +111,10 @@ def fetch_user_by_email(
     if user:
         return {
             "uuid": user[0],
-            "password_hash": user[1],
-            "is_root": user[2],
+            "first_name": user[1],
+            "last_name": user[2],
+            "password_hash": user[3],
+            "is_root": user[4],
         }
 
     return None

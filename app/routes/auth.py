@@ -31,18 +31,25 @@ def login() -> Response:
         return jsonify({"status": "error", "message": "User does not exist"}), 404
 
     uuid = user.get("uuid")
+    first_name = user.get("first_name")
+    last_name = user.get("last_name")
     password_hash = user.get("password_hash")
     is_root = user.get("is_root")
+    print("login: is root", is_root)
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
-        print("password matches")
         access_token = token_manager.create_access_token(uuid, is_root, expires_in=20)
-        refresh_token = token_manager.create_refresh_token(uuid, is_root, expires_in=7)
+        refresh_token = token_manager.create_refresh_token(uuid, expires_in=7)
 
-        print(HTTPONLY, SECURE, SAMESITE, PATH)
+        data = {
+            "access_token": access_token,
+            "first_name": first_name,
+            "last_name": last_name,
+            "is_root": is_root,
+        }
 
         response = make_response(
-            jsonify({"status": "success", "access_token": access_token}), 200
+            jsonify({"status": "success", "data": data}), 200
         )
         response.set_cookie(
             "refresh_token",
@@ -53,7 +60,6 @@ def login() -> Response:
             path="/",
             max_age=7 * 24 * 60 * 60,
         )
-        print("login response", response.headers)
         return response
     else:
         return jsonify({"status": "error", "message": "Invalid password"}), 401
