@@ -2,15 +2,6 @@
 
 This module provides routes for managing projects, including creating, fetching,
 updating, and deleting project records. Each route enforces root access authorization.
-
-Routes:
-    / (GET): Fetches a paginated list of projects.
-    / (POST): Creates a new project.
-    /<pid> (DELETE): Deletes a specified project by ID.
-    /<pid> (PATCH): Updates the name of a specified project by ID.
-
-Attributes:
-    bp (Blueprint): Blueprint for project management routes.
 """
 
 from flask import jsonify, request, Response
@@ -22,6 +13,7 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
+
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
 
@@ -32,16 +24,7 @@ bp = Blueprint("projects", __name__)
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def get_projects() -> Response:
-    """Fetches a paginated list of all projects.
-
-    Query Parameters:
-        page (int): The page number for pagination (default is 1).
-        limit (int): The number of projects per page (default is 10).
-
-    Returns:
-        Response: JSON response containing the list of projects with a 200 status code,
-                  or an error message with a 500 status code if fetching fails.
-    """
+    """Fetches a paginated list of all projects."""
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
 
@@ -59,15 +42,7 @@ def get_projects() -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def create_project() -> Response:
-    """Creates a new project with a unique project ID.
-
-    JSON Payload:
-        name (str): The name of the new project.
-
-    Returns:
-        Response: JSON response containing the project ID and name with a 201 status
-        code, or an error message with a 400 status code if project name is missing.
-    """
+    """Creates a new project with a unique project ID."""
     data = request.get_json()
     name = data.get("name")
 
@@ -90,15 +65,7 @@ def create_project() -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
-    """Deletes a specified project by its project UUID.
-
-    Args:
-        project_uuid (str): The project uuid of the project to delete.
-
-    Returns:
-        Response: 204 status code if successful, or a 404 status code if the project is
-        not found.
-    """
+    """Deletes a specified project by its project UUID."""
 
     try:
         success = delete_project_by_id(project_uuid)
@@ -115,18 +82,7 @@ def delete_project(project_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def update_project(project_uuid: str) -> Response:
-    """Updates the name of a specified project.
-
-    Args:
-        project_uuid (str): The project ID of the project to update.
-
-    JSON Payload:
-        new_name (str): The new name for the project.
-
-    Returns:
-        Response: JSON response with the updated project name and a 200 status code if
-        successful, or a 404 status code if the project is not found.
-    """
+    """Updates the name of a specified project."""
     data = request.get_json()
     new_name = data.get("new_name")
 

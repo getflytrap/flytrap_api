@@ -3,15 +3,6 @@
 This module provides authentication routes for user login and logout. It verifies user
 credentials, generates access and refresh tokens, and manages token-based authentication
 using JWT. Passwords are securely verified using bcrypt.
-
-Routes:
-    /login (POST): Authenticates a user, issuing JWT access and refresh tokens upon
-    successful login.
-    /logout (GET): Logs out a user by clearing the refresh token cookie.
-    /refresh (POST): Refreshes a JWT Token
-
-Attributes:
-    bp (Blueprint): Blueprint for the authentication routes.
 """
 
 import bcrypt
@@ -20,6 +11,7 @@ from flask import Blueprint
 from app.config import HTTPONLY, SECURE, SAMESITE, PATH
 from app.models import fetch_user_by_email
 from app.utils.auth import TokenManager, AuthManager
+
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
 
@@ -49,7 +41,9 @@ def login() -> Response:
 
         print(HTTPONLY, SECURE, SAMESITE, PATH)
 
-        response = make_response(jsonify({"status": "success", "access_token": access_token}), 200)
+        response = make_response(
+            jsonify({"status": "success", "access_token": access_token}), 200
+        )
         response.set_cookie(
             "refresh_token",
             refresh_token,
@@ -57,7 +51,7 @@ def login() -> Response:
             secure=SECURE,
             samesite=SAMESITE,
             path="/",
-            max_age=7 * 24 * 60 * 60
+            max_age=7 * 24 * 60 * 60,
         )
         print("login response", response.headers)
         return response
@@ -68,7 +62,9 @@ def login() -> Response:
 @bp.route("/logout", methods=["POST"])
 def logout() -> Response:
     """Logs out a user by clearing the refresh token cookie."""
-    response = make_response(jsonify({"status": "success", "message": "Succesfully logged out"}), 200)
+    response = make_response(
+        jsonify({"status": "success", "message": "Succesfully logged out"}), 200
+    )
     response.set_cookie(
         "refresh_token",
         "",
@@ -91,12 +87,12 @@ def refresh() -> Response:
     return jsonify({"status": "success", "access_token": new_access_token}), 200
 
 
-@bp.route('/status', methods=['GET'])
+@bp.route("/status", methods=["GET"])
 @auth_manager.authenticate
 def auth_status():
     user_uuid = g.user_payload.get("user_uuid")
 
     if not user_uuid:
         return jsonify({"status": "error", "message": "User not found"}), 404
-    
-    return jsonify({"status": "success", "user_uuid": user_uuid }), 200
+
+    return jsonify({"status": "success", "user_uuid": user_uuid}), 200
