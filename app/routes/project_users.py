@@ -19,6 +19,7 @@ from app.models import (
     fetch_project_users,
     add_user_to_project,
     remove_user_from_project,
+    user_is_root
 )
 from app.utils.auth import TokenManager, AuthManager
 token_manager = TokenManager()
@@ -73,6 +74,9 @@ def add_project_user(project_uuid: str) -> Response:
 
     if not user_uuid:
         return jsonify({"status": "error", "message": "Missing user uuid"}), 400
+    
+    if user_is_root(user_uuid) == True:
+        return jsonify({"status": "error", "message": "Root users cannot be added to projects"}), 400
 
     try:
         add_user_to_project(project_uuid, user_uuid)

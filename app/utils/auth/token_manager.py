@@ -9,7 +9,7 @@ class TokenManager:
             {
                 "user_uuid": user_uuid,
                 "is_root": is_root,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=expires_in),
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_in),
             },
             SECRET_KEY,
             algorithm="HS256"

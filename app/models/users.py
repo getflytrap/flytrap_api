@@ -163,7 +163,7 @@ def fetch_user_by_email(
 
 
 @db_read_connection
-def get_user_root_info(user_uuid, **kwargs):
+def user_is_root(user_uuid, **kwargs):
     """Retrieves the root access status for a specific user by their unique ID.
 
     Args:

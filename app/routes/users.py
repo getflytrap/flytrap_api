@@ -27,7 +27,7 @@ from app.models import (
     fetch_projects_for_user,
 )
 from app.utils import is_valid_email
-from app.models import get_user_root_info
+from app.models import user_is_root
 from app.routes.projects import get_projects
 from app.utils.auth import TokenManager, AuthManager
 token_manager = TokenManager()
@@ -189,7 +189,7 @@ def get_user_projects(user_uuid: str) -> Response:
 
 
     try:
-        user_uuid_in_path_is_for_root_user = get_user_root_info(
+        user_uuid_in_path_is_for_root_user = user_is_root(
             user_uuid
         )
         if user_uuid_in_path_is_for_root_user:

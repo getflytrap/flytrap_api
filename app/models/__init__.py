@@ -44,7 +44,7 @@ from .users import (
     delete_user_by_id,
     update_password,
     fetch_user_by_email,
-    get_user_root_info,
+    user_is_root,
     fetch_projects_for_user,
 )
 

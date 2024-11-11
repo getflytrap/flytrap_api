@@ -94,6 +94,7 @@ def refresh() -> Response:
 @bp.route('/status', methods=['GET'])
 @auth_manager.authenticate
 def auth_status():
+    print('flask g', g.user_payload)
     user_uuid = g.user_payload.get("user_uuid")
 
     if not user_uuid:

@@ -2,7 +2,7 @@ import jwt
 from flask import request, g, jsonify
 from functools import wraps
 from .token_manager import TokenManager
-from app.models import fetch_project_users, get_user_root_info
+from app.models import fetch_project_users
 
 class AuthManager:
     def __init__(self, token_manager: TokenManager):
