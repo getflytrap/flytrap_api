@@ -4,31 +4,20 @@ This module provides functions for managing users in the database, including fet
 all users, adding new users, deleting users, updating user passwords, and retrieving
 user information by email or user ID. Each function is decorated to ensure the
 appropriate database connection context for reading or writing.
-
-Functions:
-    fetch_all_users: Retrieves a list of all users.
-    add_user: Adds a new user to the database and returns the user ID.
-    delete_user_by_id: Deletes a user by their unique ID.
-    update_password: Updates the password hash for a specific user.
-    fetch_user_by_email: Retrieves user data by email, including password hash and root
-    status.
-    get_user_root_info: Retrieves the root access status for a specific user.
-    fetch_projects_for_user: Retrieves all projects a user is assigned to.
 """
 
 from typing import List, Dict, Optional, Union
-from app.utils import db_read_connection, db_write_connection, generate_uuid, calculate_total_user_project_pages
+from app.utils import (
+    db_read_connection,
+    db_write_connection,
+    generate_uuid,
+    calculate_total_user_project_pages,
+)
 
 
 @db_read_connection
 def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
-    """Retrieves a list of all users in the database.
-
-    Returns:
-        Optional[List[Dict[str, str]]]: A list of dictionaries with user information
-        (id, first_name, last_name, email, is_root, created_at), or None if no users are
-        found.
-    """
+    """Retrieves a list of all users in the database."""
     cursor = kwargs["cursor"]
 
     query = "SELECT uuid, first_name, last_name, email, is_root, created_at FROM users;"
@@ -54,17 +43,7 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 def add_user(
     first_name: str, last_name: str, email: str, password_hash: str, **kwargs
 ) -> int:
-    """Adds a new user to the database with the specified information.
-
-    Args:
-        first_name (str): The user's first name.
-        last_name (str): The user's last name.
-        email (str): The user's email address.
-        password_hash (str): The hashed password for the user.
-
-    Returns:
-        int: The unique ID of the newly added user.
-    """
+    """Adds a new user to the database with the specified information."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -84,14 +63,7 @@ def add_user(
 
 @db_write_connection
 def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
-    """Deletes a user by their unique user ID.
-
-    Args:
-        user_id (str): The unique uuid of the user to delete.
-
-    Returns:
-        bool: True if the user was deleted, False otherwise.
-    """
+    """Deletes a user by their unique user ID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "DELETE FROM users WHERE uuid = %s"
@@ -104,15 +76,7 @@ def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
 
 @db_write_connection
 def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
-    """Updates the password hash for a specific user.
-
-    Args:
-        user_id (str): The unique uuid of the user.
-        password_hash (str): The new hashed password for the user.
-
-    Returns:
-        bool: True if the password was updated, False otherwise.
-    """
+    """Updates the password hash for a specific user."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -133,15 +97,7 @@ def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
 def fetch_user_by_email(
     email: str, **kwargs
 ) -> Optional[Dict[str, Union[int, str, bool]]]:
-    """Retrieves user data by email, including password hash and root status.
-
-    Args:
-        email (str): The user's email address.
-
-    Returns:
-        Optional[Dict[str, Union[int, str, bool]]]: A dictionary with user ID, password
-        hash, and root status if the user exists, or None if the user is not found.
-    """
+    """Retrieves user data by email, including password hash and root status."""
     cursor = kwargs["cursor"]
 
     query = """
@@ -164,14 +120,7 @@ def fetch_user_by_email(
 
 @db_read_connection
 def get_user_root_info(user_uuid, **kwargs):
-    """Retrieves the root access status for a specific user by their unique ID.
-
-    Args:
-        user_id (str): The unique uuid of the user.
-
-    Returns:
-        bool: True if the user has root access, False otherwise.
-    """
+    """Retrieves the root access status for a specific user by their unique ID."""
     cursor = kwargs["cursor"]
 
     query = """
@@ -187,16 +136,7 @@ def get_user_root_info(user_uuid, **kwargs):
 
 @db_read_connection
 def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
-    """
-    Fetches all projects assigned to a specific user by user ID.
-
-    Args:
-    - user_id (str): The uuid of the user whose projects are to be retrieved.
-
-    Returns:
-    - List[dict]: A list of dictionaries, each containing the 'pid' and 'name' of a
-      projectassigned to the specified user.
-    """
+    """Fetches all projects assigned to a specific user by user ID."""
     cursor = kwargs["cursor"]
     offset = (page - 1) * limit if limit else 0
 

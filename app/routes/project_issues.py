@@ -4,19 +4,6 @@ This module provides routes for managing project-specific issues.
 It includes routes for fetching, updating, and deleting issues related to projects, with
 authorization enforced via JWT. Each route performs specific operations on errors or
 rejections, such as resolving or deleting individual items.
-
-Routes:
-    / (GET): Fetches a paginated list of issues for a project.
-    / (DELETE): Deletes all issues associated with a project.
-    /errors/<eid> (GET): Retrieves a specific error by ID.
-    /rejections/<rid> (GET): Retrieves a specific rejection by ID.
-    /errors/<eid> (PATCH): Toggles the resolved state of an error.
-    /rejections/<rid> (PATCH): Toggles the resolved state of a rejection.
-    /errors/<eid> (DELETE): Deletes a specific error by ID.
-    /rejections/<rid> (DELETE): Deletes a specific rejection by ID.
-
-Attributes:
-    bp (Blueprint): Blueprint for project issues routes.
 """
 
 import traceback
@@ -33,24 +20,18 @@ from app.models import (
     delete_rejection_by_id,
 )
 from app.utils.auth import TokenManager, AuthManager
+
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
 
 bp = Blueprint("project_issues", __name__)
 
+
 @bp.route("", methods=["GET"])
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def get_issues(project_uuid: str) -> Response:
-    """Fetches a paginated list of issues for a specified project.
-
-    Args:
-        project_uuid (str): The project uuid.
-
-    Returns:
-        Response: JSON response with a list of issues and a 200 status code on success,
-                  or an error message with a 500 status code if fetching fails.
-    """
+    """Fetches a paginated list of issues for a specified project."""
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     handled = request.args.get("handled", None)
@@ -72,15 +53,7 @@ def get_issues(project_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def delete_issues(project_uuid: str) -> Response:
-    """Deletes all issues for a specified project.
-
-    Args:
-        pid (str): The project ID.
-
-    Returns:
-        Response: 204 status code if deletion is successful, or 404 if no issues were
-        found.
-    """
+    """Deletes all issues for a specified project."""
     try:
         success = delete_issues_by_project(project_uuid)
         if success:
@@ -99,16 +72,7 @@ def delete_issues(project_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def get_error(project_uuid: str, error_uuid: str) -> Response:
-    """Retrieves a specific error by its ID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        error_uuid (str): The error uuid.
-
-    Returns:
-        Response: JSON response with error data and a 200 status code, or a 404 if not
-        found.
-    """
+    """Retrieves a specific error by its ID."""
     try:
         error = fetch_error(project_uuid, error_uuid)
         if error:
@@ -125,16 +89,7 @@ def get_error(project_uuid: str, error_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
-    """Retrieves a specific rejection by its UUID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        rejection_uuid (str): The rejection uuid.
-
-    Returns:
-        Response: JSON response with rejection data and a 200 status code, or a 404 if
-        not found.
-    """
+    """Retrieves a specific rejection by its UUID."""
     try:
         rejection = fetch_rejection(project_uuid, rejection_uuid)
         if rejection:
@@ -150,16 +105,7 @@ def get_rejection(project_uuid: str, rejection_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def toggle_error(project_uuid: str, error_uuid: str) -> Response:
-    """Toggles the resolved state of a specific error.
-
-    Args:
-        project_uuid (str): The project uuid.
-        error_uuid (str): The error uuid.
-
-    Returns:
-        Response: JSON response with a success message and a 200 status code if
-        successful, or a 404 status if the error is not found.
-    """
+    """Toggles the resolved state of a specific error."""
     data = request.get_json()
     new_resolved_state = data.get("resolved")
 
@@ -184,16 +130,7 @@ def toggle_error(project_uuid: str, error_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
-    """Toggles the resolved state of a specific rejection.
-
-    Args:
-        project_uuid (str): The project uuid.
-        rejection_uuid (str): The rejection uuid.
-
-    Returns:
-        Response: JSON response with a success message and a 200 status code if
-        successful, or a 404 status if the rejection is not found.
-    """
+    """Toggles the resolved state of a specific rejection."""
     data = request.get_json()
     new_resolved_state = data.get("resolved")
 
@@ -218,16 +155,7 @@ def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def delete_error(project_uuid: str, error_uuid: str) -> Response:
-    """Deletes a specific error by its UUID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        error_uuid (str): The error uuid.
-
-    Returns:
-        Response: 204 status code if successful, or a 404 status if the error is not
-        found.
-    """
+    """Deletes a specific error by its UUID."""
     try:
         success = delete_error_by_id(error_uuid)
         if success:
@@ -243,16 +171,7 @@ def delete_error(project_uuid: str, error_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
 def delete_rejection(project_uuid: str, rejection_uuid: str) -> Response:
-    """Deletes a specific rejection by its UUID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        rejection_uuid (str): The rejection uuid.
-
-    Returns:
-        Response: 204 status code if successful, or a 404 status if the rejection is not
-        found.
-    """
+    """Deletes a specific rejection by its UUID."""
     try:
         success = delete_rejection_by_id(rejection_uuid)
         if success:

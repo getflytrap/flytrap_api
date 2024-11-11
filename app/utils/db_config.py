@@ -1,20 +1,4 @@
-"""Database configuration and connection management.
-
-This module provides utilities for managing PostgreSQL database connections, including
-functions to establish connections and decorators to handle read-only and write database
-operations. The decorators automatically manage connections and handle transactions
-for both read and write queries.
-
-Functions:
-    get_db_connection: Establishes a new database connection.
-    manage_db_connection: Creates decorators to manage read-only or write database
-    connections.
-
-Decorators:
-    db_read_connection: Decorator for read-only database operations.
-    db_write_connection: Decorator for write database operations with transaction
-    handling.
-"""
+"""Database configuration and connection management."""
 
 import functools
 import psycopg2
@@ -24,32 +8,14 @@ from app.config import DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT
 
 
 def get_db_connection() -> connection:
-    """Establishes and returns a new connection to the PostgreSQL database.
-
-    Uses configuration variables from `app.config` to connect to the specified
-    database.
-
-    Returns:
-        connection: A new connection object for the PostgreSQL database.
-    """
+    """Establishes and returns a new connection to the PostgreSQL database."""
     return psycopg2.connect(
         host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASS, port=DB_PORT
     )
 
 
 def manage_db_connection(is_write: bool) -> callable:
-    """Creates a decorator to manage a database connection.
-
-    This decorator handles the connection and cursor lifecycle for database queries.
-    It provides transaction management, rolling back on exceptions if `is_write` is
-    True.
-
-    Args:
-        is_write (bool): If True, enables transaction handling for write operations.
-
-    Returns:
-        callable: A decorator function for managing database connections.
-    """
+    """Creates a decorator to manage a database connection."""
 
     def decorator(f: callable) -> callable:
         @functools.wraps(f)

@@ -4,18 +4,6 @@ This module contains functions to interact with the database for project-specifi
 issues, including error and rejection logs. It allows fetching combined logs, updating
 resolution status, and deleting records. Each function is decorated to ensure proper
 database connection context for reading or writing.
-
-Functions:
-    fetch_issues_by_project: Retrieves paginated issues (errors and rejections) for a
-    project.
-    delete_issues_by_project: Deletes all issues (errors and rejections) associated with
-    a project.
-    fetch_error: Retrieves a specific error log by its ID.
-    fetch_rejection: Retrieves a specific rejection log by its ID.
-    update_error_resolved: Updates the resolved state of an error log.
-    update_rejection_resolved: Updates the resolved state of a rejection log.
-    delete_error_by_id: Deletes a specific error log by its ID.
-    delete_rejection_by_id: Deletes a specific rejection log by its ID.
 """
 
 from typing import Dict, Optional, List
@@ -38,20 +26,7 @@ def fetch_issues_by_project(
     resolved: Optional[bool],
     **kwargs: dict
 ) -> Dict[str, List[Dict[str, int]]]:
-    """Retrieves a paginated list of issues (errors and rejections) for a project.
-
-    Args:
-        project_uuid (str): The project uuid.
-        page (int): The page number for pagination.
-        limit (int): The number of items per page.
-        handled (Optional[bool]): Filter for handled issues.
-        time (Optional[str]): Filter by time (e.g., recent).
-        resolved (Optional[bool]): Filter for resolved issues.
-
-    Returns:
-        Dict[str, List[Dict[str, int]]]: Dictionary containing combined logs, total
-        pages, and current page.
-    """
+    """Retrieves a paginated list of issues (errors and rejections) for a project."""
     cursor = kwargs["cursor"]
 
     errors = fetch_errors_by_project(
@@ -76,12 +51,6 @@ def fetch_issues_by_project(
 @db_write_connection
 def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
     """Deletes all issues (errors and rejections) associated with a specified project.
-
-    Args:
-        project_uuid (str): The project uuid.
-
-    Returns:
-        bool: True if any issues were deleted, False otherwise.
     """
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
@@ -109,16 +78,7 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
 def fetch_error(
     project_uuid: str, error_uuid: str, **kwargs: dict
 ) -> Optional[Dict[str, str]]:
-    """Retrieves a specific error log by its UUID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        error_uuid (str): The error uuid.
-
-    Returns:
-        Optional[Dict[str, str]]: Dictionary containing error log details if found, or
-        None if not found.
-    """
+    """Retrieves a specific error log by its UUID."""
     cursor = kwargs["cursor"]
 
     query = """
@@ -152,16 +112,7 @@ def fetch_error(
 def fetch_rejection(
     project_uuid: str, rejection_uuid: int, **kwargs: dict
 ) -> Optional[Dict[str, str]]:
-    """Retrieves a specific rejection log by its UUID.
-
-    Args:
-        project_uuid (str): The project uuid.
-        rejection_uuid (str): The rejection uuid.
-
-    Returns:
-        Optional[Dict[str, str]]: Dictionary containing rejection log details if found,
-        or None if not found.
-    """
+    """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
     query = """
     SELECT value, created_at, handled, resolved
@@ -188,15 +139,7 @@ def fetch_rejection(
 def update_error_resolved(
     error_uuid: str, new_resolved_state: bool, **kwargs: dict
 ) -> bool:
-    """Updates the resolved state of a specific error log.
-
-    Args:
-        error_uuid (str): The error uuid.
-        new_resolved_state (bool): The new resolved state.
-
-    Returns:
-        bool: True if the update was successful, False otherwise.
-    """
+    """Updates the resolved state of a specific error log."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "UPDATE error_logs SET resolved = %s WHERE uuid = %s"
@@ -211,15 +154,7 @@ def update_error_resolved(
 def update_rejection_resolved(
     rejection_uuid: int, new_resolved_state: bool, **kwargs: dict
 ) -> bool:
-    """Updates the resolved state of a specific rejection log.
-
-    Args:
-        rejection_uuid (str): The rejection uuid.
-        new_resolved_state (bool): The new resolved state.
-
-    Returns:
-        bool: True if the update was successful, False otherwise.
-    """
+    """Updates the resolved state of a specific rejection log."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "UPDATE rejection_logs SET resolved = %s WHERE uuid = %s"
@@ -232,14 +167,7 @@ def update_rejection_resolved(
 
 @db_write_connection
 def delete_error_by_id(error_uuid: str, **kwargs: dict) -> bool:
-    """Deletes a specific error log by its UUID.
-
-    Args:
-        error_uuid (str): The error uuid.
-
-    Returns:
-        bool: True if the error log was deleted, False otherwise.
-    """
+    """Deletes a specific error log by its UUID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "DELETE FROM error_logs WHERE uuid = %s"
@@ -252,15 +180,7 @@ def delete_error_by_id(error_uuid: str, **kwargs: dict) -> bool:
 
 @db_write_connection
 def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
-    """Deletes a specific rejection log by its ID.
-
-    Args:
-        rejection_uuid (str): The rejection log uuid.
-
-    Returns:
-        bool: True if the rejection log was deleted, False otherwise.
-    """
-
+    """Deletes a specific rejection log by its ID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
     query = "DELETE FROM rejection_logs WHERE uuid = %s"
