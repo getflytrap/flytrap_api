@@ -8,7 +8,8 @@ CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   uuid VARCHAR(36) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
-  api_key VARCHAR(36) NOT NULL UNIQUE
+  api_key VARCHAR(36) NOT NULL UNIQUE,
+  platform VARCHAR(255) NOT NULL
 );
 
 CREATE INDEX idx_project_uuid ON projects(uuid);

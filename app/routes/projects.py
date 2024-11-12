@@ -45,12 +45,16 @@ def create_project() -> Response:
     """Creates a new project with a unique project ID."""
     data = request.get_json()
     name = data.get("name")
+    platform = data.get("platform")
 
     if not name:
         return jsonify({"status": "error", "message": "Missing project name"}), 400
+    
+    if not platform:
+        return jsonify({"status": "error", "message": "Missing project platform"}), 400
 
     try:
-        result = add_project(name)
+        result = add_project(name, platform)
         project_uuid = result["project_uuid"]
         api_key = result["api_key"]
 
@@ -58,7 +62,7 @@ def create_project() -> Response:
         if client:
             associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
 
-        data = {"uuid": project_uuid, "name": name}
+        data = {"uuid": project_uuid, "name": name, "platform": platform}
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         print(f"Error in create_project: {e}")

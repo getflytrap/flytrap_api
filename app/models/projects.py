@@ -27,6 +27,7 @@ def fetch_projects(
     SELECT
         p.uuid,
         p.name,
+        p.platform,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
     FROM
@@ -36,7 +37,7 @@ def fetch_projects(
     LEFT JOIN
         rejection_logs r ON r.project_id = p.id
     GROUP BY
-        p.uuid, p.name
+        p.uuid, p.name, p.platform
     ORDER BY p.name
     LIMIT %s OFFSET %s
     """
@@ -47,7 +48,8 @@ def fetch_projects(
         {
             "uuid": row[0],
             "name": row[1],
-            "issue_count": row[2] + row[3],
+            "platform": row[2],
+            "issue_count": row[3] + row[4],
         }
         for row in rows
     ]
@@ -62,7 +64,7 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(name: str, **kwargs) -> None:
+def add_project(name: str, platform: str, **kwargs) -> None:
     """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
@@ -70,8 +72,8 @@ def add_project(name: str, **kwargs) -> None:
     project_uuid = generate_uuid()
     api_key = generate_uuid()
 
-    query = "INSERT INTO projects (uuid, name, api_key) VALUES (%s, %s)"
-    cursor.execute(query, [project_uuid, name, api_key])
+    query = "INSERT INTO projects (uuid, name, api_key, platform) VALUES (%s, %s, %s, %s)"
+    cursor.execute(query, [project_uuid, name, api_key, platform])
     connection.commit()
 
     return {"project_uuid": project_uuid, "api_key": api_key}
