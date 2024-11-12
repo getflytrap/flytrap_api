@@ -21,6 +21,6 @@ __all__ = [
     "generate_uuid",
     "is_valid_email",
     "calculate_total_user_project_pages",
-    "create_aws_client", 
-    "associate_api_key_with_usage_plan"
+    "create_aws_client",
+    "associate_api_key_with_usage_plan",
 ]

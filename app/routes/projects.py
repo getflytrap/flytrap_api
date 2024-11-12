@@ -49,7 +49,7 @@ def create_project() -> Response:
 
     if not name:
         return jsonify({"status": "error", "message": "Missing project name"}), 400
-    
+
     if not platform:
         return jsonify({"status": "error", "message": "Missing project platform"}), 400
 

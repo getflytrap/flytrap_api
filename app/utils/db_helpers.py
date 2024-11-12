@@ -48,7 +48,7 @@ def fetch_errors_by_project(
     resolved: Optional[bool],
 ) -> List[Dict[str, int]]:
     """Retrieves error logs for a specific project, with optional filters and
-    pagination. """
+    pagination."""
 
     # Base query
     query = """
@@ -163,8 +163,7 @@ def calculate_total_error_pages(
     time: Optional[str],
     resolved: Optional[bool],
 ) -> int:
-    """Calculates the total pages for combined error and rejection logs for a project.
-    """
+    """Calculates the total pages for combined error & rejection logs for a project."""
     error_count_query = """
     SELECT COUNT(*) FROM error_logs e
     JOIN projects p ON e.project_id = p.id

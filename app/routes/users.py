@@ -135,10 +135,8 @@ def get_user_projects(user_uuid: str) -> Response:
     limit = request.args.get("limit", 10, type=int)
 
     try:
-        user_uuid_in_path_is_for_root_user = user_is_root(
-            user_uuid
-        )
-  
+        user_uuid_in_path_is_for_root_user = user_is_root(user_uuid)
+
         if user_uuid_in_path_is_for_root_user:
             return get_projects()
 

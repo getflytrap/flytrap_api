@@ -4,6 +4,7 @@ from functools import wraps
 from .token_manager import TokenManager
 from app.models import fetch_project_users
 
+
 class AuthManager:
     def __init__(self, token_manager: TokenManager):
         self.token_manager = token_manager
