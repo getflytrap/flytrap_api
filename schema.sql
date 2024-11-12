@@ -7,7 +7,8 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   uuid VARCHAR(36) NOT NULL UNIQUE,
-  name VARCHAR(255) NOT NULL
+  name VARCHAR(255) NOT NULL,
+  api_key VARCHAR(36) NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_project_uuid ON projects(uuid);

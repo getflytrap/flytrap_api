@@ -67,13 +67,14 @@ def add_project(name: str, **kwargs) -> None:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    uuid = generate_uuid()
+    project_uuid = generate_uuid()
+    api_key = generate_uuid()
 
-    query = "INSERT INTO projects (uuid, name) VALUES (%s, %s)"
-    cursor.execute(query, [uuid, name])
+    query = "INSERT INTO projects (uuid, name, api_key) VALUES (%s, %s)"
+    cursor.execute(query, [project_uuid, name, api_key])
     connection.commit()
 
-    return uuid
+    return {"project_uuid": project_uuid, "api_key": api_key}
 
 
 @db_write_connection

@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+ENVIRONMENT = os.getenv("FLASK_ENV")
+USAGE_PLAN_ID = os.getenv("USAGE_PLAN_ID")
+AWS_REGION = os.getenv("AWS_REGION")
+
 DB_HOST: Optional[str] = os.getenv("PGHOST")
 DB_NAME: Optional[str] = os.getenv("PGDATABASE")
 DB_USER: Optional[str] = os.getenv("PGUSER")

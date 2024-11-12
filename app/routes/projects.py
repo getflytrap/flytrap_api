@@ -6,6 +6,7 @@ updating, and deleting project records. Each route enforces root access authoriz
 
 from flask import jsonify, request, Response
 from flask import Blueprint
+from app.config import USAGE_PLAN_ID
 from app.models import (
     fetch_projects,
     add_project,
@@ -13,6 +14,7 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
+from app.utils import create_aws_client, associate_api_key_with_usage_plan
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -27,8 +29,6 @@ def get_projects() -> Response:
     """Fetches a paginated list of all projects."""
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
-
-    print("projects cookies here", request.cookies)
 
     try:
         data = fetch_projects(page, limit)
@@ -50,8 +50,15 @@ def create_project() -> Response:
         return jsonify({"status": "error", "message": "Missing project name"}), 400
 
     try:
-        uuid = add_project(name)
-        data = {"uuid": uuid, "name": name}
+        result = add_project(name)
+        project_uuid = result["project_uuid"]
+        api_key = result["api_key"]
+
+        client = create_aws_client()
+        if client:
+            associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
+
+        data = {"uuid": project_uuid, "name": name}
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         print(f"Error in create_project: {e}")
