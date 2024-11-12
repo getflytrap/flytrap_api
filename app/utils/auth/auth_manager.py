@@ -48,7 +48,10 @@ class AuthManager:
 
             # Project-specific access for non-root users
             project_uuid = kwargs.get("project_uuid")
-            if project_uuid and user_uuid in fetch_project_users(project_uuid):
+            project_users = fetch_project_users(project_uuid)
+            user_uuids = [user["uuid"] for user in project_users]
+
+            if project_uuid and user_uuid in user_uuids:
                 return f(*args, **kwargs)
             # TODO: what if project_uuid doesnt exist in db
             return jsonify({"message": "Unauthorized for this project"}), 403
