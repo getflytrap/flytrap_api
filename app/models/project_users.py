@@ -28,9 +28,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     cursor.execute(query, (project_uuid,))
     rows = cursor.fetchall()
 
-    users = [
-        row[0] for row in rows
-    ]
+    users = [row[0] for row in rows]
 
     return users
 

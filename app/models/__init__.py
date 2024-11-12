@@ -29,7 +29,7 @@ from .users import (
     fetch_user_by_email,
     user_is_root,
     fetch_projects_for_user,
-    get_user_info
+    get_user_info,
 )
 
 __all__ = [
@@ -55,5 +55,5 @@ __all__ = [
     "fetch_user_by_email",
     "user_is_root",
     "fetch_projects_for_user",
-    "get_user_info"
+    "get_user_info",
 ]

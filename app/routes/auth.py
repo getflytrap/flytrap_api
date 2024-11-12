@@ -48,9 +48,7 @@ def login() -> Response:
             "is_root": is_root,
         }
 
-        response = make_response(
-            jsonify({"status": "success", "data": data}), 200
-        )
+        response = make_response(jsonify({"status": "success", "data": data}), 200)
         response.set_cookie(
             "refresh_token",
             refresh_token,
@@ -96,12 +94,12 @@ def refresh() -> Response:
 @bp.route("/status", methods=["GET"])
 @auth_manager.authenticate
 def auth_status():
-    print('flask g', g.user_payload)
+    print("flask g", g.user_payload)
     user_uuid = g.user_payload.get("user_uuid")
 
     if not user_uuid:
         return jsonify({"status": "error", "message": "User not found"}), 404
-    
+
     data = get_user_info(user_uuid)
 
     return jsonify({"status": "success", "data": data}), 200

@@ -72,7 +72,9 @@ def add_project(name: str, platform: str, **kwargs) -> None:
     project_uuid = generate_uuid()
     api_key = generate_uuid()
 
-    query = "INSERT INTO projects (uuid, name, api_key, platform) VALUES (%s, %s, %s, %s)"
+    query = (
+        "INSERT INTO projects (uuid, name, api_key, platform) VALUES (%s, %s, %s, %s)"
+    )
     cursor.execute(query, [project_uuid, name, api_key, platform])
     connection.commit()
 

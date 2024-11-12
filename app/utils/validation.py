@@ -1,7 +1,5 @@
 """Validation utility."""
 
-
-
 import re
 
 

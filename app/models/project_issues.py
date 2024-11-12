@@ -39,7 +39,9 @@ def fetch_issues_by_project(
     combined_logs = sorted(
         errors + rejections, key=lambda x: x["created_at"], reverse=True
     )
-    total_pages = calculate_total_error_pages(cursor, project_uuid, limit, handled, time, resolved)
+    total_pages = calculate_total_error_pages(
+        cursor, project_uuid, limit, handled, time, resolved
+    )
 
     return {
         "issues": combined_logs[:limit],
@@ -50,8 +52,7 @@ def fetch_issues_by_project(
 
 @db_write_connection
 def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
-    """Deletes all issues (errors and rejections) associated with a specified project.
-    """
+    """Deletes all issues (errors and rejections) associated with a project."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
