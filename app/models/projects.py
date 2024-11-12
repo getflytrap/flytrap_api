@@ -37,7 +37,7 @@ def fetch_projects(
     LEFT JOIN
         rejection_logs r ON r.project_id = p.id
     GROUP BY
-        p.uuid, p.name
+        p.uuid, p.name, p.platform
     ORDER BY p.name
     LIMIT %s OFFSET %s
     """

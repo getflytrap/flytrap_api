@@ -169,7 +169,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     WHERE 
         u.uuid = %s
     GROUP BY
-        p.uuid, p.name
+        p.uuid, p.name, p.platform
     ORDER BY p.name
     LIMIT %s OFFSET %s;
     """
