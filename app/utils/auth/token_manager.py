@@ -2,7 +2,7 @@ import jwt
 import datetime
 from flask import request
 from app.config import SECRET_KEY
-from app.models import get_user_root_info
+from app.models import user_is_root
 
 
 class TokenManager:
@@ -38,7 +38,7 @@ class TokenManager:
         try:
             payload = self.decode_token(refresh_token)
             user_uuid = payload["user_uuid"]
-            is_root = get_user_root_info(user_uuid)
+            is_root = user_is_root(user_uuid)
 
             new_access_token = self.create_access_token(user_uuid, is_root)
             return new_access_token, None
