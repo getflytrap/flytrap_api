@@ -39,7 +39,7 @@ def fetch_issues_by_project(
     combined_logs = sorted(
         errors + rejections, key=lambda x: x["created_at"], reverse=True
     )
-    total_pages = calculate_total_error_pages(cursor, project_uuid, limit)
+    total_pages = calculate_total_error_pages(cursor, project_uuid, limit, handled, time, resolved)
 
     return {
         "issues": combined_logs[:limit],

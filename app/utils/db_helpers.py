@@ -155,7 +155,14 @@ def fetch_rejections_by_project(
     return rejections
 
 
-def calculate_total_error_pages(cursor: Cursor, project_uuid: str, limit: int):
+def calculate_total_error_pages(
+    cursor: Cursor,
+    project_uuid: str,
+    limit: int,
+    handled: Optional[bool],
+    time: Optional[str],
+    resolved: Optional[bool],
+) -> int:
     """Calculates the total pages for combined error and rejection logs for a project.
     """
     error_count_query = """
@@ -163,7 +170,20 @@ def calculate_total_error_pages(cursor: Cursor, project_uuid: str, limit: int):
     JOIN projects p ON e.project_id = p.id
     WHERE p.uuid = %s
     """
-    cursor.execute(error_count_query, [project_uuid])
+
+    params = [project_uuid]
+
+    if handled is not None:
+        error_count_query += " AND e.handled = %s"
+        params.append(handled)
+    if resolved is not None:
+        error_count_query += " AND e.resolved = %s"
+        params.append(resolved)
+    if time is not None:
+        error_count_query += " AND e.created_at >= %s"
+        params.append(time)
+
+    cursor.execute(error_count_query, params)
     error_count = cursor.fetchone()[0]
 
     rejection_count_query = """
@@ -172,7 +192,21 @@ def calculate_total_error_pages(cursor: Cursor, project_uuid: str, limit: int):
     JOIN projects p ON r.project_id = p.id
     WHERE p.uuid = %s
     """
-    cursor.execute(rejection_count_query, [project_uuid])
+
+    params = [project_uuid]
+
+    # Add filters to the rejection count query
+    if handled is not None:
+        rejection_count_query += " AND r.handled = %s"
+        params.append(handled)
+    if resolved is not None:
+        rejection_count_query += " AND r.resolved = %s"
+        params.append(resolved)
+    if time is not None:
+        rejection_count_query += " AND r.created_at >= %s"
+        params.append(time)
+
+    cursor.execute(rejection_count_query, params)
     rejection_count = cursor.fetchone()[0]
 
     total_count = error_count + rejection_count
