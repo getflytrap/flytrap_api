@@ -4,16 +4,6 @@ This module provides routes for managing user accounts, including creating new u
 fetching all users, deleting users, and updating user passwords. Each route enforces
 root access authorization, except for password updates, which require user session
 authentication.
-
-Routes:
-    / (GET): Fetches a list of all users.
-    / (POST): Creates a new user.
-    /<user_id> (DELETE): Deletes a specified user by ID.
-    /<user_id> (PATCH): Updates the password of a specified user.
-    /<user_id>/projects (GET): Gets all projects a user is assigned to.
-
-Attributes:
-    bp (Blueprint): Blueprint for user management routes.
 """
 
 import bcrypt
@@ -30,6 +20,7 @@ from app.utils import is_valid_email
 from app.models import user_is_root
 from app.routes.projects import get_projects
 from app.utils.auth import TokenManager, AuthManager
+
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
 
@@ -40,12 +31,7 @@ bp = Blueprint("users", __name__)
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def get_users() -> Response:
-    """Fetches a list of all users.
-
-    Returns:
-        Response: JSON response with a list of all users and a 200 status code,
-                  or an error message with a 500 status code if fetching fails.
-    """
+    """Fetches a list of all users."""
     print("users cookies here", request.cookies)
     try:
         users = fetch_all_users()
@@ -59,19 +45,7 @@ def get_users() -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def create_user() -> Response:
-    """Creates a new user with specified attributes.
-
-    JSON Payload:
-        first_name (str): First name of the user.
-        last_name (str): Last name of the user.
-        email (str): Email address of the user.
-        password (str): Password for the user.
-        confirmed_password (str): Confirmation of the password.
-
-    Returns:
-        Response: JSON response with user data and a 201 status code if successful,
-                  or error messages with a 400 status code if input validation fails.
-    """
+    """Creates a new user with specified attributes."""
     data = request.json
     first_name = data.get("first_name")
     last_name = data.get("last_name")
@@ -116,15 +90,7 @@ def create_user() -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def delete_user(user_uuid: str) -> Response:
-    """Deletes a specified user by their user ID.
-
-    Args:
-        user_id (str): The user uuid of the user to delete.
-
-    Returns:
-        Response: 204 status code if successful, or a 404 status code if the user is not
-        found.
-    """
+    """Deletes a specified user by their user ID."""
     try:
         success = delete_user_by_id(user_uuid)
         if success:
@@ -140,18 +106,7 @@ def delete_user(user_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_user
 def update_user_password(user_uuid: str) -> Response:
-    """Updates the password of a specified user.
-
-    Args:
-        user_id (str): The user uuid of the user whose password is being updated.
-
-    JSON Payload:
-        password (str): The new password for the user.
-
-    Returns:
-        Response: 204 status code if the password update is successful,
-                  or a 400 status code if the new password is missing.
-    """
+    """Updates the password of a specified user."""
     data = request.json
     new_password = data.get("password")
 
@@ -175,23 +130,15 @@ def update_user_password(user_uuid: str) -> Response:
 @auth_manager.authenticate
 @auth_manager.authorize_user
 def get_user_projects(user_uuid: str) -> Response:
-    """
-    Retrieves all projects assigned to a specific user by user ID.
-
-    Args:
-    - user_id (str): The uuid of the user for whom to retrieve projects.
-
-    Returns:
-        Response: 200 status code and the project data.
-    """
+    """Retrieves all projects assigned to a specific user by user ID."""
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
-
 
     try:
         user_uuid_in_path_is_for_root_user = user_is_root(
             user_uuid
         )
+  
         if user_uuid_in_path_is_for_root_user:
             return get_projects()
 

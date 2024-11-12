@@ -3,23 +3,15 @@
 This module provides authentication routes for user login and logout. It verifies user
 credentials, generates access and refresh tokens, and manages token-based authentication
 using JWT. Passwords are securely verified using bcrypt.
-
-Routes:
-    /login (POST): Authenticates a user, issuing JWT access and refresh tokens upon
-    successful login.
-    /logout (GET): Logs out a user by clearing the refresh token cookie.
-    /refresh (POST): Refreshes a JWT Token
-
-Attributes:
-    bp (Blueprint): Blueprint for the authentication routes.
 """
 
 import bcrypt
 from flask import jsonify, request, make_response, Response, g
 from flask import Blueprint
-from app.config import HTTPONLY, SECURE, SAMESITE, PATH
-from app.models import fetch_user_by_email
+from app.config import HTTPONLY, SECURE, SAMESITE
+from app.models import fetch_user_by_email, get_user_info
 from app.utils.auth import TokenManager, AuthManager
+
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
 
@@ -39,17 +31,26 @@ def login() -> Response:
         return jsonify({"status": "error", "message": "User does not exist"}), 404
 
     uuid = user.get("uuid")
+    first_name = user.get("first_name")
+    last_name = user.get("last_name")
     password_hash = user.get("password_hash")
     is_root = user.get("is_root")
 
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
-        print("password matches")
         access_token = token_manager.create_access_token(uuid, is_root, expires_in=20)
-        refresh_token = token_manager.create_refresh_token(uuid, is_root, expires_in=7)
+        refresh_token = token_manager.create_refresh_token(uuid, expires_in=7)
 
-        print(HTTPONLY, SECURE, SAMESITE, PATH)
+        data = {
+            "access_token": access_token,
+            "user_uuid": uuid,
+            "first_name": first_name,
+            "last_name": last_name,
+            "is_root": is_root,
+        }
 
-        response = make_response(jsonify({"status": "success", "access_token": access_token}), 200)
+        response = make_response(
+            jsonify({"status": "success", "data": data}), 200
+        )
         response.set_cookie(
             "refresh_token",
             refresh_token,
@@ -57,18 +58,19 @@ def login() -> Response:
             secure=SECURE,
             samesite=SAMESITE,
             path="/",
-            max_age=7 * 24 * 60 * 60
+            max_age=7 * 24 * 60 * 60,
         )
-        print("login response", response.headers)
         return response
     else:
         return jsonify({"status": "error", "message": "Invalid password"}), 401
 
 
-@bp.route("/logout", methods=["GET"])
+@bp.route("/logout", methods=["POST"])
 def logout() -> Response:
     """Logs out a user by clearing the refresh token cookie."""
-    response = make_response(jsonify({"status": "success", "message": "Succesfully logged out"}), 200)
+    response = make_response(
+        jsonify({"status": "success", "message": "Succesfully logged out"}), 200
+    )
     response.set_cookie(
         "refresh_token",
         "",
@@ -91,7 +93,7 @@ def refresh() -> Response:
     return jsonify({"status": "success", "access_token": new_access_token}), 200
 
 
-@bp.route('/status', methods=['GET'])
+@bp.route("/status", methods=["GET"])
 @auth_manager.authenticate
 def auth_status():
     print('flask g', g.user_payload)
@@ -100,4 +102,6 @@ def auth_status():
     if not user_uuid:
         return jsonify({"status": "error", "message": "User not found"}), 404
     
-    return jsonify({"status": "success", "user_uuid": user_uuid }), 200
+    data = get_user_info(user_uuid)
+
+    return jsonify({"status": "success", "data": data}), 200

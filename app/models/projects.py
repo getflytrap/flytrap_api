@@ -2,14 +2,8 @@
 
 This module provides functions for managing projects in the database, including
 fetching a paginated list of projects with associated issues, adding a new project,
-deleting a project, and updating a project’s name. Each function is decorated to ensure
+deleting a project, and updating a project's name. Each function is decorated to ensure
 the correct database connection context for reading or writing.
-
-Functions:
-    fetch_projects: Retrieves a paginated list of projects with issue counts.
-    add_project: Adds a new project with a unique project ID.
-    delete_project_by_id: Deletes a project by its unique project ID.
-    update_project_name: Updates the name of a project by its unique project ID.
 """
 
 from typing import List, Dict, Union
@@ -25,17 +19,7 @@ from app.utils import (
 def fetch_projects(
     page: int, limit: int, **kwargs
 ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
-    """Retrieves a paginated list of projects with the count of associated issues.
-
-    Args:
-        page (int): The page number for pagination.
-        limit (int): The number of projects per page.
-
-    Returns:
-        Dict[str, Union[List[Dict[str, Union[int, str]]], int]]: A dictionary containing
-        the list of projects with issue counts, the total number of pages, and the
-        current page.
-    """
+    """Retrieves a paginated list of projects with the count of associated issues."""
     cursor = kwargs["cursor"]
     offset = (page - 1) * limit if limit else 0
 
@@ -79,14 +63,7 @@ def fetch_projects(
 
 @db_write_connection
 def add_project(name: str, **kwargs) -> None:
-    """Adds a new project with a specified unique ID and name.
-
-    Args:
-        name (str): The name of the project.
-
-    Returns:
-        None
-    """
+    """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -101,14 +78,7 @@ def add_project(name: str, **kwargs) -> None:
 
 @db_write_connection
 def delete_project_by_id(uuid: str, **kwargs) -> bool:
-    """Deletes a project by its unique project UUID.
-
-    Args:
-        uuid (str): The unique project uuid.
-
-    Returns:
-        bool: True if the project was deleted, False otherwise.
-    """
+    """Deletes a project by its unique project UUID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
@@ -122,15 +92,7 @@ def delete_project_by_id(uuid: str, **kwargs) -> bool:
 
 @db_write_connection
 def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
-    """Updates the name of a project by its unique project UUID.
-
-    Args:
-        uuid (int): The unique project uuid.
-        new_name (str): The new name for the project.
-
-    Returns:
-        bool: True if the project name was updated, False otherwise.
-    """
+    """Updates the name of a project by its unique project UUID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 

@@ -5,21 +5,10 @@ the Flask application.
 It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
 configures error handling,
 and initializes authentication mechanisms.
-
-Functions:
-    create_app() -> Flask: Creates and configures the Flask application instance.
-
-Attributes:
-    projects_bp (Blueprint): Blueprint for project-related routes.
-    issues_bp (Blueprint): Blueprint for project issue routes.
-    project_users_bp (Blueprint): Blueprint for project user routes.
-    users_bp (Blueprint): Blueprint for user management routes.
-    auth_bp (Blueprint): Blueprint for authentication routes.
-    webhook_bp (Blueprint): Blueprint for receiving webhook notifications.
 """
 
 import traceback
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 from app.routes import (
     projects_bp,
@@ -29,6 +18,7 @@ from app.routes import (
     auth_bp,
     webhook_bp,
 )
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
