@@ -16,7 +16,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     cursor = kwargs["cursor"]
 
     query = """
-    SELECT u.uuid, u.first_name, u.last_name
+    SELECT u.uuid
     FROM users u
     JOIN projects_users pu
     ON u.id = pu.user_id
@@ -29,7 +29,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     rows = cursor.fetchall()
 
     users = [
-        {"uuid": row[0], "first_name": row[1], "last_name": row[2]} for row in rows
+        row[0] for row in rows
     ]
 
     return users
