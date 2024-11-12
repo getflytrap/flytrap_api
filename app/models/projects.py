@@ -62,7 +62,7 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(name: str, **kwargs) -> None:
+def add_project(name: str, platform: str, **kwargs) -> None:
     """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
@@ -70,8 +70,8 @@ def add_project(name: str, **kwargs) -> None:
     project_uuid = generate_uuid()
     api_key = generate_uuid()
 
-    query = "INSERT INTO projects (uuid, name, api_key) VALUES (%s, %s)"
-    cursor.execute(query, [project_uuid, name, api_key])
+    query = "INSERT INTO projects (uuid, name, api_key, platform) VALUES (%s, %s, %s, %s)"
+    cursor.execute(query, [project_uuid, name, api_key, platform])
     connection.commit()
 
     return {"project_uuid": project_uuid, "api_key": api_key}
