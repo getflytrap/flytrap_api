@@ -27,7 +27,7 @@ def fetch_projects(
     SELECT
         p.uuid,
         p.name,
-        p.platform
+        p.platform,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
     FROM
