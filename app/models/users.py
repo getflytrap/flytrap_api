@@ -177,7 +177,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     rows = cursor.fetchall()
 
     projects = [
-        {"project_uuid": project[0], 
+        {"uuid": project[0], 
          "name": project[1],
          "issue_count": project[2] + project[3]
         } 
