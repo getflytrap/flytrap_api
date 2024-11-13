@@ -7,6 +7,7 @@ configures error handling,
 and initializes authentication mechanisms.
 """
 
+import logging
 import traceback
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -24,6 +25,9 @@ def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
 
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)  
+
     @app.before_request
     def log_request_info():
         app.logger.info(f"Request path: {request.path}")
@@ -33,11 +37,6 @@ def create_app() -> Flask:
         print("Error: ", e)
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
-    
-
-    @app.route("/")
-    def index():
-        return "Hello, World!"
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")
