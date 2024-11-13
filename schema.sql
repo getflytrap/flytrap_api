@@ -61,3 +61,13 @@ CREATE TABLE projects_users (
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE (project_id, user_id)
 );
+
+INSERT INTO users (uuid, first_name, last_name, email, password_hash, is_root)
+VALUES (
+  'root-uuid-123-456-789',
+  'Clarissa',
+  'Roeder',
+  'c@example.com',
+  '$2b$12$5voKL8Dzp9muUhSZ/bsPL.JkWaDja.jrvBFk2wMfmOn.ILBLBvksW',
+  true
+);
