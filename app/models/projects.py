@@ -6,7 +6,7 @@ deleting a project, and updating a project's name. Each function is decorated to
 the correct database connection context for reading or writing.
 """
 
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 from app.utils import (
     db_read_connection,
     db_write_connection,
@@ -108,3 +108,19 @@ def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
     connection.commit()
 
     return rows_updated > 0
+
+@db_read_connection
+def get_project_name(uuid: str, **kwargs) -> Optional[str]:
+    """Gets the name of a project given its unique UUId."""
+    connection = kwargs["connection"]
+    cursor = kwargs["cursor"]
+
+    query = "SELECT name FROM projects WHERE uuid = %s"
+
+    cursor.execute(query, [uuid])
+    result = cursor.fetchone()
+
+    if result:
+        return result[0]
+    else:
+        return None
