@@ -11,19 +11,21 @@ import logging
 import traceback
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from .socketio_instance import socketio
 from app.routes import (
     projects_bp,
     issues_bp,
     project_users_bp,
     users_bp,
     auth_bp,
-    webhook_bp,
+    notifications_bp,
 )
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
+    socketio.init_app(app)
 
     logging.basicConfig(level=logging.DEBUG)
     app.logger.setLevel(logging.DEBUG)  
@@ -45,6 +47,6 @@ def create_app() -> Flask:
     )
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    app.register_blueprint(webhook_bp, url_prefix="/api/webhook")
+    app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
 
     return app
