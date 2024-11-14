@@ -94,12 +94,16 @@ def refresh() -> Response:
 @bp.route("/status", methods=["GET"])
 @auth_manager.authenticate
 def auth_status():
-    print("flask g", g.user_payload)
     user_uuid = g.user_payload.get("user_uuid")
 
     if not user_uuid:
         return jsonify({"status": "error", "message": "User not found"}), 404
 
+    new_access_token, error_response = token_manager.refresh_access_token()
+    if error_response:
+        return jsonify(error_response), 401
+    
     data = get_user_info(user_uuid)
+    data["access_token"] = new_access_token
 
     return jsonify({"status": "success", "data": data}), 200
