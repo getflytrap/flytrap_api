@@ -1,7 +1,7 @@
 import jwt
 import datetime
 from flask import request
-from app.config import SECRET_KEY
+from app.config import JWT_SECRET_KEY
 from app.models import user_is_root
 
 
@@ -14,7 +14,7 @@ class TokenManager:
                 "exp": datetime.datetime.utcnow()
                 + datetime.timedelta(minutes=expires_in),
             },
-            SECRET_KEY,
+            JWT_SECRET_KEY,
             algorithm="HS256",
         )
 
@@ -24,12 +24,12 @@ class TokenManager:
                 "user_uuid": user_uuid,
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(days=expires_in),
             },
-            SECRET_KEY,
+            JWT_SECRET_KEY,
             algorithm="HS256",
         )
 
     def decode_token(self, token):
-        return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
 
     def refresh_access_token(self):
         refresh_token = request.cookies.get("refresh_token")
