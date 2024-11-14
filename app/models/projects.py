@@ -109,10 +109,10 @@ def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
 
     return rows_updated > 0
 
+
 @db_read_connection
 def get_project_name(uuid: str, **kwargs) -> Optional[str]:
     """Gets the name of a project given its unique UUId."""
-    connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
     query = "SELECT name FROM projects WHERE uuid = %s"

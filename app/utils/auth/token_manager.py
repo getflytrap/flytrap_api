@@ -30,10 +30,10 @@ class TokenManager:
 
     def decode_token(self, token):
         return jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-    
+
     def validate_token(self, token):
         try:
-            decoded_token = self.decode_token(token)
+            self.decode_token(token)
             return True
         except jwt.ExpiredSignatureError:
             print("Token has expired")

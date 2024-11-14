@@ -5,6 +5,7 @@ from .projects import (
     add_project,
     delete_project_by_id,
     update_project_name,
+    get_project_name,
 )
 from .project_issues import (
     fetch_issues_by_project,
@@ -37,6 +38,7 @@ __all__ = [
     "add_project",
     "delete_project_by_id",
     "update_project_name",
+    "get_project_name",
     "fetch_issues_by_project",
     "delete_issues_by_project",
     "fetch_error",

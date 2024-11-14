@@ -1,7 +1,6 @@
 from flask import jsonify, Blueprint, Response, request
 from flask_socketio import join_room
 from app.socketio_instance import socketio
-from queue import Queue
 from app.utils.auth import TokenManager, AuthManager
 from app.models import fetch_project_users, get_project_name
 
@@ -21,10 +20,13 @@ def receive_webhook() -> Response:
         send_notification_to_frontend(project_uuid)
         return jsonify({"status": "success", "message": "Webhook received."}), 200
     else:
-        return jsonify({"status": "error", "message": "project_id missing in request."}), 400
+        return (
+            jsonify({"status": "error", "message": "project_id missing in request."}),
+            400,
+        )
 
 
-@socketio.on('connect', namespace='/notifications')
+@socketio.on("connect", namespace="/notifications")
 def handle_connect():
     token = request.args.get("token")
 
@@ -34,20 +36,31 @@ def handle_connect():
 
         if user_uuid:
             join_room(user_uuid)
-            socketio.emit("authenticated", {"message": "Connection authenticated"}, room=request.sid, namespace="/notifications")
+            socketio.emit(
+                "authenticated",
+                {"message": "Connection authenticated"},
+                room=request.sid,
+                namespace="/notifications",
+            )
         else:
             return False
     else:
         return False
 
 
-@socketio.on('disconnect', namespace='/notifications')
+@socketio.on("disconnect", namespace="/notifications")
 def handle_disconnect():
     pass
+
 
 def send_notification_to_frontend(project_uuid):
     project_users = fetch_project_users(project_uuid)
     project_name = get_project_name(project_uuid)
 
     for user_uuid in project_users:
-        socketio.emit('new_notification', {'project_name': project_name}, namespace='/notifications', room=user_uuid)
+        socketio.emit(
+            "new_notification",
+            {"project_name": project_name},
+            namespace="/notifications",
+            room=user_uuid,
+        )

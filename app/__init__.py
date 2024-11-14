@@ -28,7 +28,7 @@ def create_app() -> Flask:
     socketio.init_app(app)
 
     logging.basicConfig(level=logging.DEBUG)
-    app.logger.setLevel(logging.DEBUG)  
+    app.logger.setLevel(logging.DEBUG)
 
     @app.before_request
     def log_request_info():

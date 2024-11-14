@@ -102,7 +102,7 @@ def auth_status():
     new_access_token, error_response = token_manager.refresh_access_token()
     if error_response:
         return jsonify(error_response), 401
-    
+
     data = get_user_info(user_uuid)
     data["access_token"] = new_access_token
 
