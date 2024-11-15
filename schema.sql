@@ -26,7 +26,8 @@ CREATE TABLE error_logs (
     project_id INT REFERENCES projects(id) ON DELETE CASCADE,
     stack_trace TEXT,
     handled BOOLEAN NOT NULL,
-    resolved BOOLEAN NOT NULL DEFAULT FALSE
+    resolved BOOLEAN NOT NULL DEFAULT FALSE,
+    contexts JSONB,
 );
 
 CREATE INDEX idx_error_log_uuid ON error_logs(uuid); 

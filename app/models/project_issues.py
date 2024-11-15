@@ -85,7 +85,7 @@ def fetch_error(
     query = """
     SELECT
         name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved
+        resolved, contexts
     FROM error_logs
     WHERE uuid = %s
     """
@@ -105,6 +105,7 @@ def fetch_error(
             "stack_trace": error[6],
             "handled": error[7],
             "resolved": error[8],
+            "contexts": error[9]
         }
 
     return None
