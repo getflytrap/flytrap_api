@@ -4,13 +4,13 @@ import functools
 import psycopg2
 from psycopg2.extensions import connection, cursor as Cursor
 from typing import Any
-from app.config import DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT
+from app.config import DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT
 
 
 def get_db_connection() -> connection:
     """Establishes and returns a new connection to the PostgreSQL database."""
     return psycopg2.connect(
-        host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASS, port=DB_PORT
+        host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT
     )
 
 
