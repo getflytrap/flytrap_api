@@ -31,6 +31,17 @@ class TokenManager:
     def decode_token(self, token):
         return jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
 
+    def validate_token(self, token):
+        try:
+            self.decode_token(token)
+            return True
+        except jwt.ExpiredSignatureError:
+            print("Token has expired")
+            return False
+        except jwt.InvalidTokenError:
+            print("Invalid token")
+            return False
+
     def refresh_access_token(self):
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:

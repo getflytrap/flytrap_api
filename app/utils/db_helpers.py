@@ -53,7 +53,7 @@ def fetch_errors_by_project(
     # Base query
     query = """
     SELECT
-        e.uuid, e.name, e.message, e.created_at, e.line_number,
+        e.uuid, e.name, e.message, e.created_at, e.filename, e.line_number,
         e.col_number, e.handled, e.resolved
     FROM error_logs e
     JOIN projects p ON e.project_id = p.id
@@ -86,12 +86,12 @@ def fetch_errors_by_project(
             "name": row[1],
             "message": row[2],
             "created_at": row[3],
-            "line_number": row[4],
-            "col_number": row[5],
+            "file": row[4],
+            "line_number": row[5],
+            "col_number": row[6],
             "project_uuid": project_uuid,
-            "handled": row[6],
-            "resolved": row[7],
-            # TODO: add a type property to distinguish between errors and rejections?
+            "handled": row[7],
+            "resolved": row[8],
         }
         for row in rows
     ]

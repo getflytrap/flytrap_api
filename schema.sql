@@ -20,12 +20,14 @@ CREATE TABLE error_logs (
     name VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    filename VARCHAR(255) NOT NULL,
     line_number INT,
     col_number INT,
     project_id INT REFERENCES projects(id) ON DELETE CASCADE,
     stack_trace TEXT,
     handled BOOLEAN NOT NULL,
-    resolved BOOLEAN NOT NULL DEFAULT FALSE
+    resolved BOOLEAN NOT NULL DEFAULT FALSE,
+    contexts JSONB,
 );
 
 CREATE INDEX idx_error_log_uuid ON error_logs(uuid); 
@@ -65,9 +67,9 @@ CREATE TABLE projects_users (
 INSERT INTO users (uuid, first_name, last_name, email, password_hash, is_root)
 VALUES (
   'root-uuid-123-456-789',
-  'Clarissa',
-  'Roeder',
-  'c@example.com',
+  'Flytrap',
+  'Admin',
+  'admin@admin.com',
   '$2b$12$5voKL8Dzp9muUhSZ/bsPL.JkWaDja.jrvBFk2wMfmOn.ILBLBvksW',
   true
 );
