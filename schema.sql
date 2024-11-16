@@ -27,7 +27,7 @@ CREATE TABLE error_logs (
     stack_trace TEXT,
     handled BOOLEAN NOT NULL,
     resolved BOOLEAN NOT NULL DEFAULT FALSE,
-    contexts JSONB,
+    contexts JSONB
 );
 
 CREATE INDEX idx_error_log_uuid ON error_logs(uuid); 
