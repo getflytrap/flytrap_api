@@ -25,6 +25,7 @@ def get_secret(secret_name, region_name):
 
 USAGE_PLAN_ID = os.getenv("USAGE_PLAN_ID")
 AWS_REGION = os.getenv("AWS_REGION")
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 DB_HOST: Optional[str] = os.getenv("PGHOST")
 DB_NAME: Optional[str] = os.getenv("PGDATABASE")
 DB_USER: Optional[str] = os.getenv("PGUSER")

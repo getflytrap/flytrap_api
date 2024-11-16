@@ -1,6 +1,6 @@
 import boto3
 import os
-from app.config import ENVIRONMENT, AWS_REGION
+from app.config import ENVIRONMENT, AWS_REGION, AWS_ACCOUNT_ID
 
 def create_aws_client():
     if ENVIRONMENT == "production":
@@ -30,9 +30,10 @@ def create_sns_topic(project_uuid):
 
 def create_sns_subscription(project_uuid, user_uuid):
     from app.models import get_user_info
-    user_email = get_user_info(user_uuid)['email']
+    user_info = get_user_info(user_uuid)
+    user_email = user_info.get('email')
     sns_client = boto3.client('sns')
-    sns_topic_arn = f"project_{project_uuid}_notifications"
+    sns_topic_arn = f"arn:aws:sns:{AWS_REGION}:{AWS_ACCOUNT_ID}:project_{project_uuid}_notifications"
 
     try:
         sns_client.subscribe(
@@ -53,7 +54,7 @@ def create_sns_subscription(project_uuid, user_uuid):
 
 def send_sns_notification(project_uuid):
     sns_client = boto3.client("sns", region_name=os.getenv("AWS_REGION"))
-    sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
+    sns_topic_arn = f"arn:aws:sns:{AWS_REGION}:{AWS_ACCOUNT_ID}:project_{project_uuid}_notifications"
     
     try:
         sns_client.publish(

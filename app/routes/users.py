@@ -17,7 +17,7 @@ from app.models import (
     fetch_projects_for_user,
 )
 from app.utils import is_valid_email
-from app.models import user_is_root
+from app.models import user_is_root, get_user_info
 from app.routes.projects import get_projects
 from app.utils.auth import TokenManager, AuthManager
 

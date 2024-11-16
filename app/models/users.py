@@ -138,7 +138,7 @@ def user_is_root(user_uuid, **kwargs):
     WHERE uuid = %s
     """
     cursor.execute(query, (user_uuid,))
-    is_root = cursor.fetchone()[0]
+    is_root = cursor.fetchone()
 
     return is_root
 
@@ -204,7 +204,9 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
     query = "SELECT first_name, last_name, email, is_root FROM users WHERE uuid = %s;"
     cursor.execute(query, (user_uuid,))
     user = cursor.fetchone()
-
+    if not user:
+            raise ValueError(f"User with UUID {user_uuid} not found.")
+    
     return {
         "user_uuid": user_uuid,
         "first_name": user[0],
