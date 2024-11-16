@@ -14,6 +14,7 @@ from app.models import (
     user_is_root,
 )
 from app.utils.auth import TokenManager, AuthManager
+from app.utils.aws_helpers import create_sns_subscription
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -61,6 +62,7 @@ def add_project_user(project_uuid: str) -> Response:
 
     try:
         add_user_to_project(project_uuid, user_uuid)
+        create_sns_subscription(project_uuid, user_uuid)
         return (
             jsonify(
                 {"status": "success", "message": "Successfully added user to project"}

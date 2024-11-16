@@ -15,6 +15,7 @@ from app.models import (
 )
 from app.utils.auth import TokenManager, AuthManager
 from app.utils import create_aws_client, associate_api_key_with_usage_plan
+from app.utils.aws_helpers import create_sns_topic
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -63,6 +64,7 @@ def create_project() -> Response:
             associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
 
         data = {"uuid": project_uuid, "name": name, "platform": platform}
+        create_sns_topic(project_uuid)
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         print(f"Error in create_project: {e}")
