@@ -20,7 +20,7 @@ CREATE TABLE error_logs (
     name VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    filename VARCHAR(255) NOT NULL,
+    filename VARCHAR(255),
     line_number INT,
     col_number INT,
     project_id INT REFERENCES projects(id) ON DELETE CASCADE,
