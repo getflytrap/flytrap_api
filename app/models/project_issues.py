@@ -86,7 +86,7 @@ def fetch_error(
     query = """
     SELECT
         name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved, contexts
+        resolved, contexts, method, path
     FROM error_logs
     WHERE uuid = %s
     """
@@ -106,7 +106,9 @@ def fetch_error(
             "stack_trace": error[6],
             "handled": error[7],
             "resolved": error[8],
-            "contexts": error[9]
+            "contexts": error[9],
+            "method": error[10], 
+            "path": error[11]
         }
 
     return None
@@ -119,7 +121,7 @@ def fetch_rejection(
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
     query = """
-    SELECT value, created_at, handled, resolved
+    SELECT value, created_at, handled, resolved, method, path
     FROM rejection_logs
     WHERE uuid = %s
     """
@@ -134,6 +136,8 @@ def fetch_rejection(
             "project_id": project_uuid,
             "handled": rejection[2],
             "resolved": rejection[3],
+            "method": rejection[4],
+            "path": rejection[5]
         }
 
     return None
