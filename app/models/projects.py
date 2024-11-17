@@ -83,17 +83,19 @@ def add_project(name: str, platform: str, **kwargs) -> None:
 
 @db_write_connection
 def delete_project_by_id(uuid: str, **kwargs) -> bool:
-    """Deletes a project by its unique project UUID."""
+    """Deletes a project by its unique project UUID, and returns the api_key so it can be deleted from AWS"""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = "DELETE FROM projects WHERE uuid = %s"
+    query = "DELETE FROM projects WHERE uuid = %s RETURNING api_key"
     cursor.execute(query, [uuid])
-    rows_deleted = cursor.rowcount
+    api_key = cursor.fetchone()[0]
     connection.commit()
 
-    return rows_deleted > 0
-
+    if api_key:
+        return api_key
+    else:
+        return None
 
 @db_write_connection
 def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
