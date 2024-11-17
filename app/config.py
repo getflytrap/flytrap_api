@@ -23,9 +23,26 @@ def get_secret(secret_name, region_name):
 
     return get_secret_value_response['SecretString']
 
+def get_aws_account_id():
+    # Create a boto3 client for STS (Security Token Service)
+    sts_client = boto3.client('sts')
+
+    try:
+        # Call the get_caller_identity API
+        response = sts_client.get_caller_identity()
+
+        # Extract the Account ID from the response
+        account_id = response['Account']
+
+        print(f"AWS Account ID: {account_id}")
+        return account_id
+
+    except Exception as e:
+        print(f"Error fetching AWS account ID: {e}")
+        return None
+
 USAGE_PLAN_ID = os.getenv("USAGE_PLAN_ID")
 AWS_REGION = os.getenv("AWS_REGION")
-AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 DB_HOST: Optional[str] = os.getenv("PGHOST")
 DB_NAME: Optional[str] = os.getenv("PGDATABASE")
 DB_USER: Optional[str] = os.getenv("PGUSER")
@@ -45,6 +62,7 @@ else:
   try:
     JWT_SECRET_KEY = get_secret('flytrap/jwt_secret_key', AWS_REGION)
     DB_PASSWORD = get_secret('flytrap/pg_password', AWS_REGION)
+    AWS_ACCOUNT_ID = get_aws_account_id()
     print('successfully retrieved secrets')
   except Exception as e:
     print(f"Error fetching JWT_SECRET_KEY from Secrets Manager: {e}")
