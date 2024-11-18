@@ -23,5 +23,8 @@ __all__ = [
     "calculate_total_user_project_pages",
     "create_aws_api_gateway_client",
     "associate_api_key_with_usage_plan",
-    "delete_api_key"
+    "delete_api_key",
+    "create_sns_topic",
+    "create_sns_subscription",
+    "send_sns_notification"
 ]

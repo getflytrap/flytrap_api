@@ -14,7 +14,7 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
-from app.utils import create_aws_api_gateway_client, associate_api_key_with_usage_plan, delete_api_key
+from app.utils import create_aws_api_gateway_client, create_sns_topic, associate_api_key_with_usage_plan, delete_api_key
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -83,8 +83,11 @@ def delete_project(project_uuid: str) -> Response:
         api_key = delete_project_by_id(project_uuid)
         if api_key:
             client = create_aws_api_gateway_client()
+            all_keys = client.get_api_keys().get('items')
+            key_id = [item.key for item in all_keys if item.value == api_key]
+
             # returns an empty response with status code 204 if successful
-            return delete_api_key(client, api_key)
+            return delete_api_key(client, key_id)
         else:
             return jsonify({"status": "error", "message": "Project not found"}), 404
     except Exception as e:
