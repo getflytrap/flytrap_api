@@ -2,7 +2,7 @@ from flask import jsonify, Blueprint, Response, request
 from flask_socketio import join_room
 from app.socketio_instance import socketio
 from app.utils.auth import TokenManager, AuthManager
-from app.models import fetch_project_users, get_project_name
+from app.models import fetch_project_users, get_project_name, fetch_most_recent_log
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -56,11 +56,18 @@ def handle_disconnect():
 def send_notification_to_frontend(project_uuid):
     project_users = fetch_project_users(project_uuid)
     project_name = get_project_name(project_uuid)
+    latest_issue = fetch_most_recent_log(project_uuid)
+
+    data = {
+        "project_uuid": project_uuid,
+        "project_name": project_name,
+        "issue_data":  latest_issue
+    }    
 
     for user_uuid in project_users:
         socketio.emit(
             "new_notification",
-            {"project_name": project_name},
+            data,
             namespace="/notifications",
             room=user_uuid,
         )
