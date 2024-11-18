@@ -6,7 +6,6 @@ It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
 configures error handling,
 and initializes authentication mechanisms.
 """
-
 import logging
 import traceback
 from flask import Flask, jsonify, request
