@@ -25,7 +25,7 @@ def create_sns_topic(project_uuid):
     
     # Create a new SNS topic (or retrieve ARN if it already exists)
     response = sns_client.create_topic(Name=topic_name)
-    sns_topic_arn = response['TopicArn']
+    sns_topic_arn = response.get('TopicArn')
     return sns_topic_arn
 
 def create_sns_subscription(project_uuid, user_uuid):
