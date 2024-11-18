@@ -16,7 +16,8 @@ from .project_issues import (
     update_rejection_resolved,
     delete_error_by_id,
     delete_rejection_by_id,
-    get_issue_summary
+    get_issue_summary,
+    fetch_most_recent_log
 )
 from .project_users import (
     fetch_project_users,
@@ -43,6 +44,7 @@ __all__ = [
     "fetch_issues_by_project",
     "delete_issues_by_project",
     "get_issue_summary",
+    "fetch_most_recent_log"
     "fetch_error",
     "fetch_rejection",
     "update_error_resolved",
