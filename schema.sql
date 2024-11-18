@@ -29,7 +29,12 @@ CREATE TABLE error_logs (
     resolved BOOLEAN NOT NULL DEFAULT FALSE,
     contexts JSONB,
     method VARCHAR(10),
-    path TEXT
+    path TEXT,
+    ip VARCHAR(45),
+    os VARCHAR(255),
+    browser VARCHAR(255),
+    runtime VARCHAR(255),
+    error_hash VARCHAR(64)
 );
 
 CREATE INDEX idx_error_log_uuid ON error_logs(uuid); 
@@ -41,7 +46,11 @@ CREATE TABLE rejection_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
   handled BOOLEAN NOT NULL,
-  resolved BOOLEAN NOT NULL DEFAULT FALSE
+  resolved BOOLEAN NOT NULL DEFAULT FALSE,
+  ip VARCHAR(45),
+  os VARCHAR(255),
+  browser VARCHAR(255),
+  runtime VARCHAR(255)
 );
 
 CREATE INDEX idx_rejection_log_uuid ON rejection_logs(uuid);
