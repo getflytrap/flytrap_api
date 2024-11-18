@@ -6,6 +6,7 @@ resolution status, and deleting records. Each function is decorated to ensure pr
 database connection context for reading or writing.
 """
 
+from datetime import datetime, timedelta
 from typing import Dict, Optional, List
 from app.utils import (
     db_read_connection,
@@ -84,8 +85,8 @@ def fetch_error(
 
     query = """
     SELECT
-        name, message, created_at, line_number, col_number, stack_trace, handled,
-        resolved
+        name, message, created_at, filename, line_number, col_number, stack_trace, handled,
+        resolved, contexts, method, path
     FROM error_logs
     WHERE uuid = %s
     """
@@ -98,12 +99,16 @@ def fetch_error(
             "name": error[0],
             "message": error[1],
             "created_at": error[2],
-            "line_number": error[3],
-            "col_number": error[4],
+            "file": error[3],
+            "line_number": error[4],
+            "col_number": error[5],
             "project_uuid": project_uuid,
-            "stack_trace": error[5],
-            "handled": error[6],
-            "resolved": error[7],
+            "stack_trace": error[6],
+            "handled": error[7],
+            "resolved": error[8],
+            "contexts": error[9],
+            "method": error[10], 
+            "path": error[11]
         }
 
     return None
@@ -116,7 +121,7 @@ def fetch_rejection(
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
     query = """
-    SELECT value, created_at, handled, resolved
+    SELECT value, created_at, handled, resolved, method, path
     FROM rejection_logs
     WHERE uuid = %s
     """
@@ -131,6 +136,8 @@ def fetch_rejection(
             "project_id": project_uuid,
             "handled": rejection[2],
             "resolved": rejection[3],
+            "method": rejection[4],
+            "path": rejection[5]
         }
 
     return None
@@ -190,3 +197,52 @@ def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
     connection.commit()
 
     return rows_deleted > 0
+
+@db_read_connection
+def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
+    cursor = kwargs["cursor"]
+    
+    today = datetime.utcnow()
+    start_of_week = today - timedelta(days=7)
+
+    query = """
+        SELECT DATE(created_at) AS day, COUNT(*) AS count
+        FROM error_logs
+        WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
+        AND created_at >= %s
+        GROUP BY day
+        ORDER BY day
+        """
+
+    cursor.execute(query, (project_uuid, start_of_week,))
+    error_results = cursor.fetchall()
+
+    query = """
+        SELECT DATE(created_at) AS day, COUNT(*) AS count
+        FROM rejection_logs
+        WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
+        AND created_at >= %s
+        GROUP BY day
+        ORDER BY day
+        """
+
+    cursor.execute(query, (project_uuid, start_of_week))
+    rejection_results = cursor.fetchall()
+
+    issue_counts = issue_counts = [0] * 7
+
+    print(error_results)
+    for day, count in error_results:
+        day_index = (today.date() - day).days
+        if 0 <= day_index < 7:
+            issue_counts[day_index] += count
+
+    for day, count in rejection_results:
+        day_index = (today.date() - day).days
+        if 0 <= day_index < 7:
+            issue_counts[day_index] += count
+
+    print('issue counts:')
+    print(issue_counts)
+
+    return issue_counts[::-1]

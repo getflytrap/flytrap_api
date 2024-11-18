@@ -18,6 +18,7 @@ from app.models import (
     update_rejection_resolved,
     delete_error_by_id,
     delete_rejection_by_id,
+    get_issue_summary
 )
 from app.utils.auth import TokenManager, AuthManager
 
@@ -184,3 +185,15 @@ def delete_rejection(project_uuid: str, rejection_uuid: str) -> Response:
             jsonify({"status": "error", "message": "Failed to delete rejection"}),
             500,
         )
+
+@bp.route("/summary", methods=["GET"])
+@auth_manager.authenticate
+@auth_manager.authorize_project_access
+def get_summary(project_uuid: str) -> Response:
+    """Gets issue count per hour for today for this project."""
+    try:
+        daily_counts = get_issue_summary(project_uuid)
+        return jsonify({"status": "success", "data": daily_counts}), 200
+    except Exception as e:
+        print(f"Error in get_summary: {e}")
+        return jsonify({"status": "error", "message": "Failed to fetch hourly summary"}), 500

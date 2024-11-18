@@ -5,6 +5,7 @@ from .projects import (
     add_project,
     delete_project_by_id,
     update_project_name,
+    get_project_name,
 )
 from .project_issues import (
     fetch_issues_by_project,
@@ -15,6 +16,7 @@ from .project_issues import (
     update_rejection_resolved,
     delete_error_by_id,
     delete_rejection_by_id,
+    get_issue_summary
 )
 from .project_users import (
     fetch_project_users,
@@ -37,8 +39,10 @@ __all__ = [
     "add_project",
     "delete_project_by_id",
     "update_project_name",
+    "get_project_name",
     "fetch_issues_by_project",
     "delete_issues_by_project",
+    "get_issue_summary",
     "fetch_error",
     "fetch_rejection",
     "update_error_resolved",
@@ -55,5 +59,5 @@ __all__ = [
     "fetch_user_by_email",
     "user_is_root",
     "fetch_projects_for_user",
-    "get_user_info",
+    "get_user_info"
 ]
