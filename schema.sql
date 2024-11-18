@@ -47,6 +47,8 @@ CREATE TABLE rejection_logs (
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
   handled BOOLEAN NOT NULL,
   resolved BOOLEAN NOT NULL DEFAULT FALSE,
+  method VARCHAR(10),
+  path TEXT,
   ip VARCHAR(45),
   os VARCHAR(255),
   browser VARCHAR(255),
