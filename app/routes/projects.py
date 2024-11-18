@@ -62,7 +62,7 @@ def create_project() -> Response:
         if client:
             associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
 
-        data = {"uuid": project_uuid, "name": name, "platform": platform}
+        data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
         create_sns_topic(project_uuid)
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
@@ -83,7 +83,7 @@ def delete_project(project_uuid: str) -> Response:
         api_key = delete_project_by_id(project_uuid)
         if api_key:
             client = create_aws_api_gateway_client()
-            all_keys = client.get_api_keys().get('items')
+            all_keys = client.get_api_keys(includeValues=True).get('item')
             key_id = [item.key for item in all_keys if item.value == api_key]
 
             # returns an empty response with status code 204 if successful

@@ -10,7 +10,14 @@ from .db_helpers import (
 )
 from .uuid_generator import generate_uuid
 from .validation import is_valid_email
-from .aws_helpers import create_aws_api_gateway_client, associate_api_key_with_usage_plan, delete_api_key
+from .aws_helpers import (
+  create_aws_api_gateway_client,
+  associate_api_key_with_usage_plan, 
+  delete_api_key,
+  create_sns_topic,
+  create_sns_subscription,
+  send_sns_notification
+)
 
 __all__ = [
     "db_read_connection",
