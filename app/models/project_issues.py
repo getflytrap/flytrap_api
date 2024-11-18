@@ -86,32 +86,60 @@ def fetch_error(
     query = """
     SELECT
         name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved, contexts, method, path
+        resolved, contexts, method, path, ip, os, browser, runtime, error_hash
     FROM error_logs
     WHERE uuid = %s
     """
     cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
-    if error:
-        return {
-            "uuid": error_uuid,
-            "name": error[0],
-            "message": error[1],
-            "created_at": error[2],
-            "file": error[3],
-            "line_number": error[4],
-            "col_number": error[5],
-            "project_uuid": project_uuid,
-            "stack_trace": error[6],
-            "handled": error[7],
-            "resolved": error[8],
-            "contexts": error[9],
-            "method": error[10], 
-            "path": error[11]
-        }
+    if not error:
+        return None
+    
+    error_hash = error[16]
 
-    return None
+    occurrence_query = """
+    SELECT COUNT(*) 
+    FROM error_logs
+    WHERE error_hash = %s AND project_id = (
+        SELECT id FROM projects WHERE uuid = %s
+    )
+    """
+    cursor.execute(occurrence_query, [error_hash, project_uuid])
+    total_occurrences = cursor.fetchone()[0]
+
+    user_count_query = """
+    SELECT COUNT(DISTINCT ip)
+    FROM error_logs
+    WHERE error_hash = %s AND project_id = (
+        SELECT id FROM projects WHERE uuid = %s
+    )
+    """
+    cursor.execute(user_count_query, [error_hash, project_uuid])
+    distinct_users = cursor.fetchone()[0]
+
+    return {
+        "uuid": error_uuid,
+        "name": error[0],
+        "message": error[1],
+        "created_at": error[2],
+        "file": error[3],
+        "line_number": error[4],
+        "col_number": error[5],
+        "project_uuid": project_uuid,
+        "stack_trace": error[6],
+        "handled": error[7],
+        "resolved": error[8],
+        "contexts": error[9],
+        "method": error[10], 
+        "path": error[11],
+        "os": error[13],
+        "browser": error[14],
+        "runtime": error[15],
+        "total_occurrences": total_occurrences,
+        "distinct_users": distinct_users
+    }
+
 
 
 @db_read_connection
@@ -121,7 +149,7 @@ def fetch_rejection(
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
     query = """
-    SELECT value, created_at, handled, resolved, method, path
+    SELECT value, created_at, handled, resolved, method, path, os, browser, runtime
     FROM rejection_logs
     WHERE uuid = %s
     """
@@ -137,7 +165,10 @@ def fetch_rejection(
             "handled": rejection[2],
             "resolved": rejection[3],
             "method": rejection[4],
-            "path": rejection[5]
+            "path": rejection[5],
+            "os": rejection[6],
+            "browser": rejection[7],
+            "runtime": rejection[8],
         }
 
     return None

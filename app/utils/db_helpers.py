@@ -54,7 +54,7 @@ def fetch_errors_by_project(
     query = """
     SELECT
         e.uuid, e.name, e.message, e.created_at, e.filename, e.line_number,
-        e.col_number, e.handled, e.resolved
+        e.col_number, e.handled, e.resolved, e.error_hash
     FROM error_logs e
     JOIN projects p ON e.project_id = p.id
     WHERE p.uuid = %s
@@ -80,6 +80,26 @@ def fetch_errors_by_project(
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
+
+    error_hashes = [row[9] for row in rows]
+
+    if error_hashes:
+        stats_query = """
+        SELECT
+            e.error_hash,
+            COUNT(*) AS total_occurrences,
+            COUNT(DISTINCT e.ip) AS distinct_users
+        FROM error_logs e
+        JOIN projects p ON e.project_id = p.id
+        WHERE p.uuid = %s AND e.error_hash IN %s
+        GROUP BY e.error_hash
+        """
+        cursor.execute(stats_query, [project_uuid, tuple(error_hashes)])
+        stats = cursor.fetchall()
+        stats_map = {stat[0]: {"total_occurrences": stat[1], "distinct_users": stat[2]} for stat in stats}
+    else:
+        stats_map = {}
+
     errors = [
         {
             "uuid": row[0],
@@ -92,6 +112,8 @@ def fetch_errors_by_project(
             "project_uuid": project_uuid,
             "handled": row[7],
             "resolved": row[8],
+            "total_occurrences": stats_map.get(row[9], {}).get("total_occurrences", 0),
+            "distinct_users": stats_map.get(row[9], {}).get("distinct_users", 0),
         }
         for row in rows
     ]
