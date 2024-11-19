@@ -6,6 +6,7 @@ user information by email or user ID. Each function is decorated to ensure the
 appropriate database connection context for reading or writing.
 """
 
+from flask import current_app
 from typing import List, Dict, Optional, Union
 from app.utils import (
     db_read_connection,
@@ -214,3 +215,21 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
         "email": user[2],
         "is_root": user[3]
     }
+
+@db_read_connection
+def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:
+    """Fetches a list of sns subscriptions ARNs associated with a user"""
+
+    cursor = kwargs["cursor"]
+
+    query = """
+    SELECT sns_subscription_arn
+    FROM projects_users
+    WHERE user_id = (SELECT id FROM users WHERE uuid = %s)
+    """
+
+    cursor.execute(query, [user_uuid])
+    rows = cursor.fetchall()
+    current_app.logger.info(rpws)
+
+    return [row[0] for row in rows]

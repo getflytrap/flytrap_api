@@ -7,6 +7,7 @@ from .projects import (
     update_project_name,
     get_project_name,
     get_topic_arn,
+    get_all_sns_subscription_arns_for_project
 )
 from .project_issues import (
     fetch_issues_by_project,
@@ -23,7 +24,7 @@ from .project_users import (
     fetch_project_users,
     add_user_to_project,
     remove_user_from_project,
-    add_sns_subscription_arn
+    save_sns_subscription_arn_to_db
 )
 from .users import (
     fetch_all_users,
@@ -34,6 +35,7 @@ from .users import (
     user_is_root,
     fetch_projects_for_user,
     get_user_info,
+    get_all_sns_subscription_arns_for_user
 )
 
 __all__ = [
@@ -42,6 +44,8 @@ __all__ = [
     "delete_project_by_id",
     "update_project_name",
     "get_project_name",
+    "get_all_sns_subscription_arns_for_project",
+    "get_topic_arn",
     "fetch_issues_by_project",
     "delete_issues_by_project",
     "get_issue_summary",
@@ -54,7 +58,7 @@ __all__ = [
     "fetch_project_users",
     "add_user_to_project",
     "remove_user_from_project",
-    "add_sns_subscription_arn",
+    "save_sns_subscription_arn_to_db",
     "fetch_all_users",
     "add_user",
     "delete_user_by_id",
@@ -63,5 +67,5 @@ __all__ = [
     "user_is_root",
     "fetch_projects_for_user",
     "get_user_info",
-    "get_topic_arn"
+    "get_all_sns_subscriptions_arns_for_user"
 ]

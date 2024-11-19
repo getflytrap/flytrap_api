@@ -32,7 +32,7 @@ def create_sns_topic(project_uuid):
     return sns_topic_arn
 
 def create_sns_subscription(project_uuid, user_uuid):
-    from app.models import get_user_info, get_topic_arn, add_sns_subscription_arn
+    from app.models import get_user_info, get_topic_arn, save_sns_subscription_arn_to_db
 
     user_info = get_user_info(user_uuid)
     user_email = user_info.get('email')
@@ -47,7 +47,7 @@ def create_sns_subscription(project_uuid, user_uuid):
             Endpoint=user_email
         )
 
-        add_sns_subscription_arn(user_uuid, project_uuid, subscription_arn)
+        save_sns_subscription_arn_to_db(user_uuid, project_uuid, subscription_arn)
 
         return {
             'statusCode': 200,
@@ -99,3 +99,20 @@ def delete_api_key_from_aws(api_key_value):
         return True
     except Exception as e:
         current_app.logger.debug(f"Error deleting API key from AWS: {str(e)}")
+
+def delete_sns_subscriptions_from_aws(table, uuid):
+    from app.models import get_all_sns_subscription_arns_for_user, get_all_sns_subscription_arns_for_project
+
+    try:
+        if table == 'projects':
+            arns = get_all_sns_subscription_arns_for_project(uuid)
+        elif table == 'users':
+            arns = get_all_sns_subscription_arns_for_user(uuid)
+        
+        sns_client = create_aws_client('sns')
+
+        for arn in arns:
+            sns_client.unsubscribe(SubscriptionArn=arn)
+    
+    except Exception as e:
+        current_app.logger.debug(f"Error deleting sns subscription from AWS: {str(e)}")

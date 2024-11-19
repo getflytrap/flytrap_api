@@ -143,4 +143,20 @@ def get_topic_arn(project_uuid: str, **kwargs) -> Optional[str]:
     current_app.logger.info(response)
     return response[0]
     
+@db_read_connection
+def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> list:
+    """return a list of sns subscriptions ARNs associated with a project"""
+    cursor = kwargs["cursor"]
+
+    query = """
+    SELECT sns_subscription_arn
+    FROM projects_users
+    WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
+    """
+
+    response = cursor.execute(query, [project_uuid])
+    current_app.logger.info(response)
+    rows = cursor.fetchall()
+
+    return [row[0] for row in rows]
 

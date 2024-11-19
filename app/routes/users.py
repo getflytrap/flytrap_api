@@ -16,7 +16,7 @@ from app.models import (
     update_password,
     fetch_projects_for_user,
 )
-from app.utils import is_valid_email
+from app.utils import is_valid_email, delete_sns_subscriptions_from_aws
 from app.models import user_is_root, get_user_info
 from app.routes.projects import get_projects
 from app.utils.auth import TokenManager, AuthManager
@@ -92,6 +92,7 @@ def create_user() -> Response:
 def delete_user(user_uuid: str) -> Response:
     """Deletes a specified user by their user ID."""
     try:
+        delete_sns_subscriptions_from_aws('users', user_uuid)
         success = delete_user_by_id(user_uuid)
         if success:
             return "", 204

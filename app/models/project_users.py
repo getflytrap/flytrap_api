@@ -82,7 +82,7 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
     return cursor.rowcount > 0
 
 @db_write_connection
-def add_sns_subscription_arn(user_uuid: str, project_uuid: str, arn: str, **kwargs) -> None:
+def save_sns_subscription_arn_to_db(user_uuid: str, project_uuid: str, arn: str, **kwargs) -> None:
     """Update project_users record by adding a sns subscription arn"""
 
     connection = kwargs["connection"]
@@ -98,6 +98,7 @@ def add_sns_subscription_arn(user_uuid: str, project_uuid: str, arn: str, **kwar
         SELECT id FROM projects WHERE uuid = %s
     )
     """
+    current_app.logger.debug(f"Executing save_sns_subscription with project_uuid={project_uuid}, user_uuid={user_uuid} and arn {arn}")
 
     cursor.execute(query, [arn, user_uuid, project_uuid])
     connection.commit()

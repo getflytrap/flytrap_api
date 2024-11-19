@@ -14,7 +14,7 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
-from app.utils import associate_api_key_with_usage_plan
+from app.utils import associate_api_key_with_usage_plan, delete_sns_subscriptions_from_aws
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -78,6 +78,7 @@ def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID, then deletes the api key from AWS"""
 
     try:
+        delete_sns_subscriptions_from_aws('projects', project_uuid)
         success = delete_project_by_id(project_uuid)
         if success:
             return "", 204
