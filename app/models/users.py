@@ -202,7 +202,7 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
     cursor = kwargs["cursor"]
 
     query = "SELECT first_name, last_name, email, is_root FROM users WHERE uuid = %s;"
-    cursor.execute(query, (user_uuid,))
+    cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
             raise ValueError(f"User with UUID {user_uuid} not found.")

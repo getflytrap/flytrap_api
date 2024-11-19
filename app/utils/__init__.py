@@ -11,12 +11,12 @@ from .db_helpers import (
 from .uuid_generator import generate_uuid
 from .validation import is_valid_email
 from .aws_helpers import (
-  create_aws_api_gateway_client,
+  create_aws_client,
   associate_api_key_with_usage_plan, 
-  delete_api_key,
   create_sns_topic,
   create_sns_subscription,
-  send_sns_notification
+  send_sns_notification,
+  delete_api_key_from_aws
 )
 
 __all__ = [
@@ -28,10 +28,10 @@ __all__ = [
     "generate_uuid",
     "is_valid_email",
     "calculate_total_user_project_pages",
-    "create_aws_api_gateway_client",
+    "create_aws_client",
     "associate_api_key_with_usage_plan",
-    "delete_api_key",
     "create_sns_topic",
     "create_sns_subscription",
-    "send_sns_notification"
+    "send_sns_notification",
+    "delete_api_key_from_aws"
 ]

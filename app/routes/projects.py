@@ -4,7 +4,7 @@ This module provides routes for managing projects, including creating, fetching,
 updating, and deleting project records. Each route enforces root access authorization.
 """
 
-from flask import jsonify, request, Response
+from flask import jsonify, request, Response, current_app
 from flask import Blueprint
 from app.config import USAGE_PLAN_ID
 from app.models import (
@@ -14,7 +14,7 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
-from app.utils import create_aws_api_gateway_client, create_sns_topic, associate_api_key_with_usage_plan, delete_api_key
+from app.utils import associate_api_key_with_usage_plan
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -34,7 +34,7 @@ def get_projects() -> Response:
         data = fetch_projects(page, limit)
         return jsonify({"status": "success", "data": data}), 200
     except Exception as e:
-        print(f"Error in get_projects: {e}")
+        current_app.logger.debug(f"Error in get_projects: {e}")
         return jsonify({"status": "error", "message": "Failed to fetch projects"}), 500
 
 
@@ -58,15 +58,13 @@ def create_project() -> Response:
         project_uuid = result["project_uuid"]
         api_key = result["api_key"]
 
-        client = create_aws_api_gateway_client()
-        if client:
-            associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
+        associate_api_key_with_usage_plan(name, api_key, USAGE_PLAN_ID)
 
         data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
-        create_sns_topic(project_uuid)
+        
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
-        print(f"Error in create_project: {e}")
+        current_app.logger.debug(f"Error in create_project: {e}")
         return (
             jsonify({"status": "error", "message": "Failed to create new project"}),
             500,
@@ -80,18 +78,13 @@ def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID, then deletes the api key from AWS"""
 
     try:
-        api_key = delete_project_by_id(project_uuid)
-        if api_key:
-            client = create_aws_api_gateway_client()
-            all_keys = client.get_api_keys(includeValues=True).get('item')
-            key_id = [item.key for item in all_keys if item.value == api_key]
-
-            # returns an empty response with status code 204 if successful
-            return delete_api_key(client, key_id)
+        success = delete_project_by_id(project_uuid)
+        if success:
+            return "", 204
         else:
             return jsonify({"status": "error", "message": "Project not found"}), 404
     except Exception as e:
-        print(f"Error in delete_project: {e}")
+        current_app.logger.debug(f"Error in delete_project: {e}")
         return jsonify({"status": "error", "message": "Failed to delete project"}), 500
 
 
@@ -114,7 +107,7 @@ def update_project(project_uuid: str) -> Response:
         else:
             return jsonify({"status": "error", "message": "Project not found"}), 404
     except Exception as e:
-        print(f"Error in update_project: {e}")
+        current_app.logger.debug(f"Error in update_project: {e}")
         return (
             jsonify({"status": "error", "message": "Failed to update project name"}),
             500,

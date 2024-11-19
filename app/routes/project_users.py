@@ -6,7 +6,7 @@ and removing users from a project. Access is restricted to users with root acces
 """
 
 from flask import jsonify, request, Response
-from flask import Blueprint
+from flask import Blueprint, current_app
 from app.models import (
     fetch_project_users,
     add_user_to_project,
@@ -32,7 +32,7 @@ def get_project_users(project_uuid: str) -> Response:
         users = fetch_project_users(project_uuid)
         return jsonify({"status": "success", "data": users}), 200
     except Exception as e:
-        print(f"Error in get_project_users: {e}")
+        current_app.logger.debug(f"Error in get_project_users: {e}")
         return (
             jsonify(
                 {"status": "error", "message": "Failed to fetch users for project"}
@@ -70,7 +70,7 @@ def add_project_user(project_uuid: str) -> Response:
             201,
         )
     except Exception as e:
-        print(f"Error in add_project_user: {e}")
+        current_app.logger.debug(f"Error in add_project_user: {e}")
         return (
             jsonify({"status": "error", "message": "Failed to add user to project"}),
             500,
@@ -92,7 +92,7 @@ def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
                 404,
             )
     except Exception as e:
-        print(f"Error in remove_project_user: {e}")
+        current_app.logger.debug(f"Error in remove_project_user: {e}")
         return (
             jsonify(
                 {"status": "error", "message": "Failed to remove user from project"}

@@ -6,6 +6,7 @@ from .projects import (
     delete_project_by_id,
     update_project_name,
     get_project_name,
+    get_topic_arn,
 )
 from .project_issues import (
     fetch_issues_by_project,
@@ -22,6 +23,7 @@ from .project_users import (
     fetch_project_users,
     add_user_to_project,
     remove_user_from_project,
+    add_sns_subscription_arn
 )
 from .users import (
     fetch_all_users,
@@ -52,6 +54,7 @@ __all__ = [
     "fetch_project_users",
     "add_user_to_project",
     "remove_user_from_project",
+    "add_sns_subscription_arn",
     "fetch_all_users",
     "add_user",
     "delete_user_by_id",
@@ -59,5 +62,6 @@ __all__ = [
     "fetch_user_by_email",
     "user_is_root",
     "fetch_projects_for_user",
-    "get_user_info"
+    "get_user_info",
+    "get_topic_arn"
 ]
