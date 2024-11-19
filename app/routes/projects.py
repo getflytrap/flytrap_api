@@ -62,7 +62,7 @@ def create_project() -> Response:
         if client:
             associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
 
-        data = {"uuid": project_uuid, "name": name, "platform": platform}
+        data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         print(f"Error in create_project: {e}")
