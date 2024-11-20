@@ -230,6 +230,6 @@ def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:
 
     cursor.execute(query, [user_uuid])
     rows = cursor.fetchall()
-    current_app.logger.info(rpws)
+    current_app.logger.info(rows)
 
     return [row[0] for row in rows]

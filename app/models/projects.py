@@ -155,7 +155,7 @@ def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> li
     """
 
     response = cursor.execute(query, [project_uuid])
-    current_app.logger.info(response)
+    current_app.logger.info(f"get sub arns for project {response}")
     rows = cursor.fetchall()
 
     return [row[0] for row in rows]

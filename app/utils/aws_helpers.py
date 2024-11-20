@@ -6,7 +6,11 @@ from flask import current_app
 
 def create_aws_client(service):
     if ENVIRONMENT == "production":
-        return boto3.client(service, region_name=AWS_REGION, endpoint_url=f"https://{service}.{AWS_REGION}.amazonaws.com")
+        return boto3.client(
+            service, 
+            region_name=AWS_REGION, 
+            endpoint_url=f"https://{service}.{AWS_REGION}.amazonaws.com"
+        )
     return None
 
 
@@ -47,7 +51,7 @@ def create_sns_subscription(project_uuid, user_uuid):
             Endpoint=user_email
         )
 
-        save_sns_subscription_arn_to_db(user_uuid, project_uuid, subscription_arn)
+        #save_sns_subscription_arn_to_db(user_uuid, project_uuid, subscription_arn)
 
         return {
             'statusCode': 200,
@@ -62,6 +66,7 @@ def send_sns_notification(project_uuid):
 
     sns_client = create_aws_client('sns')
     sns_topic_arn = get_topic_arn(project_uuid)
+    current_app.logger.info(f"sending sns notification to: {sns_topic_arn}")
     try:
         
         sns_client.publish(
@@ -75,7 +80,7 @@ def send_sns_notification(project_uuid):
                 }
             }
         )
-        print(f"Sent notification to developers assigned to project {project_uuid}")
+        current_app.logger.info(f"Sent notification to developers assigned to project {project_uuid}")
     except Exception as e:
         current_app.logger.debug(f"Error sending notification to  developers assigned to project {project_uuid}: {str(e)}")
 
@@ -85,7 +90,7 @@ def delete_api_key_from_aws(api_key_value):
         
         response = api_gateway_client.get_api_keys(includeValues=True)
         current_app.logger.info(f"api keys response: {response}")
-        all_keys = response.get('item')
+        all_keys = response.get('items')
         if all_keys:
             current_app.logger.info('all keys exists')
             current_app.logger.info(f"all keys print: {all_keys}")
@@ -112,7 +117,8 @@ def delete_sns_subscriptions_from_aws(table, uuid):
         sns_client = create_aws_client('sns')
 
         for arn in arns:
-            sns_client.unsubscribe(SubscriptionArn=arn)
+            if arn is not None:
+                sns_client.unsubscribe(SubscriptionArn=arn)
     
     except Exception as e:
         current_app.logger.debug(f"Error deleting sns subscription from AWS: {str(e)}")

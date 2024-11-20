@@ -1,4 +1,4 @@
-from flask import jsonify, Blueprint, Response, request
+from flask import jsonify, Blueprint, Response, request, current_app
 from flask_socketio import join_room
 from app.socketio_instance import socketio
 from app.utils import send_sns_notification, create_aws_client
@@ -14,8 +14,10 @@ bp = Blueprint("notifications", __name__)
 @bp.route("/webhook", methods=["POST"])
 def receive_webhook() -> Response:
     """Receives a webhook POST request."""
+    current_app.logger.info('received webhook')
     data = request.get_json()
     project_uuid = data.get("project_id")
+    current_app.logger.info(f"webhook data: {data} for project {project_uuid}")
 
     if project_uuid:
         send_sns_notification(project_uuid)
