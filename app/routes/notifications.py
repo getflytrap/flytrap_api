@@ -1,5 +1,5 @@
 from flask import jsonify, Blueprint, Response, request, current_app
-from .socketio_instance import join_room
+from flask_socketio import join_room
 from app.socketio_instance import socketio
 from app.utils import send_sns_notification
 from app.utils.auth import TokenManager, AuthManager

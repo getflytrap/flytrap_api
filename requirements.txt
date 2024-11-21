@@ -4,6 +4,8 @@ black==24.10.0
 blinker==1.8.2
 boto3==1.35.58
 botocore==1.35.58
+certifi==2024.8.30
+charset-normalizer==3.4.0
 click==8.1.7
 dnspython==2.7.0
 eventlet==0.37.0
@@ -11,9 +13,11 @@ flake8==7.1.1
 Flask==3.0.3
 Flask-Cors==5.0.0
 Flask-SocketIO==5.4.1
+-e git+https://github.com/2408-Team-3/flytrap_flask.git@aa5926ff45280e4ef1cab36d50b11d6ca6112c86#egg=flytrap_flask
 greenlet==3.1.1
 gunicorn==23.0.0
 h11==0.14.0
+idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.4
 jmespath==1.0.1
@@ -31,9 +35,12 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-engineio==4.10.1
 python-socketio==5.11.4
+requests==2.32.3
 s3transfer==0.10.3
+setuptools==75.3.0
 simple-websocket==1.1.0
 six==1.16.0
 urllib3==2.2.3
-Werkzeug==3.1.2
+uvicorn==0.32.0
+Werkzeug==3.1.1
 wsproto==1.2.0

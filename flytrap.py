@@ -7,7 +7,7 @@ application.
 Attributes:
     app (Flask): The initialized Flask application instance.
 """
-from app import create_app, socketio, socketio
+from app import create_app, socketio
 
 app = create_app()
 
