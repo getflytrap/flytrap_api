@@ -51,6 +51,7 @@ def create_sns_subscription(project_uuid, user_uuid):
             Endpoint=user_email
         )
 
+        # To-do: implement functionality to asynchronously receive subscription arn and save to db
         #save_sns_subscription_arn_to_db(user_uuid, project_uuid, subscription_arn)
 
         return {
@@ -105,20 +106,22 @@ def delete_api_key_from_aws(api_key_value):
     except Exception as e:
         current_app.logger.debug(f"Error deleting API key from AWS: {str(e)}")
 
-def delete_sns_subscriptions_from_aws(table, uuid):
-    from app.models import get_all_sns_subscription_arns_for_user, get_all_sns_subscription_arns_for_project
+# To-do: finish implementing logic to properly set sns_subscription_arns
 
-    try:
-        if table == 'projects':
-            arns = get_all_sns_subscription_arns_for_project(uuid)
-        elif table == 'users':
-            arns = get_all_sns_subscription_arns_for_user(uuid)
+# def delete_sns_subscriptions_from_aws(table, uuid):
+#     from app.models import get_all_sns_subscription_arns_for_user, get_all_sns_subscription_arns_for_project
+
+#     try:
+#         if table == 'projects':
+#             arns = get_all_sns_subscription_arns_for_project(uuid)
+#         elif table == 'users':
+#             arns = get_all_sns_subscription_arns_for_user(uuid)
         
-        sns_client = create_aws_client('sns')
+#         sns_client = create_aws_client('sns')
 
-        for arn in arns:
-            if arn is not None:
-                sns_client.unsubscribe(SubscriptionArn=arn)
+#         for arn in arns:
+#             if arn is not None:
+#                 sns_client.unsubscribe(SubscriptionArn=arn)
     
-    except Exception as e:
-        current_app.logger.debug(f"Error deleting sns subscription from AWS: {str(e)}")
+#     except Exception as e:
+#         current_app.logger.debug(f"Error deleting sns subscription from AWS: {str(e)}")
