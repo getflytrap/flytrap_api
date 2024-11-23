@@ -30,6 +30,7 @@ def fetch_projects(
     SELECT
         p.uuid,
         p.name,
+        p.api_key,
         p.platform,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
@@ -40,7 +41,7 @@ def fetch_projects(
     LEFT JOIN
         rejection_logs r ON r.project_id = p.id
     GROUP BY
-        p.uuid, p.name, p.platform
+        p.uuid, p.name, p.api_key, p.platform
     ORDER BY p.name
     LIMIT %s OFFSET %s
     """
@@ -51,8 +52,9 @@ def fetch_projects(
         {
             "uuid": row[0],
             "name": row[1],
-            "platform": row[2],
-            "issue_count": row[3] + row[4],
+            "api_key": row[2],
+            "platform": row[3],
+            "issue_count": row[4] + row[5],
         }
         for row in rows
     ]

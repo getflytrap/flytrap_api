@@ -61,7 +61,7 @@ def create_project() -> Response:
         associate_api_key_with_usage_plan(name, api_key, USAGE_PLAN_ID)
 
         data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
-        
+
         return jsonify({"status": "success", "data": data}), 201
     except Exception as e:
         current_app.logger.debug(f"Error in create_project: {e}")
