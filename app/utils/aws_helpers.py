@@ -1,10 +1,11 @@
 import boto3
-import os
 from app.config import ENVIRONMENT, AWS_REGION
-from flask import current_app
+from flask import current_app, Response
 
 
-def create_aws_client(service):
+def create_aws_client(service: str) -> None:
+    """Instantiates a boto3 client for a specific AWS service"""
+
     if ENVIRONMENT == "production":
         return boto3.client(
             service, 
@@ -14,7 +15,9 @@ def create_aws_client(service):
     return None
 
 
-def associate_api_key_with_usage_plan(project_name, api_key, usage_plan_id):
+def associate_api_key_with_usage_plan(project_name: str, api_key: str, usage_plan_id: str) -> None:
+    """Associates a project's API key with the AWS usage plan"""
+
     # Create the API key in AWS
     api_gateway_client = create_aws_client('apigateway')
     response = api_gateway_client.create_api_key(name=project_name, value=api_key, enabled=True)
@@ -25,8 +28,9 @@ def associate_api_key_with_usage_plan(project_name, api_key, usage_plan_id):
         usagePlanId=usage_plan_id, keyId=api_key_id, keyType="API_KEY"
     )
 
-def create_sns_topic(project_uuid):
+def create_sns_topic(project_uuid: str) -> str:
     """Creates an SNS topic for a specific project if it doesn't exist."""
+
     sns_client = create_aws_client('sns')
     topic_name = f"project_{project_uuid}_notifications"
     
@@ -35,8 +39,13 @@ def create_sns_topic(project_uuid):
     sns_topic_arn = response.get('TopicArn')
     return sns_topic_arn
 
-def create_sns_subscription(project_uuid, user_uuid):
-    from app.models import get_user_info, get_topic_arn, save_sns_subscription_arn_to_db
+def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
+    """Creates an SNS subscription for a user to receive notifications when errors occur"""
+
+    from app.models import (
+        get_user_info, 
+        get_topic_arn
+    )
 
     user_info = get_user_info(user_uuid)
     user_email = user_info.get('email')
@@ -45,14 +54,11 @@ def create_sns_subscription(project_uuid, user_uuid):
     sns_client = create_aws_client('sns')
 
     try:
-        subscription_arn = sns_client.subscribe(
+        sns_client.subscribe(
             TopicArn=sns_topic_arn,
             Protocol='email',
             Endpoint=user_email
         )
-
-        # To-do: implement functionality to asynchronously receive subscription arn and save to db
-        #save_sns_subscription_arn_to_db(user_uuid, project_uuid, subscription_arn)
 
         return {
             'statusCode': 200,
@@ -62,7 +68,9 @@ def create_sns_subscription(project_uuid, user_uuid):
         current_app.logger.debug(f"Error in SNS Subscription: {e}")
         raise e
 
-def send_sns_notification(project_uuid):
+def send_sns_notification(project_uuid: str) -> None:
+    """Send an SNS notification to all subscribed users when an error occurs"""
+
     from app.models import get_topic_arn
 
     sns_client = create_aws_client('sns')
@@ -85,7 +93,9 @@ def send_sns_notification(project_uuid):
     except Exception as e:
         current_app.logger.debug(f"Error sending notification to  developers assigned to project {project_uuid}: {str(e)}")
 
-def delete_api_key_from_aws(api_key_value):
+def delete_api_key_from_aws(api_key_value: str) -> None:
+    """Remove API key resources from AWS when the corresponding project is deleted"""
+
     try:
         api_gateway_client = create_aws_client('apigateway')
         
@@ -106,22 +116,14 @@ def delete_api_key_from_aws(api_key_value):
     except Exception as e:
         current_app.logger.debug(f"Error deleting API key from AWS: {str(e)}")
 
-# To-do: finish implementing logic to properly set sns_subscription_arns
 
-# def delete_sns_subscriptions_from_aws(table, uuid):
-#     from app.models import get_all_sns_subscription_arns_for_user, get_all_sns_subscription_arns_for_project
+def delete_sns_topic_from_aws(project_uuid: str) -> None:
+    """Delete SNS topic from SNS when the corresponding project is deleted"""
 
-#     try:
-#         if table == 'projects':
-#             arns = get_all_sns_subscription_arns_for_project(uuid)
-#         elif table == 'users':
-#             arns = get_all_sns_subscription_arns_for_user(uuid)
-        
-#         sns_client = create_aws_client('sns')
-
-#         for arn in arns:
-#             if arn is not None:
-#                 sns_client.unsubscribe(SubscriptionArn=arn)
-    
-#     except Exception as e:
-#         current_app.logger.debug(f"Error deleting sns subscription from AWS: {str(e)}")
+    from app.models import get_topic_arn
+    try:
+        topic_arn = get_topic_arn(project_uuid)
+        client = create_aws_client('sns')
+        client.deleteTopic(TopicArn=topic_arn)
+    except Exception as e:
+        current_app.logger.debug(f"Error deleting SNS topic from AWS: {str(e)}")

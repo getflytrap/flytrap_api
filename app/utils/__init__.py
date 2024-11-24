@@ -17,7 +17,7 @@ from .aws_helpers import (
   create_sns_subscription,
   send_sns_notification,
   delete_api_key_from_aws,
-  delete_sns_subscriptions_from_aws
+  delete_sns_topic_from_aws
 )
 
 __all__ = [
@@ -35,5 +35,5 @@ __all__ = [
     "create_sns_subscription",
     "send_sns_notification",
     "delete_api_key_from_aws",
-    "delete_sns_subscriptions_from_aws"
+    "delete_sns_topic_from_aws"
 ]
