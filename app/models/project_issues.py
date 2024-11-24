@@ -86,32 +86,60 @@ def fetch_error(
     query = """
     SELECT
         name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved, contexts, method, path
+        resolved, contexts, method, path, ip, os, browser, runtime, error_hash
     FROM error_logs
     WHERE uuid = %s
     """
     cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
-    if error:
-        return {
-            "uuid": error_uuid,
-            "name": error[0],
-            "message": error[1],
-            "created_at": error[2],
-            "file": error[3],
-            "line_number": error[4],
-            "col_number": error[5],
-            "project_uuid": project_uuid,
-            "stack_trace": error[6],
-            "handled": error[7],
-            "resolved": error[8],
-            "contexts": error[9],
-            "method": error[10], 
-            "path": error[11]
-        }
+    if not error:
+        return None
+    
+    error_hash = error[16]
 
-    return None
+    occurrence_query = """
+    SELECT COUNT(*) 
+    FROM error_logs
+    WHERE error_hash = %s AND project_id = (
+        SELECT id FROM projects WHERE uuid = %s
+    )
+    """
+    cursor.execute(occurrence_query, [error_hash, project_uuid])
+    total_occurrences = cursor.fetchone()[0]
+
+    user_count_query = """
+    SELECT COUNT(DISTINCT ip)
+    FROM error_logs
+    WHERE error_hash = %s AND project_id = (
+        SELECT id FROM projects WHERE uuid = %s
+    )
+    """
+    cursor.execute(user_count_query, [error_hash, project_uuid])
+    distinct_users = cursor.fetchone()[0]
+
+    return {
+        "uuid": error_uuid,
+        "name": error[0],
+        "message": error[1],
+        "created_at": error[2],
+        "file": error[3],
+        "line_number": error[4],
+        "col_number": error[5],
+        "project_uuid": project_uuid,
+        "stack_trace": error[6],
+        "handled": error[7],
+        "resolved": error[8],
+        "contexts": error[9],
+        "method": error[10], 
+        "path": error[11],
+        "os": error[13],
+        "browser": error[14],
+        "runtime": error[15],
+        "total_occurrences": total_occurrences,
+        "distinct_users": distinct_users
+    }
+
 
 
 @db_read_connection
@@ -121,7 +149,7 @@ def fetch_rejection(
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
     query = """
-    SELECT value, created_at, handled, resolved, method, path
+    SELECT value, created_at, handled, resolved, method, path, os, browser, runtime
     FROM rejection_logs
     WHERE uuid = %s
     """
@@ -133,11 +161,14 @@ def fetch_rejection(
             "uuid": rejection_uuid,
             "value": rejection[0],
             "created_at": rejection[1],
-            "project_id": project_uuid,
+            "project_uuid": project_uuid,
             "handled": rejection[2],
             "resolved": rejection[3],
             "method": rejection[4],
-            "path": rejection[5]
+            "path": rejection[5],
+            "os": rejection[6],
+            "browser": rejection[7],
+            "runtime": rejection[8],
         }
 
     return None
@@ -242,7 +273,84 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
         if 0 <= day_index < 7:
             issue_counts[day_index] += count
 
-    print('issue counts:')
-    print(issue_counts)
-
     return issue_counts[::-1]
+
+@db_read_connection
+def fetch_most_recent_log(
+    project_uuid: str, **kwargs: dict
+) -> Optional[Dict[str, str]]:
+    """Fetches the most recent error or rejection log for a given project."""
+    cursor = kwargs["cursor"]
+
+    query_project = "SELECT id FROM projects WHERE uuid = %s"
+    cursor.execute(query_project, [project_uuid])
+    project = cursor.fetchone()
+    project_id = project[0]
+
+    # Query to get the most recent error log
+    query_error = """
+    SELECT uuid, 'error' AS log_type, name, message, created_at, filename, line_number, 
+           col_number, stack_trace, handled, resolved, contexts, method, path
+    FROM error_logs
+    WHERE project_id = %s
+    ORDER BY created_at DESC
+    LIMIT 1
+    """
+    cursor.execute(query_error, [project_id])
+    error = cursor.fetchone()
+
+    # Query to get the most recent rejection log
+    query_rejection = """
+    SELECT uuid, 'rejection' AS log_type, value, created_at, handled, resolved, method, path
+    FROM rejection_logs
+    WHERE project_id = %s
+    ORDER BY created_at DESC
+    LIMIT 1
+    """
+    cursor.execute(query_rejection, [project_id])
+    rejection = cursor.fetchone()
+
+    # Compare the most recent error and rejection logs
+    most_recent = None
+
+    if error and rejection:
+        if error[4] > rejection[3]:
+            most_recent = error
+        else:
+            most_recent = rejection
+    elif error:
+        most_recent = error
+    elif rejection:
+        most_recent = rejection
+
+    if most_recent:
+        if most_recent[1] == 'error':
+            return {
+                "uuid": most_recent[0],
+                "name": most_recent[2],
+                "message": most_recent[3],
+                "created_at": most_recent[4].isoformat(),
+                "file": most_recent[5],
+                "line_number": most_recent[6],
+                "col_number": most_recent[7],
+                "project_uuid": project_uuid,
+                "stack_trace": most_recent[8],
+                "handled": most_recent[9],
+                "resolved": most_recent[10],
+                "contexts": most_recent[11],
+                "method": most_recent[12],
+                "path": most_recent[13],
+            }
+        elif most_recent[1] == 'rejection':
+            return {
+                "uuid": most_recent[0],
+                "value": most_recent[2],
+                "created_at": most_recent[3].isoformat(),
+                "project_uuid": project_uuid,
+                "handled": most_recent[4],
+                "resolved": most_recent[5],
+                "method": most_recent[6],
+                "path": most_recent[7],
+            }
+
+    return None

@@ -154,6 +154,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     SELECT
         p.uuid,
         p.name,
+        p.api_key,
         p.platform,
         COUNT(DISTINCT e.id) AS error_count,
         COUNT(DISTINCT r.id) AS rejection_count
@@ -170,7 +171,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     WHERE
         u.uuid = %s
     GROUP BY
-        p.uuid, p.name, p.platform
+        p.uuid, p.name, p.api_key, p.platform
     ORDER BY p.name
     LIMIT %s OFFSET %s;
     """
@@ -182,8 +183,9 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
         {
             "uuid": project[0],
             "name": project[1],
-            "platform": project[2],
-            "issue_count": project[3] + project[4],
+            "api_key": project[2],
+            "platform": project[3],
+            "issue_count": project[4] + project[5],
         }
         for project in rows
     ]
