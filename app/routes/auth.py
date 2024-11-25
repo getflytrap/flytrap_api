@@ -22,25 +22,38 @@ bp = Blueprint("auth", __name__)
 def login() -> Response:
     """Logs in a user by verifying credentials and issuing JWT tokens."""
     data = request.json
+
+    if not data:
+        return jsonify({"result": "error", "message": "Invalid request"}), 400
+    
+
     email = data.get("email")
     password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"result": "error", "message": "Invalid request"}), 400
+
 
     user = fetch_user_by_email(email)
 
     if not user:
-        return jsonify({"status": "error", "message": "User does not exist"}), 404
+        return jsonify({"result": "error", "message": "Invalid email or password"}), 403
 
+
+    # Extract user details
     uuid = user.get("uuid")
     first_name = user.get("first_name")
     last_name = user.get("last_name")
     password_hash = user.get("password_hash")
     is_root = user.get("is_root")
 
+    # Verify password
     if bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
         access_token = token_manager.create_access_token(uuid, is_root, expires_in=20)
         refresh_token = token_manager.create_refresh_token(uuid, expires_in=7)
 
-        data = {
+        # Construct response data
+        user_info = {
             "access_token": access_token,
             "user_uuid": uuid,
             "first_name": first_name,
@@ -48,7 +61,8 @@ def login() -> Response:
             "is_root": is_root,
         }
 
-        response = make_response(jsonify({"status": "success", "data": data}), 200)
+        # Attach refresh token as cookie
+        response = make_response(jsonify({"result": "success", "payload": user_info}), 200)
         response.set_cookie(
             "refresh_token",
             refresh_token,
@@ -60,15 +74,14 @@ def login() -> Response:
         )
         return response
     else:
-        return jsonify({"status": "error", "message": "Invalid password"}), 401
+        # Handle invalid password
+        return jsonify({"result": "error", "message": "Invalid email or password"}), 403
 
 
 @bp.route("/logout", methods=["POST"])
 def logout() -> Response:
     """Logs out a user by clearing the refresh token cookie."""
-    response = make_response(
-        jsonify({"status": "success", "message": "Succesfully logged out"}), 200
-    )
+    response = make_response('', 204)
     response.set_cookie(
         "refresh_token",
         "",
@@ -88,7 +101,8 @@ def refresh() -> Response:
     new_access_token, error_response = token_manager.refresh_access_token()
     if error_response:
         return jsonify(error_response), 401
-    return jsonify({"status": "success", "access_token": new_access_token}), 200
+
+    return jsonify({"result": "success", "payload": new_access_token}), 200
 
 
 @bp.route("/status", methods=["GET"])
@@ -97,13 +111,8 @@ def auth_status():
     user_uuid = g.user_payload.get("user_uuid")
 
     if not user_uuid:
-        return jsonify({"status": "error", "message": "User not found"}), 404
+        return jsonify({"result": "error", "message": "User not found"}), 404
 
-    new_access_token, error_response = token_manager.refresh_access_token()
-    if error_response:
-        return jsonify(error_response), 401
+    user_info = get_user_info(user_uuid)
 
-    data = get_user_info(user_uuid)
-    data["access_token"] = new_access_token
-
-    return jsonify({"status": "success", "data": data}), 200
+    return jsonify({"result": "success", "payload": user_info}), 200

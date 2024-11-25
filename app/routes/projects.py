@@ -28,14 +28,10 @@ bp = Blueprint("projects", __name__)
 def get_projects() -> Response:
     """Fetches a paginated list of all projects."""
     page = request.args.get("page", 1, type=int)
-    limit = request.args.get("limit", 10, type=int)
+    limit = request.args.get("limit", type=int)
 
-    try:
-        data = fetch_projects(page, limit)
-        return jsonify({"status": "success", "data": data}), 200
-    except Exception as e:
-        print(f"Error in get_projects: {e}")
-        return jsonify({"status": "error", "message": "Failed to fetch projects"}), 500
+    project_data = fetch_projects(page, limit)
+    return jsonify({"result": "success", "payload": project_data}), 200
 
 
 @bp.route("", methods=["POST"])
@@ -44,32 +40,27 @@ def get_projects() -> Response:
 def create_project() -> Response:
     """Creates a new project with a unique project ID."""
     data = request.get_json()
+
+    if not data: 
+        return jsonify({"result": "error", "message": "Invalid request"}), 400
+    
     name = data.get("name")
     platform = data.get("platform")
 
-    if not name:
-        return jsonify({"status": "error", "message": "Missing project name"}), 400
+    if not name or not platform:
+        return jsonify({"result": "error", "message": "Missing project name or platform"}), 400
+    
 
-    if not platform:
-        return jsonify({"status": "error", "message": "Missing project platform"}), 400
+    result = add_project(name, platform)
+    project_uuid = result["project_uuid"]
+    api_key = result["api_key"]
 
-    try:
-        result = add_project(name, platform)
-        project_uuid = result["project_uuid"]
-        api_key = result["api_key"]
+    client = create_aws_client()
+    if client:
+        associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
 
-        client = create_aws_client()
-        if client:
-            associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
-
-        data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
-        return jsonify({"status": "success", "data": data}), 201
-    except Exception as e:
-        print(f"Error in create_project: {e}")
-        return (
-            jsonify({"status": "error", "message": "Failed to create new project"}),
-            500,
-        )
+    project_data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
+    return jsonify({"result": "success", "payload": project_data}), 201
 
 
 @bp.route("/<project_uuid>", methods=["DELETE"])
@@ -77,16 +68,11 @@ def create_project() -> Response:
 @auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID."""
-
-    try:
-        success = delete_project_by_id(project_uuid)
-        if success:
-            return "", 204
-        else:
-            return jsonify({"status": "error", "message": "Project not found"}), 404
-    except Exception as e:
-        print(f"Error in delete_project: {e}")
-        return jsonify({"status": "error", "message": "Failed to delete project"}), 500
+    success = delete_project_by_id(project_uuid)
+    if success:
+        return "", 204
+    else:
+        return jsonify({"result": "error", "message": "Project not found"}), 404
 
 
 @bp.route("/<project_uuid>", methods=["PATCH"])
@@ -95,21 +81,18 @@ def delete_project(project_uuid: str) -> Response:
 def update_project(project_uuid: str) -> Response:
     """Updates the name of a specified project."""
     data = request.get_json()
+
+    if not data: 
+        return jsonify({"result": "error", "message": "Invalid request"}), 400
+    
     new_name = data.get("new_name")
 
     if not new_name:
-        return jsonify({"status": "error", "message": "Missing project name"}), 400
+        return jsonify({"result": "error", "message": "Missing project name"}), 400
 
-    try:
-        success = update_project_name(project_uuid, new_name)
-        if success:
-            data = {"uuid": project_uuid, "name": new_name}
-            return jsonify({"status": "success", "data": data}), 200
-        else:
-            return jsonify({"status": "error", "message": "Project not found"}), 404
-    except Exception as e:
-        print(f"Error in update_project: {e}")
-        return (
-            jsonify({"status": "error", "message": "Failed to update project name"}),
-            500,
-        )
+    success = update_project_name(project_uuid, new_name)
+    if success:
+        return "", 204
+    else:
+        return jsonify({"result": "error", "message": "Project not found"}), 404
+

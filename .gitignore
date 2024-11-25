@@ -12,3 +12,6 @@ dist/
 *.egg-info/
 
 .env
+
+update_docker.sh
+update_ec2.sh
