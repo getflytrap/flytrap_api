@@ -262,7 +262,6 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
 
     issue_counts = issue_counts = [0] * 7
 
-    print(error_results)
     for day, count in error_results:
         day_index = (today.date() - day).days
         if 0 <= day_index < 7:

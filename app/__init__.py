@@ -36,9 +36,9 @@ def create_app() -> Flask:
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):
-        print("Error: ", e)
+        app.logger.error(f"Unexpected error: {e}", exc_info=True)
         traceback.print_exc()
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"result": "error", "message": "Internal Server Error"}), 500
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")

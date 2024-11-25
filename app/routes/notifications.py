@@ -18,10 +18,10 @@ def receive_webhook() -> Response:
 
     if project_uuid:
         send_notification_to_frontend(project_uuid)
-        return jsonify({"status": "success", "message": "Webhook received."}), 200
+        return jsonify({"result": "success", "message": "Webhook received."}), 200
     else:
         return (
-            jsonify({"status": "error", "message": "project_id missing in request."}),
+            jsonify({"result": "error", "message": "project_id missing in request."}),
             400,
         )
 

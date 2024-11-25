@@ -25,19 +25,10 @@ bp = Blueprint("project_users", __name__)
 @auth_manager.authenticate
 @auth_manager.authorize_root
 def get_project_users(project_uuid: str) -> Response:
-    """Fetches all users associated with a specified project."""
+    """Fetches all user uuids associated with a specified project."""
+    users = fetch_project_users(project_uuid)
+    return jsonify({"result": "success", "payload": users}), 200
 
-    try:
-        users = fetch_project_users(project_uuid)
-        return jsonify({"status": "success", "data": users}), 200
-    except Exception as e:
-        print(f"Error in get_project_users: {e}")
-        return (
-            jsonify(
-                {"status": "error", "message": "Failed to fetch users for project"}
-            ),
-            500,
-        )
 
 
 @bp.route("", methods=["POST"])
@@ -46,33 +37,23 @@ def get_project_users(project_uuid: str) -> Response:
 def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project."""
     data = request.get_json()
+    if not data: 
+        return jsonify({"result": "error", "message": "Invalid request"}), 400
+    
     user_uuid = data.get("user_uuid")
-
     if not user_uuid:
-        return jsonify({"status": "error", "message": "Missing user uuid"}), 400
+        return jsonify({"result": "error", "message": "Missing user uuid"}), 400
 
-    if user_is_root(user_uuid) is True:
+    if user_is_root(user_uuid):
         return (
             jsonify(
-                {"status": "error", "message": "Root users cannot be added to projects"}
+                {"result": "error", "message": "Root users cannot be added to projects"}
             ),
             400,
         )
 
-    try:
-        add_user_to_project(project_uuid, user_uuid)
-        return (
-            jsonify(
-                {"status": "success", "message": "Successfully added user to project"}
-            ),
-            201,
-        )
-    except Exception as e:
-        print(f"Error in add_project_user: {e}")
-        return (
-            jsonify({"status": "error", "message": "Failed to add user to project"}),
-            500,
-        )
+    add_user_to_project(project_uuid, user_uuid)
+    return "", 204
 
 
 @bp.route("/<user_uuid>", methods=["DELETE"])
@@ -80,20 +61,11 @@ def add_project_user(project_uuid: str) -> Response:
 @auth_manager.authorize_root
 def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project."""
-    try:
-        success = remove_user_from_project(project_uuid, user_uuid)
-        if success:
-            return "", 204
-        else:
-            return (
-                jsonify({"status": "error", "message": "Project or user not found"}),
-                404,
-            )
-    except Exception as e:
-        print(f"Error in remove_project_user: {e}")
+    success = remove_user_from_project(project_uuid, user_uuid)
+    if success:
+        return "", 204
+    else:
         return (
-            jsonify(
-                {"status": "error", "message": "Failed to remove user from project"}
-            ),
-            500,
+            jsonify({"result": "error", "message": "Project or user not found"}),
+            404,
         )

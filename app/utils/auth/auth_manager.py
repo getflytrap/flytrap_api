@@ -15,13 +15,13 @@ class AuthManager:
         def decorated_function(*args, **kwargs):
             token = self._get_token()
             if not token:
-                return jsonify({"message": "Token is missing"}), 401
+                return jsonify({"result": "error", "message": "Token is missing"}), 401
             try:
                 g.user_payload = self.token_manager.decode_token(token)
             except jwt.ExpiredSignatureError:
-                return jsonify({"status": "error", "message": "Token expired"}), 401
+                return jsonify({"result": "error", "message": "Token expired"}), 401
             except jwt.InvalidTokenError:
-                return jsonify({"status": "error", "message": "Invalid token"}), 401
+                return jsonify({"result": "error", "message": "Invalid token"}), 401
             return f(*args, **kwargs)
 
         return decorated_function
@@ -53,7 +53,7 @@ class AuthManager:
 
             if project_uuid and user_uuid in project_users:
                 return f(*args, **kwargs)
-            # TODO: what if project_uuid doesnt exist in db
+            
             return jsonify({"message": "Unauthorized for this project"}), 403
 
         return decorated_function
