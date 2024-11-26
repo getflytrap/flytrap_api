@@ -19,7 +19,6 @@ from app.models import (
 )
 from app.utils import is_valid_email
 from app.models import user_is_root
-from app.routes.projects import get_projects
 from app.utils.auth import TokenManager, AuthManager
 
 token_manager = TokenManager()

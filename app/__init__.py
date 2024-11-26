@@ -7,10 +7,8 @@ configures error handling,
 and initializes authentication mechanisms.
 """
 import logging
-import traceback
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
-from .socketio_instance import socketio
 from app.routes import (
     projects_bp,
     issues_bp,
@@ -24,25 +22,16 @@ from app.routes import (
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
-    socketio.init_app(app)
 
-    handler = logging.StreamHandler()  # Send logs to stderr (console)
-    handler.setLevel(logging.DEBUG)
-    app.logger.addHandler(handler)
     app.logger.setLevel(logging.DEBUG)
-    app.config['LOGGER_HANDLER_POLICY'] = 'always'
     logging.getLogger('botocore').setLevel(logging.DEBUG)
     logging.getLogger('urllib3').setLevel(logging.DEBUG)
     logging.getLogger('boto3').setLevel(logging.DEBUG)
 
-    @app.before_request
-    def log_request_info():
-        app.logger.info(f"Request path: {request.path}")
-
     @app.errorhandler(Exception)
     def handle_generic_error(e):
         app.logger.error(f"Unexpected error: {e}", exc_info=True)
-        traceback.print_exc()
+        # traceback.print_exc()
         return jsonify({"result": "error", "message": "Internal Server Error"}), 500
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
