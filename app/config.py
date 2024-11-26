@@ -24,6 +24,7 @@ def get_secret(secret_name, region_name):
     return get_secret_value_response['SecretString']
 
 ENVIRONMENT = os.getenv("FLASK_ENV", "development")
+
 USAGE_PLAN_ID = os.getenv("USAGE_PLAN_ID")
 AWS_REGION = os.getenv("AWS_REGION")
 DB_HOST: Optional[str] = os.getenv("PGHOST")

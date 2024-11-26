@@ -1,6 +1,7 @@
-from flask import jsonify, Blueprint, Response, request
+from flask import jsonify, Blueprint, Response, request, current_app
 from flask_socketio import join_room
 from app.socketio_instance import socketio
+from app.utils import send_sns_notification
 from app.utils.auth import TokenManager, AuthManager
 from app.models import fetch_project_users, get_project_name, fetch_most_recent_log
 
@@ -13,10 +14,13 @@ bp = Blueprint("notifications", __name__)
 @bp.route("/webhook", methods=["POST"])
 def receive_webhook() -> Response:
     """Receives a webhook POST request."""
+
     data = request.get_json()
     project_uuid = data.get("project_id")
+    current_app.logger.info(f"received webhook with data payload: {data} and project uuid: {project_uuid}")
 
     if project_uuid:
+        send_sns_notification(project_uuid)
         send_notification_to_frontend(project_uuid)
         return jsonify({"result": "success", "message": "Webhook received."}), 200
     else:

@@ -6,7 +6,6 @@ It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
 configures error handling,
 and initializes authentication mechanisms.
 """
-
 import logging
 import traceback
 from flask import Flask, jsonify, request
@@ -27,8 +26,14 @@ def create_app() -> Flask:
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
     socketio.init_app(app)
 
-    logging.basicConfig(level=logging.DEBUG)
+    handler = logging.StreamHandler()  # Send logs to stderr (console)
+    handler.setLevel(logging.DEBUG)
+    app.logger.addHandler(handler)
     app.logger.setLevel(logging.DEBUG)
+    app.config['LOGGER_HANDLER_POLICY'] = 'always'
+    logging.getLogger('botocore').setLevel(logging.DEBUG)
+    logging.getLogger('urllib3').setLevel(logging.DEBUG)
+    logging.getLogger('boto3').setLevel(logging.DEBUG)
 
     @app.before_request
     def log_request_info():

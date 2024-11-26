@@ -6,7 +6,7 @@ and removing users from a project. Access is restricted to users with root acces
 """
 
 from flask import jsonify, request, Response
-from flask import Blueprint
+from flask import Blueprint, current_app
 from app.models import (
     fetch_project_users,
     add_user_to_project,
@@ -14,6 +14,7 @@ from app.models import (
     user_is_root,
 )
 from app.utils.auth import TokenManager, AuthManager
+from app.utils.aws_helpers import create_sns_subscription
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -28,7 +29,6 @@ def get_project_users(project_uuid: str) -> Response:
     """Fetches all user uuids associated with a specified project."""
     users = fetch_project_users(project_uuid)
     return jsonify({"result": "success", "payload": users}), 200
-
 
 
 @bp.route("", methods=["POST"])
@@ -52,6 +52,7 @@ def add_project_user(project_uuid: str) -> Response:
             400,
         )
 
+    create_sns_subscription(project_uuid, user_uuid)
     add_user_to_project(project_uuid, user_uuid)
     return "", 204
 

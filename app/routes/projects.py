@@ -4,7 +4,7 @@ This module provides routes for managing projects, including creating, fetching,
 updating, and deleting project records. Each route enforces root access authorization.
 """
 
-from flask import jsonify, request, Response
+from flask import jsonify, request, Response, current_app
 from flask import Blueprint
 from app.config import USAGE_PLAN_ID
 from app.models import (
@@ -14,7 +14,10 @@ from app.models import (
     update_project_name,
 )
 from app.utils.auth import TokenManager, AuthManager
-from app.utils import create_aws_client, associate_api_key_with_usage_plan
+from app.utils import (
+  associate_api_key_with_usage_plan, 
+  delete_sns_topic_from_aws
+)
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -68,6 +71,7 @@ def create_project() -> Response:
 @auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID."""
+    delete_sns_topic_from_aws(project_uuid)
     success = delete_project_by_id(project_uuid)
     if success:
         return "", 204

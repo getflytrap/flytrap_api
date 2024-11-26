@@ -9,7 +9,8 @@ CREATE TABLE projects (
   uuid VARCHAR(36) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   api_key VARCHAR(36) NOT NULL UNIQUE,
-  platform VARCHAR(255) NOT NULL
+  platform VARCHAR(255) NOT NULL,
+  sns_topic_arn VARCHAR(255) NOT NULL
 );
 
 CREATE INDEX idx_project_uuid ON projects(uuid);
@@ -74,6 +75,7 @@ CREATE TABLE projects_users (
   id SERIAL PRIMARY KEY,
   project_id INT REFERENCES projects(id) ON DELETE CASCADE,
   user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  sns_subscription_arn VARCHAR(255),
   UNIQUE (project_id, user_id)
 );
 
