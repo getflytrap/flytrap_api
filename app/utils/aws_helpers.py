@@ -125,6 +125,42 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
         raise e
 
 
+def unsubscribe_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
+    """Removes an SNS subscription for a user."""
+    from app.models import (
+        get_user_info,
+        get_topic_arn,
+        get_subscription_arn_by_email
+    )
+
+    user_info = get_user_info(user_uuid)
+    user_email = user_info.get('email')
+    sns_topic_arn = get_topic_arn(project_uuid)
+
+    if current_app.config["ENVIRONMENT"] == "development":
+        current_app.logger.info(f"[MOCK] Unsubscribing {user_email} from {project_uuid} notifications.")
+        return
+
+    try:
+        client = create_aws_client('sns', current_app.config['AWS_REGION'])
+
+        # Retrieve the subscription ARN associated with the user's email
+        subscription_arn = get_subscription_arn_by_email(client, sns_topic_arn, user_email)
+
+        if subscription_arn is None:
+            current_app.logger.warning(f"No subscription found for {user_email} on topic {sns_topic_arn}.")
+            return
+
+        client.unsubscribe(SubscriptionArn=subscription_arn)
+        current_app.logger.info(f"Email {user_email} unsubscribed successfully from topic {sns_topic_arn}.")
+    except botocore.exceptions.ClientError as e:
+        current_app.logger.error(f"Failed to unsubscribe SNS subscription: {e}")
+        raise RuntimeError(f"Error unsubscribing SNS subscription: {str(e)}")
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error in SNS unsubscription: {str(e)}")
+        raise e
+
+
 def send_sns_notification(project_uuid: str) -> None:
     """Send an SNS notification to all subscribed users when an error occurs"""
     if current_app.config["ENVIRONMENT"] == "development":
@@ -175,3 +211,17 @@ def delete_sns_topic_from_aws(project_uuid: str) -> None:
     except Exception as e:
         current_app.logger.error(f"Unexpected error deleting SNS topic: {str(e)}")
         raise e
+    
+def get_subscription_arn_by_email(client, topic_arn: str, email: str) -> str:
+    """Finds the subscription ARN for a given email."""
+    try:
+        paginator = client.get_paginator('list_subscriptions_by_topic')
+        for page in paginator.paginate(TopicArn=topic_arn):
+            for subscription in page.get('Subscriptions', []):
+                if subscription.get('Endpoint') == email:
+                    return subscription.get('SubscriptionArn')
+    except botocore.exceptions.ClientError as e:
+        current_app.logger.error(f"Error retrieving subscriptions for topic {topic_arn}: {e}")
+        raise RuntimeError(f"Error retrieving subscriptions: {str(e)}")
+
+    return None
