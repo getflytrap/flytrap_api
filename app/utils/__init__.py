@@ -16,6 +16,7 @@ from .aws_helpers import (
   associate_api_key_with_usage_plan, 
   create_sns_topic,
   create_sns_subscription,
+  remove_sns_subscription,
   send_sns_notification,
   delete_api_key_from_aws,
   delete_sns_topic_from_aws
@@ -35,6 +36,7 @@ __all__ = [
     "associate_api_key_with_usage_plan",
     "create_sns_topic",
     "create_sns_subscription",
+    "remove_sns_subscription",
     "send_sns_notification",
     "delete_api_key_from_aws",
     "delete_sns_topic_from_aws"

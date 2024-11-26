@@ -125,7 +125,7 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
         raise e
 
 
-def unsubscribe_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
+def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Removes an SNS subscription for a user."""
     from app.models import (
         get_user_info,

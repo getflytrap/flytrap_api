@@ -13,8 +13,8 @@ from app.models import (
     remove_user_from_project,
     user_is_root,
 )
-from app.utils.auth import TokenManager, AuthManager
-from app.utils.aws_helpers import create_sns_subscription
+from app.utils import TokenManager, AuthManager
+from app.utils import create_sns_subscription, remove_sns_subscription
 
 token_manager = TokenManager()
 auth_manager = AuthManager(token_manager)
@@ -62,6 +62,7 @@ def add_project_user(project_uuid: str) -> Response:
 @auth_manager.authorize_root
 def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project."""
+    remove_sns_subscription(project_uuid, user_uuid)
     success = remove_user_from_project(project_uuid, user_uuid)
     if success:
         return "", 204
