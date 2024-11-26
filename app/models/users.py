@@ -137,7 +137,7 @@ def user_is_root(user_uuid, **kwargs):
 
     if result is None:
         return False
-    
+
     is_root = result[0]
     return is_root
 
@@ -206,15 +206,16 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
     cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
-            raise ValueError(f"User with UUID {user_uuid} not found.")
-    
+        raise ValueError(f"User with UUID {user_uuid} not found.")
+
     return {
         "user_uuid": user_uuid,
         "first_name": user[0],
         "last_name": user[1],
         "email": user[2],
-        "is_root": user[3]
+        "is_root": user[3],
     }
+
 
 @db_read_connection
 def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:

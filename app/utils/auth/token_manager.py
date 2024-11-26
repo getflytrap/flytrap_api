@@ -28,7 +28,9 @@ class TokenManager:
         )
 
     def decode_token(self, token):
-        return jwt.decode(token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+        return jwt.decode(
+            token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
+        )
 
     def validate_token(self, token):
         try:

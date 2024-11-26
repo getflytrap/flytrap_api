@@ -11,15 +11,15 @@ from .db_helpers import (
 from .uuid_generator import generate_uuid
 from .validation import is_valid_email
 from .aws_helpers import (
-  create_aws_client,
-  get_secret,
-  associate_api_key_with_usage_plan, 
-  create_sns_topic,
-  create_sns_subscription,
-  remove_sns_subscription,
-  send_sns_notification,
-  delete_api_key_from_aws,
-  delete_sns_topic_from_aws
+    create_aws_client,
+    get_secret,
+    associate_api_key_with_usage_plan,
+    create_sns_topic,
+    create_sns_subscription,
+    remove_sns_subscription,
+    send_sns_notification,
+    delete_api_key_from_aws,
+    delete_sns_topic_from_aws,
 )
 
 __all__ = [
@@ -39,5 +39,5 @@ __all__ = [
     "remove_sns_subscription",
     "send_sns_notification",
     "delete_api_key_from_aws",
-    "delete_sns_topic_from_aws"
+    "delete_sns_topic_from_aws",
 ]

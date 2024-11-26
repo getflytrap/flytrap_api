@@ -85,8 +85,8 @@ def fetch_error(
 
     query = """
     SELECT
-        name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved, contexts, method, path, ip, os, browser, runtime, error_hash
+        name, message, created_at, filename, line_number, col_number, stack_trace,
+        handled, resolved, contexts, method, path, ip, os, browser, runtime, error_hash
     FROM error_logs
     WHERE uuid = %s
     """
@@ -95,11 +95,11 @@ def fetch_error(
 
     if not error:
         return None
-    
+
     error_hash = error[16]
 
     occurrence_query = """
-    SELECT COUNT(*) 
+    SELECT COUNT(*)
     FROM error_logs
     WHERE error_hash = %s AND project_id = (
         SELECT id FROM projects WHERE uuid = %s
@@ -131,15 +131,14 @@ def fetch_error(
         "handled": error[7],
         "resolved": error[8],
         "contexts": error[9],
-        "method": error[10], 
+        "method": error[10],
         "path": error[11],
         "os": error[13],
         "browser": error[14],
         "runtime": error[15],
         "total_occurrences": total_occurrences,
-        "distinct_users": distinct_users
+        "distinct_users": distinct_users,
     }
-
 
 
 @db_read_connection
@@ -229,10 +228,11 @@ def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
 
     return rows_deleted > 0
 
+
 @db_read_connection
 def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
     cursor = kwargs["cursor"]
-    
+
     today = datetime.utcnow()
     start_of_week = today - timedelta(days=7)
 
@@ -245,7 +245,13 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
         ORDER BY day
         """
 
-    cursor.execute(query, (project_uuid, start_of_week,))
+    cursor.execute(
+        query,
+        (
+            project_uuid,
+            start_of_week,
+        ),
+    )
     error_results = cursor.fetchall()
 
     query = """
@@ -274,6 +280,7 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
 
     return issue_counts[::-1]
 
+
 @db_read_connection
 def fetch_most_recent_log(
     project_uuid: str, **kwargs: dict
@@ -288,7 +295,7 @@ def fetch_most_recent_log(
 
     # Query to get the most recent error log
     query_error = """
-    SELECT uuid, 'error' AS log_type, name, message, created_at, filename, line_number, 
+    SELECT uuid, 'error' AS log_type, name, message, created_at, filename, line_number,
            col_number, stack_trace, handled, resolved, contexts, method, path
     FROM error_logs
     WHERE project_id = %s
@@ -300,7 +307,9 @@ def fetch_most_recent_log(
 
     # Query to get the most recent rejection log
     query_rejection = """
-    SELECT uuid, 'rejection' AS log_type, value, created_at, handled, resolved, method, path
+    SELECT
+        uuid, 'rejection' AS log_type, value, created_at, handled, resolved, method,
+        path
     FROM rejection_logs
     WHERE project_id = %s
     ORDER BY created_at DESC
@@ -323,7 +332,7 @@ def fetch_most_recent_log(
         most_recent = rejection
 
     if most_recent:
-        if most_recent[1] == 'error':
+        if most_recent[1] == "error":
             return {
                 "uuid": most_recent[0],
                 "name": most_recent[2],
@@ -340,7 +349,7 @@ def fetch_most_recent_log(
                 "method": most_recent[12],
                 "path": most_recent[13],
             }
-        elif most_recent[1] == 'rejection':
+        elif most_recent[1] == "rejection":
             return {
                 "uuid": most_recent[0],
                 "value": most_recent[2],

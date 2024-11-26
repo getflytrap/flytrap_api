@@ -4,7 +4,7 @@ This module provides routes for managing projects, including creating, fetching,
 updating, and deleting project records. Each route enforces root access authorization.
 """
 
-from flask import jsonify, request, Response, current_app
+from flask import jsonify, request, Response
 from flask import Blueprint
 from app.models import (
     fetch_projects,
@@ -18,7 +18,7 @@ from app.utils import (
     associate_api_key_with_usage_plan,
     delete_api_key_from_aws,
     create_sns_topic,
-    delete_sns_topic_from_aws
+    delete_sns_topic_from_aws,
 )
 
 token_manager = TokenManager()
@@ -46,22 +46,30 @@ def create_project() -> Response:
     """Creates a new project with a unique project ID."""
     data = request.get_json()
 
-    if not data: 
+    if not data:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
-    
+
     name = data.get("name")
     platform = data.get("platform")
 
     if not name or not platform:
-        return jsonify({"result": "error", "message": "Missing project name or platform"}), 400
-    
+        return (
+            jsonify({"result": "error", "message": "Missing project name or platform"}),
+            400,
+        )
+
     project_uuid = generate_uuid()
     api_key = generate_uuid()
     topic_arn = create_sns_topic(project_uuid)
 
     add_project(name, project_uuid, api_key, platform, topic_arn)
     associate_api_key_with_usage_plan(name, api_key)
-    project_data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
+    project_data = {
+        "uuid": project_uuid,
+        "name": name,
+        "platform": platform,
+        "api_key": api_key,
+    }
     return jsonify({"result": "success", "payload": project_data}), 201
 
 
@@ -87,9 +95,9 @@ def update_project(project_uuid: str) -> Response:
     """Updates the name of a specified project."""
     data = request.get_json()
 
-    if not data: 
+    if not data:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
-    
+
     new_name = data.get("new_name")
 
     if not new_name:
@@ -100,4 +108,3 @@ def update_project(project_uuid: str) -> Response:
         return "", 204
     else:
         return jsonify({"result": "error", "message": "Project not found"}), 404
-

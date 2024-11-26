@@ -53,7 +53,7 @@ class AuthManager:
 
             if project_uuid and user_uuid in project_users:
                 return f(*args, **kwargs)
-            
+
             return jsonify({"message": "Unauthorized for this project"}), 403
 
         return decorated_function

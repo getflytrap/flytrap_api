@@ -3,6 +3,7 @@
 import os
 import json
 
+
 def load_config(app):
     """
     Dynamically load configuration into the Flask app.
@@ -21,6 +22,7 @@ def load_config(app):
 
     if app.config["ENVIRONMENT"] == "development":
         from dotenv import load_dotenv
+
         load_dotenv()
 
         app.config["DB_PASSWORD"] = os.getenv("PGPASSWORD")
@@ -33,11 +35,12 @@ def load_config(app):
             jwt_secret = get_secret("jwt_secret_key", app.config["AWS_REGION"])
             app.config["JWT_SECRET_KEY"] = json.loads(jwt_secret)["jwt_secret_key"]
 
-            db_credentials = get_secret("flytrap_db_credentials", app.config["AWS_REGION"])
+            db_credentials = get_secret(
+                "flytrap_db_credentials", app.config["AWS_REGION"]
+            )
             app.config["DB_PASSWORD"] = json.loads(db_credentials)["password"]
         except Exception as e:
             app.logger.error(f"Failed to load secrets: {e}")
             app.config["DB_PASSWORD"] = None
             app.config["JWT_SECRET_KEY"] = None
             raise e
-

@@ -15,7 +15,7 @@ from app.models import (
     delete_user_by_id,
     update_password,
     fetch_projects_for_user,
-    fetch_projects
+    fetch_projects,
 )
 from app.utils import is_valid_email
 from app.models import user_is_root
@@ -43,9 +43,9 @@ def create_user() -> Response:
     """Creates a new user with specified attributes."""
     data = request.json
 
-    if not data: 
+    if not data:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
-    
+
     first_name = data.get("first_name")
     last_name = data.get("last_name")
     email = data.get("email")
@@ -92,6 +92,7 @@ def delete_user(user_uuid: str) -> Response:
     else:
         return jsonify({"result": "error", "message": "User not found"}), 404
 
+
 @bp.route("/<user_uuid>", methods=["PATCH"])
 @auth_manager.authenticate
 @auth_manager.authorize_user
@@ -123,13 +124,16 @@ def get_user_projects(user_uuid: str) -> Response:
     limit = request.args.get("limit", 10, type=int)
 
     if page < 1 or limit < 1:
-        return jsonify({"result": "error", "message": "Invalid pagination parameters"}), 400
+        return (
+            jsonify({"result": "error", "message": "Invalid pagination parameters"}),
+            400,
+        )
 
     user_uuid_in_path_is_for_root_user = user_is_root(user_uuid)
 
     if user_uuid_in_path_is_for_root_user:
         project_data = fetch_projects(page, limit)
-    else: 
+    else:
         project_data = fetch_projects_for_user(user_uuid, page, limit)
-    
+
     return jsonify({"result": "success", "payload": project_data}), 200

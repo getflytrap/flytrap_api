@@ -6,7 +6,6 @@ user to a project, and remove a user from a project. Each function is decorated 
 ensure the correct database connection context for reading or writing.
 """
 
-from flask import current_app
 from typing import List
 from app.utils import db_read_connection, db_write_connection
 
@@ -46,7 +45,6 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     FROM projects p, users u
     WHERE p.uuid = %s AND u.uuid = %s
     """
-    current_app.logger.debug(f"Executing add_user_to_project with project_uuid={project_uuid}, user_uuid={user_uuid}")
     cursor.execute(query, [project_uuid, user_uuid])
     connection.commit()
 
@@ -81,8 +79,11 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
     connection.commit()
     return cursor.rowcount > 0
 
+
 @db_write_connection
-def save_sns_subscription_arn_to_db(user_uuid: str, project_uuid: str, arn: str, **kwargs) -> None:
+def save_sns_subscription_arn_to_db(
+    user_uuid: str, project_uuid: str, arn: str, **kwargs
+) -> None:
     """Update project_users record by adding a sns subscription arn"""
 
     connection = kwargs["connection"]
@@ -98,7 +99,5 @@ def save_sns_subscription_arn_to_db(user_uuid: str, project_uuid: str, arn: str,
         SELECT id FROM projects WHERE uuid = %s
     )
     """
-    current_app.logger.debug(f"Executing save_sns_subscription with project_uuid={project_uuid}, user_uuid={user_uuid} and arn {arn}")
-
     cursor.execute(query, [arn, user_uuid, project_uuid])
     connection.commit()

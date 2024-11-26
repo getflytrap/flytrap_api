@@ -66,14 +66,19 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(name: str, project_uuid: str, api_key: str, platform: str, topic_arn: str, **kwargs) -> None:
+def add_project(
+    name: str, project_uuid: str, api_key: str, platform: str, topic_arn: str, **kwargs
+) -> None:
     """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = (
-        "INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn) VALUES (%s, %s, %s, %s, %s)"
-    )
+    query = """
+    INSERT INTO
+        projects (uuid, name, api_key, platform, sns_topic_arn)
+    VALUES
+        (%s, %s, %s, %s, %s)
+    """
     cursor.execute(query, [project_uuid, name, api_key, platform, topic_arn])
     connection.commit()
 
@@ -88,14 +93,14 @@ def delete_project_by_id(project_uuid: str, **kwargs) -> bool:
 
     query = "DELETE FROM projects WHERE uuid = %s RETURNING api_key"
     cursor.execute(query, [project_uuid])
-    result= cursor.fetchone()[0]
+    result = cursor.fetchone()[0]
     connection.commit()
-    
+
     if result:
         return result[0]
     else:
         return None
-  
+
 
 @db_write_connection
 def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
@@ -127,6 +132,7 @@ def get_project_name(uuid: str, **kwargs) -> Optional[str]:
     else:
         return None
 
+
 @db_read_connection
 def get_topic_arn(project_uuid: str, **kwargs) -> Optional[str]:
     """Retrieves the SNS topic arn associated with a project"""
@@ -138,7 +144,8 @@ def get_topic_arn(project_uuid: str, **kwargs) -> Optional[str]:
     response = cursor.fetchone()
     current_app.logger.info(response)
     return response[0]
-    
+
+
 @db_read_connection
 def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> list:
     """return a list of sns subscriptions ARNs associated with a project"""
@@ -150,8 +157,7 @@ def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> li
     WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
     """
 
-    response = cursor.execute(query, [project_uuid])
+    cursor.execute(query, [project_uuid])
     rows = cursor.fetchall()
 
     return [row[0] for row in rows]
-

@@ -6,9 +6,11 @@ It sets up Cross-Origin Resource Sharing (CORS), registers route blueprints,
 configures error handling,
 and initializes authentication mechanisms.
 """
+
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from .socketio import socketio
 from app.routes import (
     projects_bp,
     issues_bp,
@@ -22,16 +24,19 @@ from app.routes import (
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
+    socketio.init_app(app)
 
     app.logger.setLevel(logging.DEBUG)
-    logging.getLogger('botocore').setLevel(logging.DEBUG)
-    logging.getLogger('urllib3').setLevel(logging.DEBUG)
-    logging.getLogger('boto3').setLevel(logging.DEBUG)
+    logging.getLogger("botocore").setLevel(logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.DEBUG)
+    logging.getLogger("boto3").setLevel(logging.DEBUG)
 
     @app.errorhandler(Exception)
     def handle_generic_error(e):
-        app.logger.error(f"Unexpected error: {e}", exc_info=True)
-        # traceback.print_exc()
+        app.logger.error(
+            f"Unexpected error during {request.method} {request.path}: {e}",
+            exc_info=True
+        )
         return jsonify({"result": "error", "message": "Internal Server Error"}), 500
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")

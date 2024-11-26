@@ -6,14 +6,14 @@ and removing users from a project. Access is restricted to users with root acces
 """
 
 from flask import jsonify, request, Response
-from flask import Blueprint, current_app
+from flask import Blueprint
 from app.models import (
     fetch_project_users,
     add_user_to_project,
     remove_user_from_project,
     user_is_root,
 )
-from app.utils import TokenManager, AuthManager
+from app.utils.auth import TokenManager, AuthManager
 from app.utils import create_sns_subscription, remove_sns_subscription
 
 token_manager = TokenManager()
@@ -37,9 +37,9 @@ def get_project_users(project_uuid: str) -> Response:
 def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project."""
     data = request.get_json()
-    if not data: 
+    if not data:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
-    
+
     user_uuid = data.get("user_uuid")
     if not user_uuid:
         return jsonify({"result": "error", "message": "Missing user uuid"}), 400

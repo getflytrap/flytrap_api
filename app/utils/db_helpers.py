@@ -96,7 +96,10 @@ def fetch_errors_by_project(
         """
         cursor.execute(stats_query, [project_uuid, tuple(error_hashes)])
         stats = cursor.fetchall()
-        stats_map = {stat[0]: {"total_occurrences": stat[1], "distinct_users": stat[2]} for stat in stats}
+        stats_map = {
+            stat[0]: {"total_occurrences": stat[1], "distinct_users": stat[2]}
+            for stat in stats
+        }
     else:
         stats_map = {}
 

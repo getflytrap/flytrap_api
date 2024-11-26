@@ -23,7 +23,6 @@ def login() -> Response:
 
     if not data:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
-    
 
     email = data.get("email")
     password = data.get("password")
@@ -31,12 +30,10 @@ def login() -> Response:
     if not email or not password:
         return jsonify({"result": "error", "message": "Invalid request"}), 400
 
-
     user = fetch_user_by_email(email)
 
     if not user:
         return jsonify({"result": "error", "message": "Invalid email or password"}), 403
-
 
     # Extract user details
     uuid = user.get("uuid")
@@ -60,7 +57,9 @@ def login() -> Response:
         }
 
         # Attach refresh token as cookie
-        response = make_response(jsonify({"result": "success", "payload": user_info}), 200)
+        response = make_response(
+            jsonify({"result": "success", "payload": user_info}), 200
+        )
         response.set_cookie(
             "refresh_token",
             refresh_token,
@@ -79,7 +78,7 @@ def login() -> Response:
 @bp.route("/logout", methods=["POST"])
 def logout() -> Response:
     """Logs out a user by clearing the refresh token cookie."""
-    response = make_response('', 204)
+    response = make_response("", 204)
     response.set_cookie(
         "refresh_token",
         "",

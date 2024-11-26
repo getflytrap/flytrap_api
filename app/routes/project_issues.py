@@ -17,7 +17,7 @@ from app.models import (
     update_rejection_resolved,
     delete_error_by_id,
     delete_rejection_by_id,
-    get_issue_summary
+    get_issue_summary,
 )
 from app.utils.auth import TokenManager, AuthManager
 
@@ -101,7 +101,6 @@ def toggle_error(project_uuid: str, error_uuid: str) -> Response:
         return jsonify({"result": "error", "message": "Error not found"}), 404
 
 
-
 @bp.route("/rejections/<rejection_uuid>", methods=["PATCH"])
 @auth_manager.authenticate
 @auth_manager.authorize_project_access
@@ -118,7 +117,6 @@ def toggle_rejection(project_uuid: str, rejection_uuid: str) -> Response:
         return "", 204
     else:
         return jsonify({"result": "error", "message": "Rejection not found"}), 404
-
 
 
 @bp.route("/errors/<error_uuid>", methods=["DELETE"])
