@@ -14,21 +14,20 @@ bp = Blueprint("notifications", __name__)
 @bp.route("/webhook", methods=["POST"])
 def receive_webhook() -> Response:
     """Receives a webhook POST request."""
-    try:
-        data = request.get_json()
-        project_uuid = data.get("project_id")
-        current_app.logger.info(f"received webhook with data payload: {data} and project uuid: {project_uuid}")
-        if project_uuid:
-            send_sns_notification(project_uuid)
-            #send_notification_to_frontend(project_uuid)
-            return jsonify({"status": "success", "message": "Webhook received."}), 200
-        else:
-            return (
-                jsonify({"status": "error", "message": "project_id missing in request."}),
-                400,
-            )
-    except Exception as e:
-        current_app.logger.debug(f"error receiving webhook: {e}")
+
+    data = request.get_json()
+    project_uuid = data.get("project_id")
+    current_app.logger.info(f"received webhook with data payload: {data} and project uuid: {project_uuid}")
+
+    if project_uuid:
+        send_sns_notification(project_uuid)
+        send_notification_to_frontend(project_uuid)
+        return jsonify({"result": "success", "message": "Webhook received."}), 200
+    else:
+        return (
+            jsonify({"result": "error", "message": "project_id missing in request."}),
+            400,
+        )
 
 
 @socketio.on("connect", namespace="/notifications")

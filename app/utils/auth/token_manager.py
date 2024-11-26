@@ -45,7 +45,7 @@ class TokenManager:
     def refresh_access_token(self):
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:
-            return None, {"status": "error", "message": "No refresh token found"}
+            return None, {"result": "error", "message": "No refresh token found"}
 
         try:
             payload = self.decode_token(refresh_token)
@@ -55,6 +55,6 @@ class TokenManager:
             new_access_token = self.create_access_token(user_uuid, is_root)
             return new_access_token, None
         except jwt.ExpiredSignatureError:
-            return None, {"status": "error", "message": "Token expired"}
+            return None, {"result": "error", "message": "Token expired"}
         except jwt.InvalidTokenError:
-            return None, {"status": "error", "message": "Invalid token"}
+            return None, {"result": "error", "message": "Invalid token"}

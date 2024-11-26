@@ -123,14 +123,7 @@ def fetch_user_by_email(
 
 @db_read_connection
 def user_is_root(user_uuid, **kwargs):
-    """Retrieves the root access status for a specific user by their unique ID.
-
-    Args:
-        user_id (str): The unique uuid of the user.
-
-    Returns:
-        bool: True if the user has root access, False otherwise.
-    """
+    """Retrieves the root access status for a specific user by their unique ID."""
     cursor = kwargs["cursor"]
 
     query = """
@@ -139,8 +132,13 @@ def user_is_root(user_uuid, **kwargs):
     WHERE uuid = %s
     """
     cursor.execute(query, (user_uuid,))
-    is_root = cursor.fetchone()
 
+    result = cursor.fetchone()
+
+    if result is None:
+        return False
+    
+    is_root = result[0]
     return is_root
 
 
