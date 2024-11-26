@@ -14,9 +14,11 @@ from app.models import (
 )
 from app.utils.auth import TokenManager, AuthManager
 from app.utils import (
-  associate_api_key_with_usage_plan, 
-  delete_sns_topic_from_aws,
-  create_aws_client
+    generate_uuid,
+    associate_api_key_with_usage_plan,
+    delete_api_key_from_aws,
+    create_sns_topic,
+    delete_sns_topic_from_aws
 )
 
 token_manager = TokenManager()
@@ -53,15 +55,12 @@ def create_project() -> Response:
     if not name or not platform:
         return jsonify({"result": "error", "message": "Missing project name or platform"}), 400
     
+    project_uuid = generate_uuid()
+    api_key = generate_uuid()
+    topic_arn = create_sns_topic(project_uuid)
 
-    result = add_project(name, platform)
-    project_uuid = result["project_uuid"]
-    api_key = result["api_key"]
-
-    client = create_aws_client()
-    if client:
-        associate_api_key_with_usage_plan(client, name, api_key, current_app.config["USAGE_PLAN_ID"])
-
+    add_project(name, project_uuid, api_key, platform, topic_arn)
+    associate_api_key_with_usage_plan(name, api_key)
     project_data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
     return jsonify({"result": "success", "payload": project_data}), 201
 
@@ -72,8 +71,10 @@ def create_project() -> Response:
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID."""
     delete_sns_topic_from_aws(project_uuid)
-    success = delete_project_by_id(project_uuid)
-    if success:
+    api_key = delete_project_by_id(project_uuid)
+
+    if api_key:
+        delete_api_key_from_aws(api_key)
         return "", 204
     else:
         return jsonify({"result": "error", "message": "Project not found"}), 404

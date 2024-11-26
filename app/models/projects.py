@@ -12,9 +12,6 @@ from app.utils import (
     db_read_connection,
     db_write_connection,
     calculate_total_project_pages,
-    generate_uuid,
-    create_sns_topic,
-    delete_api_key_from_aws
 )
 
 
@@ -69,39 +66,36 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(name: str, platform: str, **kwargs) -> None:
+def add_project(name: str, project_uuid: str, api_key: str, platform: str, topic_arn: str, **kwargs) -> None:
     """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    project_uuid = generate_uuid()
-    api_key = generate_uuid()
-    topic_arn = create_sns_topic(project_uuid)
     query = (
         "INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn) VALUES (%s, %s, %s, %s, %s)"
     )
     cursor.execute(query, [project_uuid, name, api_key, platform, topic_arn])
     connection.commit()
 
-    return {"project_uuid": project_uuid, "api_key": api_key}
+    return True
 
 
 @db_write_connection
 def delete_project_by_id(project_uuid: str, **kwargs) -> bool:
-    """Deletes a project by its unique project UUID, and returns the api_key so it can be deleted from AWS"""
+    """Deletes a project by its unique project UUID, and returns the api_key"""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
     query = "DELETE FROM projects WHERE uuid = %s RETURNING api_key"
     cursor.execute(query, [project_uuid])
-    api_key_value = cursor.fetchone()[0]
+    result= cursor.fetchone()[0]
     connection.commit()
     
-    if api_key_value:
-        # Returns True if api key was successfully deleted
-        return delete_api_key_from_aws(api_key_value)
+    if result:
+        return result[0]
     else:
         return None
+  
 
 @db_write_connection
 def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
@@ -157,7 +151,6 @@ def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> li
     """
 
     response = cursor.execute(query, [project_uuid])
-    current_app.logger.info(f"get sub arns for project {response}")
     rows = cursor.fetchall()
 
     return [row[0] for row in rows]

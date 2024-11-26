@@ -23,7 +23,7 @@ class TokenManager:
                 "user_uuid": user_uuid,
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(days=expires_in),
             },
-            current_app["JWT_SECRET_KEY"],
+            current_app.config["JWT_SECRET_KEY"],
             algorithm="HS256",
         )
 
