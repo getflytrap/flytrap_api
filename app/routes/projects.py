@@ -6,7 +6,6 @@ updating, and deleting project records. Each route enforces root access authoriz
 
 from flask import jsonify, request, Response, current_app
 from flask import Blueprint
-from app.config import USAGE_PLAN_ID
 from app.models import (
     fetch_projects,
     add_project,
@@ -16,7 +15,8 @@ from app.models import (
 from app.utils.auth import TokenManager, AuthManager
 from app.utils import (
   associate_api_key_with_usage_plan, 
-  delete_sns_topic_from_aws
+  delete_sns_topic_from_aws,
+  create_aws_client
 )
 
 token_manager = TokenManager()
@@ -60,7 +60,7 @@ def create_project() -> Response:
 
     client = create_aws_client()
     if client:
-        associate_api_key_with_usage_plan(client, name, api_key, USAGE_PLAN_ID)
+        associate_api_key_with_usage_plan(client, name, api_key, current_app.config["USAGE_PLAN_ID"])
 
     project_data = {"uuid": project_uuid, "name": name, "platform": platform, "api_key": api_key}
     return jsonify({"result": "success", "payload": project_data}), 201

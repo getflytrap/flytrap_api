@@ -6,9 +6,7 @@ using JWT. Passwords are securely verified using bcrypt.
 """
 
 import bcrypt
-from flask import jsonify, request, make_response, Response, g
-from flask import Blueprint
-from app.config import HTTPONLY, SECURE, SAMESITE
+from flask import jsonify, request, make_response, Response, g, Blueprint, current_app
 from app.models import fetch_user_by_email, get_user_info
 from app.utils.auth import TokenManager, AuthManager
 
@@ -66,9 +64,9 @@ def login() -> Response:
         response.set_cookie(
             "refresh_token",
             refresh_token,
-            httponly=HTTPONLY,
-            secure=SECURE,
-            samesite=SAMESITE,
+            httponly=current_app.config["HTTPONLY"],
+            secure=current_app.config["SECURE"],
+            samesite=current_app.config["SAMESITE"],
             path="/",
             max_age=7 * 24 * 60 * 60,
         )
@@ -86,9 +84,9 @@ def logout() -> Response:
         "refresh_token",
         "",
         expires=0,
-        httponly=HTTPONLY,
-        secure=SECURE,
-        samesite=SAMESITE,
+        httponly=current_app.config["HTTPONLY"],
+        secure=current_app.config["SECURE"],
+        samesite=current_app.config["SAMESITE"],
         path="/",
     )
 

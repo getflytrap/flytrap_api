@@ -12,6 +12,7 @@ from .uuid_generator import generate_uuid
 from .validation import is_valid_email
 from .aws_helpers import (
   create_aws_client,
+  get_secret,
   associate_api_key_with_usage_plan, 
   create_sns_topic,
   create_sns_subscription,
@@ -30,6 +31,7 @@ __all__ = [
     "is_valid_email",
     "calculate_total_user_project_pages",
     "create_aws_client",
+    "get_secret",
     "associate_api_key_with_usage_plan",
     "create_sns_topic",
     "create_sns_subscription",
