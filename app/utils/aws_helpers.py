@@ -2,7 +2,6 @@ from flask import current_app, Response
 import boto3
 import botocore.exceptions
 
-
 def create_aws_client(service: str, region: str) -> boto3.client:
     """Instantiates a boto3 client for a specific AWS service"""
     try:
@@ -19,10 +18,13 @@ def create_aws_client(service: str, region: str) -> boto3.client:
 def get_secret(secret_name: str, region: str) -> str:
     """Fetch a secret from AWS Secrets Manager."""
     try:
-        client = create_aws_client("secretsmanager", region)
+        session = boto3.session.Session()
+        client = session.client(service_name='secretsmanager', region_name=region)
+        
         response = client.get_secret_value(SecretId=secret_name)
-        return response["SecretString"]
+        return response['SecretString']
     except botocore.exceptions.ClientError as e:
+        current_app.logger.error(f"Failed to fetch secret {secret_name}: {e}")
         raise RuntimeError(f"Failed to fetch secret {secret_name}: {e}")
 
 
