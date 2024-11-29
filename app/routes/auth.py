@@ -6,8 +6,8 @@ using JWT. Passwords are securely verified using bcrypt.
 """
 
 import bcrypt
-from flask import jsonify, request, make_response, Response, g, Blueprint, current_app
-from app.models import fetch_user_by_email, get_user_info
+from flask import jsonify, request, make_response, Response, Blueprint, current_app
+from app.models import fetch_user_by_email
 from app.utils.auth import TokenManager, AuthManager
 
 token_manager = TokenManager()
@@ -22,18 +22,18 @@ def login() -> Response:
     data = request.json
 
     if not data:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request"}), 400
 
     email = data.get("email")
     password = data.get("password")
 
     if not email or not password:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid email or password"}), 400
 
     user = fetch_user_by_email(email)
 
     if not user:
-        return jsonify({"result": "error", "message": "Invalid email or password"}), 403
+        return jsonify({"message": "Invalid email or password"}), 400
 
     # Extract user details
     uuid = user.get("uuid")
@@ -49,7 +49,6 @@ def login() -> Response:
 
         # Construct response data
         user_info = {
-            "access_token": access_token,
             "user_uuid": uuid,
             "first_name": first_name,
             "last_name": last_name,
@@ -58,7 +57,7 @@ def login() -> Response:
 
         # Attach refresh token as cookie
         response = make_response(
-            jsonify({"result": "success", "payload": user_info}), 200
+            jsonify({"payload": {"user": user_info, "access_token": access_token}}), 200
         )
         response.set_cookie(
             "refresh_token",
@@ -71,8 +70,7 @@ def login() -> Response:
         )
         return response
     else:
-        # Handle invalid password
-        return jsonify({"result": "error", "message": "Invalid email or password"}), 403
+        return jsonify({"message": "Invalid email or password"}), 401
 
 
 @bp.route("/logout", methods=["POST"])
@@ -99,17 +97,4 @@ def refresh() -> Response:
     if error_response:
         return jsonify(error_response), 401
 
-    return jsonify({"result": "success", "payload": new_access_token}), 200
-
-
-@bp.route("/status", methods=["GET"])
-@auth_manager.authenticate
-def auth_status():
-    user_uuid = g.user_payload.get("user_uuid")
-
-    if not user_uuid:
-        return jsonify({"result": "error", "message": "User not found"}), 404
-
-    user_info = get_user_info(user_uuid)
-
-    return jsonify({"result": "success", "payload": user_info}), 200
+    return jsonify({"payload": new_access_token}), 200

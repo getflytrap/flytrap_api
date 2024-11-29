@@ -21,7 +21,7 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     """Retrieves a list of all users in the database."""
     cursor = kwargs["cursor"]
 
-    query = "SELECT uuid, first_name, last_name, email, is_root, created_at FROM users;"
+    query = "SELECT uuid, first_name, last_name, email, is_root FROM users;"
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -32,7 +32,6 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
             "last_name": user[2],
             "email": user[3],
             "is_root": user[4],
-            "created_at": user[5],
         }
         for user in rows
     ]
@@ -198,7 +197,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
 
 
 @db_read_connection
-def get_user_info(user_uuid: str, **kwargs) -> dict:
+def fetch_user(user_uuid: str, **kwargs) -> dict:
     """Fetches a user's uuid, first and last name, email, and root status."""
     cursor = kwargs["cursor"]
 
@@ -206,7 +205,7 @@ def get_user_info(user_uuid: str, **kwargs) -> dict:
     cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
-        raise ValueError(f"User with UUID {user_uuid} not found.")
+        return None
 
     return {
         "user_uuid": user_uuid,

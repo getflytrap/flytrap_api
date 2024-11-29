@@ -114,9 +114,9 @@ def create_sns_topic(project_uuid: str) -> str:
 
 def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Creates an SNS subscription for a user"""
-    from app.models import get_user_info, get_topic_arn
+    from app.models import fetch_user, get_topic_arn
 
-    user_info = get_user_info(user_uuid)
+    user_info = fetch_user(user_uuid)
     user_email = user_info.get("email")
     sns_topic_arn = get_topic_arn(project_uuid)
 
@@ -144,9 +144,9 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
 
 def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Removes an SNS subscription for a user."""
-    from app.models import get_user_info, get_topic_arn, get_subscription_arn_by_email
+    from app.models import fetch_user, get_topic_arn, get_subscription_arn_by_email
 
-    user_info = get_user_info(user_uuid)
+    user_info = fetch_user(user_uuid)
     user_email = user_info.get("email")
     sns_topic_arn = get_topic_arn(project_uuid)
 

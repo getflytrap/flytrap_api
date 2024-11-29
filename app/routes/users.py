@@ -7,8 +7,7 @@ authentication.
 """
 
 import bcrypt
-from flask import jsonify, request, Response
-from flask import Blueprint
+from flask import Blueprint, jsonify, request, Response, g
 from app.models import (
     fetch_all_users,
     add_user,
@@ -16,6 +15,7 @@ from app.models import (
     update_password,
     fetch_projects_for_user,
     fetch_projects,
+    fetch_user
 )
 from app.utils import is_valid_email
 from app.models import user_is_root
@@ -33,7 +33,7 @@ bp = Blueprint("users", __name__)
 def get_users() -> Response:
     """Fetches a list of all users."""
     users = fetch_all_users()
-    return jsonify({"result": "success", "payload": users}), 200
+    return jsonify({"payload": users}), 200
 
 
 @bp.route("", methods=["POST"])
@@ -44,7 +44,7 @@ def create_user() -> Response:
     data = request.json
 
     if not data:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request."}), 400
 
     first_name = data.get("first_name")
     last_name = data.get("last_name")
@@ -60,25 +60,40 @@ def create_user() -> Response:
         or not last_name
     ):
         return (
-            jsonify({"result": "error", "message": "Missing input data"}),
+            jsonify({"message": "Missing input data."}),
             400,
         )
 
     if password != confirmed_password:
-        return jsonify({"result": "error", "message": "Passwords do not match"}), 400
+        return jsonify({"message": "Passwords do not match."}), 400
 
     if not is_valid_email(email):
-        return jsonify({"result": "error", "message": "Invalid email format"}), 400
+        return jsonify({"message": "Invalid email format."}), 400
 
     salt = bcrypt.gensalt()
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
 
     uuid = add_user(first_name, last_name, email, password_hash.decode("utf-8"))
-    user_info = {"uuid": uuid, "first_name": first_name, "last_name": last_name}
+    user_info = {"uuid": uuid, "first_name": first_name, "last_name": last_name, "email": email, "is_root": False}
     return (
-        jsonify({"result": "success", "payload": user_info}),
+        jsonify({"payload": user_info}),
         201,
     )
+
+@bp.route("/me", methods=["GET"])
+@auth_manager.authenticate
+def get_session_info() -> Response:
+    user_uuid = g.user_payload.get("user_uuid")
+
+    if not user_uuid:
+        return jsonify({"message":"User not found."}), 404
+
+    user_info = fetch_user(user_uuid)
+
+    if not user_info:
+        return jsonify({"message":"User not found."}), 404
+
+    return jsonify({"payload": user_info}), 200
 
 
 @bp.route("/<user_uuid>", methods=["DELETE"])
@@ -86,23 +101,29 @@ def create_user() -> Response:
 @auth_manager.authorize_root
 def delete_user(user_uuid: str) -> Response:
     """Deletes a specified user by their user ID."""
+    if not user_uuid:
+        return jsonify({"message": "User identifier required."}), 400
+
     success = delete_user_by_id(user_uuid)
     if success:
         return "", 204
     else:
-        return jsonify({"result": "error", "message": "User not found"}), 404
+        return jsonify("User not found"), 404
 
 
 @bp.route("/<user_uuid>", methods=["PATCH"])
 @auth_manager.authenticate
 @auth_manager.authorize_user
 def update_user_password(user_uuid: str) -> Response:
-    """Updates the password of a specified user."""
+    """Updates the password of a specified user."""    
     data = request.json
+    if not data:
+        return jsonify({"message": "Invalid request."}), 400
+
     new_password = data.get("password")
 
-    if not new_password:
-        return jsonify({"result": "error", "message": "Missing password"}), 400
+    if not user_uuid or not new_password:
+        return jsonify({"message": "Both user identifier and new password required."}), 400
 
     password_hash = bcrypt.hashpw(
         new_password.encode("utf-8"), bcrypt.gensalt()
@@ -112,7 +133,7 @@ def update_user_password(user_uuid: str) -> Response:
     if success:
         return "", 204
     else:
-        return jsonify({"result": "error", "message": "User not found"}), 404
+        return jsonify({"message": "User not found"}), 404
 
 
 @bp.route("/<user_uuid>/projects", methods=["GET"])
@@ -120,20 +141,23 @@ def update_user_password(user_uuid: str) -> Response:
 @auth_manager.authorize_user
 def get_user_projects(user_uuid: str) -> Response:
     """Retrieves all projects assigned to a specific user by user ID."""
+    if not user_uuid:
+        return jsonify({"message": "User identifier required."}), 400
+    
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
 
     if page < 1 or limit < 1:
         return (
-            jsonify({"result": "error", "message": "Invalid pagination parameters"}),
+            jsonify({"message": "Invalid pagination parameters."}),
             400,
         )
 
-    user_uuid_in_path_is_for_root_user = user_is_root(user_uuid)
+    is_root = user_is_root(user_uuid)
 
-    if user_uuid_in_path_is_for_root_user:
+    if is_root:
         project_data = fetch_projects(page, limit)
     else:
         project_data = fetch_projects_for_user(user_uuid, page, limit)
 
-    return jsonify({"result": "success", "payload": project_data}), 200
+    return jsonify({"payload": project_data}), 200

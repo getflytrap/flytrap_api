@@ -37,7 +37,7 @@ def create_app() -> Flask:
             f"Unexpected error during {request.method} {request.path}: {e}",
             exc_info=True
         )
-        return jsonify({"result": "error", "message": "Internal Server Error"}), 500
+        return jsonify("Internal Server Error"), 500
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")

@@ -36,7 +36,7 @@ def get_projects() -> Response:
     limit = request.args.get("limit", type=int)
 
     project_data = fetch_projects(page, limit)
-    return jsonify({"result": "success", "payload": project_data}), 200
+    return jsonify({"payload": project_data}), 200
 
 
 @bp.route("", methods=["POST"])
@@ -47,14 +47,14 @@ def create_project() -> Response:
     data = request.get_json()
 
     if not data:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request."}), 400
 
     name = data.get("name")
     platform = data.get("platform")
 
     if not name or not platform:
         return (
-            jsonify({"result": "error", "message": "Missing project name or platform"}),
+            jsonify({"message": "Missing project name or platform."}),
             400,
         )
 
@@ -70,7 +70,7 @@ def create_project() -> Response:
         "platform": platform,
         "api_key": api_key,
     }
-    return jsonify({"result": "success", "payload": project_data}), 201
+    return jsonify({"payload": project_data}), 201
 
 
 @bp.route("/<project_uuid>", methods=["DELETE"])
@@ -78,6 +78,9 @@ def create_project() -> Response:
 @auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID."""
+    if not project_uuid:
+        return jsonify({"message": "Project identifier required."}), 400
+
     delete_sns_topic_from_aws(project_uuid)
     api_key = delete_project_by_id(project_uuid)
 
@@ -85,7 +88,7 @@ def delete_project(project_uuid: str) -> Response:
         delete_api_key_from_aws(api_key)
         return "", 204
     else:
-        return jsonify({"result": "error", "message": "Project not found"}), 404
+        return jsonify({"message": "Project not found."}), 404
 
 
 @bp.route("/<project_uuid>", methods=["PATCH"])
@@ -96,15 +99,15 @@ def update_project(project_uuid: str) -> Response:
     data = request.get_json()
 
     if not data:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request."}), 400
 
     new_name = data.get("new_name")
 
-    if not new_name:
-        return jsonify({"result": "error", "message": "Missing project name"}), 400
+    if not project_uuid or not new_name:
+        return jsonify({"message": "Project identifier and new project name required."}), 400
 
     success = update_project_name(project_uuid, new_name)
     if success:
         return "", 204
     else:
-        return jsonify({"result": "error", "message": "Project not found"}), 404
+        return jsonify({"message": "Project not found."}), 404

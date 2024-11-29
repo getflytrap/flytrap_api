@@ -35,7 +35,7 @@ from .users import (
     fetch_user_by_email,
     user_is_root,
     fetch_projects_for_user,
-    get_user_info,
+    fetch_user,
     get_all_sns_subscription_arns_for_user,
 )
 
@@ -68,6 +68,6 @@ __all__ = [
     "fetch_user_by_email",
     "user_is_root",
     "fetch_projects_for_user",
-    "get_user_info",
+    "fetch_user",
     "get_all_sns_subscription_arns_for_user",
 ]

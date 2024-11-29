@@ -1,5 +1,5 @@
 import jwt
-from flask import request, g, jsonify
+from flask import request, g, jsonify, current_app
 from functools import wraps
 from .token_manager import TokenManager
 from app.models import fetch_project_users
@@ -15,13 +15,16 @@ class AuthManager:
         def decorated_function(*args, **kwargs):
             token = self._get_token()
             if not token:
-                return jsonify({"result": "error", "message": "Token is missing"}), 401
+                current_app.logger.info('Missing authentication token')
+                return jsonify({"message": "Token is required."}), 401
             try:
                 g.user_payload = self.token_manager.decode_token(token)
             except jwt.ExpiredSignatureError:
-                return jsonify({"result": "error", "message": "Token expired"}), 401
+                current_app.logger.info('Authentication token expired')
+                return jsonify({"message": "Session expired. Please log in again."}), 401
             except jwt.InvalidTokenError:
-                return jsonify({"result": "error", "message": "Invalid token"}), 401
+                current_app.logger.info('Invalid authentication token')
+                return jsonify({"message": "Invalid session. Please log in again."}), 401
             return f(*args, **kwargs)
 
         return decorated_function
@@ -32,7 +35,8 @@ class AuthManager:
         def decorated_function(*args, **kwargs):
             if g.user_payload.get("is_root"):
                 return f(*args, **kwargs)
-            return jsonify({"message": "Unauthorized"}), 403
+            current_app.logger.info('No root user permissions')
+            return jsonify({"message": "You do not have the necessary permissions to perform this action."}), 403
 
         return decorated_function
 
@@ -54,7 +58,8 @@ class AuthManager:
             if project_uuid and user_uuid in project_users:
                 return f(*args, **kwargs)
 
-            return jsonify({"message": "Unauthorized for this project"}), 403
+            current_app.logger.info(f"User not assigned to project {project_uuid}")
+            return jsonify({"message": "You do not have the necessary permissions to perform this action."}), 403
 
         return decorated_function
 
@@ -65,7 +70,8 @@ class AuthManager:
             user_uuid_in_path = kwargs.get("user_uuid")
             if g.user_payload.get("user_uuid") == user_uuid_in_path:
                 return f(*args, **kwargs)
-            return jsonify({"message": "Unauthorized"}), 403
+            current_app.logger.info(f"User is trying to access another users settings")
+            return jsonify({"message": "You do not have the necessary permissions to perform this action."}), 403
 
         return decorated_function
 

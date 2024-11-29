@@ -27,8 +27,11 @@ bp = Blueprint("project_users", __name__)
 @auth_manager.authorize_root
 def get_project_users(project_uuid: str) -> Response:
     """Fetches all user uuids associated with a specified project."""
+    if not project_uuid: 
+        return jsonify({"message": "Project identifier required."}), 400
+    
     users = fetch_project_users(project_uuid)
-    return jsonify({"result": "success", "payload": users}), 200
+    return jsonify({"payload": users}), 200
 
 
 @bp.route("", methods=["POST"])
@@ -38,16 +41,16 @@ def add_project_user(project_uuid: str) -> Response:
     """Adds a user to a specified project."""
     data = request.get_json()
     if not data:
-        return jsonify({"result": "error", "message": "Invalid request"}), 400
+        return jsonify({"message": "Invalid request."}), 400
 
     user_uuid = data.get("user_uuid")
-    if not user_uuid:
-        return jsonify({"result": "error", "message": "Missing user uuid"}), 400
+    if not project_uuid or not user_uuid:
+        return jsonify({"message": "Both project and user identifiers are required."}), 400
 
     if user_is_root(user_uuid):
         return (
             jsonify(
-                {"result": "error", "message": "Root users cannot be added to projects"}
+                {"message": "Admin cannot be added to projects."}
             ),
             400,
         )
@@ -62,12 +65,15 @@ def add_project_user(project_uuid: str) -> Response:
 @auth_manager.authorize_root
 def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
     """Removes a user from a specified project."""
+    if not project_uuid or not user_uuid:
+        return jsonify({"message": "Both project and user identifiers are required."}), 400
+
     remove_sns_subscription(project_uuid, user_uuid)
     success = remove_user_from_project(project_uuid, user_uuid)
     if success:
         return "", 204
     else:
         return (
-            jsonify({"result": "error", "message": "Project or user not found"}),
+            jsonify({"message": "Project or user not found."}),
             404,
         )
