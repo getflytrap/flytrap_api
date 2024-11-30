@@ -6,6 +6,7 @@ user to a project, and remove a user from a project. Each function is decorated 
 ensure the correct database connection context for reading or writing.
 """
 
+from flask import current_app
 from typing import List
 from app.utils import db_read_connection, db_write_connection
 
@@ -25,6 +26,7 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     WHERE p.uuid = %s
     """
 
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (project_uuid,))
     rows = cursor.fetchall()
 
@@ -39,14 +41,53 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = """
-    INSERT INTO projects_users (project_id, user_id)
-    SELECT p.id, u.id
-    FROM projects p, users u
-    WHERE p.uuid = %s AND u.uuid = %s
+    # Check if the project exists
+    project_query = "SELECT id FROM projects WHERE uuid = %s"
+
+    current_app.logger.debug(f"Executing query: {project_query}")
+    cursor.execute(project_query, [project_uuid])
+    project = cursor.fetchone()
+
+    if not project:
+        raise ValueError(f"Project with UUID={project_uuid} does not exist.")
+
+    project_id = project[0]
+
+    # Check if the user exists
+    user_query = "SELECT id FROM users WHERE uuid = %s"
+
+    current_app.logger.debug(f"Executing query: {user_query}")
+    cursor.execute(user_query, [user_uuid])
+    user = cursor.fetchone()
+
+    if not user:
+        raise ValueError(f"User with UUID={user_uuid} does not exist.")
+
+    user_id = user[0]
+
+    # Check if the user is already associated with the project
+    association_query = """
+    SELECT 1
+    FROM projects_users
+    WHERE project_id = %s AND user_id = %s
     """
-    cursor.execute(query, [project_uuid, user_uuid])
+
+    current_app.logger.debug(f"Executing query: {association_query}")
+    cursor.execute(association_query, [project_id, user_id])
+    if cursor.fetchone():
+        return False  # Indicate that the user was already added
+
+    # Add the user to the project
+    insert_query = """
+    INSERT INTO projects_users (project_id, user_id)
+    VALUES (%s, %s)
+    """
+
+    current_app.logger.debug(f"Executing query: {insert_query}")
+    cursor.execute(insert_query, [project_id, user_id])
     connection.commit()
+
+    return True  # Indicate that the user was successfully added
 
 
 @db_write_connection
@@ -69,6 +110,7 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
     )
     """
 
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(
         query,
         (
@@ -99,5 +141,7 @@ def save_sns_subscription_arn_to_db(
         SELECT id FROM projects WHERE uuid = %s
     )
     """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [arn, user_uuid, project_uuid])
     connection.commit()

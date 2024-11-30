@@ -35,17 +35,22 @@ def get_projects() -> Response:
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", type=int)
 
-    current_app.logger.info(f'page: {page}')
-    current_app.logger.info(f'limit: {limit}')
+    current_app.logger.debug(f"Fetching projects with page={page}, limit={limit}")
 
     if page < 1 or (limit is not None and limit < 1):
+        current_app.logger.error(f"Invalid pagination parameters: page={page}, limit={limit}")
         return (
             jsonify({"message": "Invalid pagination parameters."}),
             400,
         )
 
-    project_data = fetch_projects(page, limit)
-    return jsonify({"payload": project_data}), 200
+    try:
+        project_data = fetch_projects(page, limit)
+        current_app.logger.info(f"Fetched {len(project_data)} projects for page={page}, limit={limit}")
+        return jsonify({"payload": project_data}), 200
+    except Exception as e:
+        current_app.logger.error(f"Failed to fetch projects: {e}", exc_info=True)
+        return jsonify({"message": "Failed to fetch projects."}), 500
 
 
 @bp.route("", methods=["POST"])
@@ -54,14 +59,17 @@ def get_projects() -> Response:
 def create_project() -> Response:
     """Creates a new project with a unique project ID."""
     data = request.get_json()
+    current_app.logger.debug("Received request to create a project.")
 
     if not data:
+        current_app.logger.error("Invalid request: No JSON payload.")
         return jsonify({"message": "Invalid request."}), 400
 
     name = data.get("name")
     platform = data.get("platform")
 
     if not name or not platform:
+        current_app.logger.error(f"Missing project name or platform in request: name={name}, platform={platform}")
         return (
             jsonify({"message": "Missing project name or platform."}),
             400,
@@ -69,17 +77,25 @@ def create_project() -> Response:
 
     project_uuid = generate_uuid()
     api_key = generate_uuid()
-    topic_arn = create_sns_topic(project_uuid)
+    current_app.logger.debug(f"Generated UUID for project: {project_uuid} and API key: {api_key}")
 
-    add_project(name, project_uuid, api_key, platform, topic_arn)
-    associate_api_key_with_usage_plan(name, api_key)
-    project_data = {
-        "uuid": project_uuid,
-        "name": name,
-        "platform": platform,
-        "api_key": api_key,
-    }
-    return jsonify({"payload": project_data}), 201
+    try:
+        topic_arn = create_sns_topic(project_uuid)
+        add_project(name, project_uuid, api_key, platform, topic_arn)
+        associate_api_key_with_usage_plan(name, api_key)
+        current_app.logger.info(f"Project created successfully: {name} ({project_uuid})")
+        
+        project_data = {
+            "uuid": project_uuid,
+            "name": name,
+            "platform": platform,
+            "api_key": api_key,
+        }
+        
+        return jsonify({"payload": project_data}), 201
+    except Exception as e:
+        current_app.logger.error(f"Failed to create project: {e}", exc_info=True)
+        return jsonify({"message": "Failed to create project."}), 500
 
 
 @bp.route("/<project_uuid>", methods=["DELETE"])
@@ -87,17 +103,26 @@ def create_project() -> Response:
 @auth_manager.authorize_root
 def delete_project(project_uuid: str) -> Response:
     """Deletes a specified project by its project UUID."""
+    current_app.logger.debug(f"Received request to delete project: {project_uuid}")
+
     if not project_uuid:
+        current_app.logger.error("Project identifier is required but missing.")
         return jsonify({"message": "Project identifier required."}), 400
 
-    delete_sns_topic_from_aws(project_uuid)
-    api_key = delete_project_by_id(project_uuid)
+    try:
+        delete_sns_topic_from_aws(project_uuid)
+        api_key = delete_project_by_id(project_uuid)
 
-    if api_key:
-        delete_api_key_from_aws(api_key)
-        return "", 204
-    else:
-        return jsonify({"message": "Project not found."}), 404
+        if api_key:
+            delete_api_key_from_aws(api_key)
+            current_app.logger.info(f"Deleted project: {project_uuid}")
+            return "", 204
+        else:
+            current_app.logger.warning(f"Project not found: {project_uuid}")
+            return jsonify({"message": "Project not found."}), 404
+    except Exception as e:
+        current_app.logger.error(f"Failed to delete project UUID={project_uuid}: {e}", exc_info=True)
+        return jsonify({"message": "Failed to delete project."}), 500
 
 
 @bp.route("/<project_uuid>", methods=["PATCH"])
@@ -105,18 +130,32 @@ def delete_project(project_uuid: str) -> Response:
 @auth_manager.authorize_root
 def update_project(project_uuid: str) -> Response:
     """Updates the name of a specified project."""
+    current_app.logger.debug(f"Received request to update project: {project_uuid}")
+
+    if not project_uuid:
+        current_app.logger.error("Project identifier is required but missing.")
+        return jsonify({"message": "Project identifier required."}), 400
+    
     data = request.get_json()
 
     if not data:
+        current_app.logger.error("Invalid request: No JSON payload.")
         return jsonify({"message": "Invalid request."}), 400
 
     new_name = data.get("new_name")
 
-    if not project_uuid or not new_name:
-        return jsonify({"message": "Project identifier and new project name required."}), 400
+    if not new_name:
+        current_app.logger.error("New project name is required but missing.")
+        return jsonify({"message": "New project name required."}), 400
 
-    success = update_project_name(project_uuid, new_name)
-    if success:
-        return "", 204
-    else:
-        return jsonify({"message": "Project not found."}), 404
+    try:
+        success = update_project_name(project_uuid, new_name)
+        if success:
+            current_app.logger.info(f"Updated project {project_uuid} with new name: {new_name}")
+            return "", 204
+        else:
+            current_app.logger.warning(f"Project not found for update: {project_uuid}")
+            return jsonify({"message": "Project not found."}), 404
+    except Exception as e:
+        current_app.logger.error(f"Failed to update project UUID={project_uuid}: {e}", exc_info=True)
+        return jsonify({"message": "Failed to update project."}), 500

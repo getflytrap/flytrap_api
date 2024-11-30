@@ -5,11 +5,13 @@ import botocore.exceptions
 def create_aws_client(service: str, region: str) -> boto3.client:
     """Instantiates a boto3 client for a specific AWS service"""
     try:
-        return boto3.client(
+        client = boto3.client(
             service,
             region_name=region,
             endpoint_url=f"https://{service}.{region}.amazonaws.com",
         )
+        current_app.logger.debug(f"AWS client created for {service} in region {region}.")
+        return client
     except botocore.exceptions.BotoCoreError as e:
         current_app.logger.error(f"Failed to create AWS client for {service}: {e}")
         raise RuntimeError(f"Error creating AWS client for {service}: {str(e)}")
@@ -22,7 +24,9 @@ def get_secret(secret_name: str, region: str) -> str:
         client = session.client(service_name='secretsmanager', region_name=region)
         
         response = client.get_secret_value(SecretId=secret_name)
-        return response['SecretString']
+        secret = response['SecretString']
+        current_app.logger.debug(f"Secret {secret_name} fetched successfully.")
+        return secret
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to fetch secret {secret_name}: {e}")
         raise RuntimeError(f"Failed to fetch secret {secret_name}: {e}")
@@ -47,6 +51,8 @@ def associate_api_key_with_usage_plan(project_name: str, api_key: str) -> None:
             keyId=api_key_id,
             keyType="API_KEY",
         )
+
+        current_app.logger.info(f"API key {api_key} associated with usage plan.")
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to associate API key with usage plan: {e}")
         raise RuntimeError(f"Error associating API key with usage plan: {str(e)}")
@@ -61,29 +67,23 @@ def delete_api_key_from_aws(api_key_value: str) -> None:
     try:
         client = create_aws_client("apigateway")
         response = client.get_api_keys(includeValues=True)
-        current_app.logger.info(f"api keys response: {response}")
-        all_keys = response.get("items")
-        if all_keys:
-            current_app.logger.info("all keys exists")
-            current_app.logger.info(f"all keys print: {all_keys}")
-            key_id = [
-                item["id"] for item in all_keys if item["value"] == api_key_value
-            ][0]
-        else:
-            current_app.logger.info("get item didn't work")
-            key_id = [
-                item["id"] for item in response if item["value"] == api_key_value
-            ][0]
+        all_keys = response.get("items", [])
 
-        current_app.logger.info(f"key_id print here: {key_id}")
+        key_id = next(
+            (item["id"] for item in all_keys if item["value"] == api_key_value), None
+        )
+
+        if not key_id:
+            current_app.logger.warning(
+                f"API key {api_key_value} not found for deletion."
+            )
+            return
+
         client.delete_api_key(apiKey=key_id)
-        return True
+        current_app.logger.info(f"API key {api_key_value} deleted successfully.")
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to delete API key from AWS: {e}")
         raise RuntimeError(f"Error deleting API key: {str(e)}")
-    except Exception as e:
-        current_app.logger.error(f"Unexpected error deleting API key: {str(e)}")
-        raise e
 
 
 def create_sns_topic(project_uuid: str) -> str:
@@ -99,9 +99,9 @@ def create_sns_topic(project_uuid: str) -> str:
     try:
         sns_client = create_aws_client("sns", current_app.config["AWS_REGION"])
         topic_name = f"project_{project_uuid}_notifications"
-
         response = sns_client.create_topic(Name=topic_name)
         sns_topic_arn = response.get("TopicArn")
+        current_app.logger.info(f"SNS topic created for project {project_uuid}.")
         return sns_topic_arn
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(
@@ -116,47 +116,56 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Creates an SNS subscription for a user"""
     from app.models import fetch_user, get_topic_arn
 
-    user_info = fetch_user(user_uuid)
-    user_email = user_info.get("email")
-    sns_topic_arn = get_topic_arn(project_uuid)
-
-    if current_app.config["ENVIRONMENT"] == "development":
-        current_app.logger.info(
-            f"[MOCK] Subscribing {user_email} to {project_uuid} notifications."
-        )
-        return
-
     try:
-        client = create_aws_client("sns", current_app.config["AWS_REGION"])
+        user_info = fetch_user(user_uuid)
+        user_email = user_info.get("email")
+        sns_topic_arn = get_topic_arn(project_uuid)
 
-        client.subscribe(TopicArn=sns_topic_arn, Protocol="email", Endpoint=user_email)
+        if current_app.config["ENVIRONMENT"] == "development":
+            current_app.logger.info(
+                f"[MOCK] Subscribing {user_email} to {project_uuid} notifications."
+            )
+            return
+        
+        if not user_email or not sns_topic_arn:
+            current_app.logger.error(
+                f"Missing data for subscription: user_email={user_email}, sns_topic_arn={sns_topic_arn}."
+            )
+            raise ValueError("User email or SNS topic ARN is missing.")
+        
+        client = create_aws_client("sns", current_app.config["AWS_REGION"])
+        response = client.subscribe(TopicArn=sns_topic_arn, Protocol="email", Endpoint=user_email)
+        subscription_arn = response.get("SubscriptionArn")
 
         current_app.logger.info(
-            f"Email {user_email} subscribed successfully to topic {sns_topic_arn}."
+            f"Email {user_email} subscribed successfully to topic {sns_topic_arn}. Subscription ARN: {subscription_arn}."
         )
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to create SNS subscription: {e}")
         raise RuntimeError(f"Error creating SNS subscription: {str(e)}")
-    except Exception as e:
-        current_app.logger.error(f"Unexpected error in SNS subscription: {str(e)}")
-        raise e
 
 
 def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Removes an SNS subscription for a user."""
     from app.models import fetch_user, get_topic_arn, get_subscription_arn_by_email
 
-    user_info = fetch_user(user_uuid)
-    user_email = user_info.get("email")
-    sns_topic_arn = get_topic_arn(project_uuid)
-
-    if current_app.config["ENVIRONMENT"] == "development":
-        current_app.logger.info(
-            f"[MOCK] Unsubscribing {user_email} from {project_uuid} notifications."
-        )
-        return
-
     try:
+        user_info = fetch_user(user_uuid)
+        user_email = user_info.get("email")
+        sns_topic_arn = get_topic_arn(project_uuid)
+
+        if current_app.config["ENVIRONMENT"] == "development":
+            current_app.logger.info(
+                f"[MOCK] Unsubscribing {user_email} from {project_uuid} notifications."
+            )
+            return
+
+        if not user_email or not sns_topic_arn:
+            current_app.logger.error(
+                f"Missing data for unsubscription: user_email={user_email}, sns_topic_arn={sns_topic_arn}."
+            )
+            raise ValueError("User email or SNS topic ARN is missing.")
+        
         client = create_aws_client("sns", current_app.config["AWS_REGION"])
 
         # Retrieve the subscription ARN associated with the user's email
@@ -164,7 +173,7 @@ def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
             client, sns_topic_arn, user_email
         )
 
-        if subscription_arn is None:
+        if not subscription_arn:
             current_app.logger.warning(
                 f"No subscription found for {user_email} on topic {sns_topic_arn}."
             )
@@ -177,9 +186,6 @@ def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to unsubscribe SNS subscription: {e}")
         raise RuntimeError(f"Error unsubscribing SNS subscription: {str(e)}")
-    except Exception as e:
-        current_app.logger.error(f"Unexpected error in SNS unsubscription: {str(e)}")
-        raise e
 
 
 def send_sns_notification(project_uuid: str) -> None:
@@ -204,15 +210,10 @@ def send_sns_notification(project_uuid: str) -> None:
                 "project_id": {"DataType": "String", "StringValue": project_uuid}
             },
         )
-        current_app.logger.info(
-            f"Sent notification to developers assigned to project {project_uuid}"
-        )
+        current_app.logger.info(f"Notification sent for project {project_uuid}.")
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(f"Failed to send SNS notification: {e}")
         raise RuntimeError(f"Error sending SNS notification: {str(e)}")
-    except Exception as e:
-        current_app.logger.error(f"Unexpected error sending SNS notification: {str(e)}")
-        raise e
 
 
 def delete_sns_topic_from_aws(project_uuid: str) -> None:
@@ -227,8 +228,15 @@ def delete_sns_topic_from_aws(project_uuid: str) -> None:
         from app.models import get_topic_arn
 
         topic_arn = get_topic_arn(project_uuid)
+        if not topic_arn:
+            current_app.logger.warning(
+                f"No SNS topic ARN found for project {project_uuid}. Skipping deletion."
+            )
+            return
+
         client = create_aws_client("sns")
         client.deleteTopic(TopicArn=topic_arn)
+        current_app.logger.info(f"SNS topic {topic_arn} deleted successfully.")
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(
             f"Failed to delete SNS topic for project {project_uuid}: {e}"
@@ -236,9 +244,6 @@ def delete_sns_topic_from_aws(project_uuid: str) -> None:
         raise RuntimeError(
             f"Error deleting SNS topic for project {project_uuid}: {str(e)}"
         )
-    except Exception as e:
-        current_app.logger.error(f"Unexpected error deleting SNS topic: {str(e)}")
-        raise e
 
 
 def get_subscription_arn_by_email(client, topic_arn: str, email: str) -> str:
@@ -248,11 +253,17 @@ def get_subscription_arn_by_email(client, topic_arn: str, email: str) -> str:
         for page in paginator.paginate(TopicArn=topic_arn):
             for subscription in page.get("Subscriptions", []):
                 if subscription.get("Endpoint") == email:
-                    return subscription.get("SubscriptionArn")
+                    subscription_arn = subscription.get("SubscriptionArn")
+                    current_app.logger.debug(
+                        f"Found subscription ARN for email {email}: {subscription_arn}."
+                    )
+                    return subscription_arn
+        current_app.logger.info(
+            f"No subscription ARN found for email {email} on topic {topic_arn}."
+        )
+        return None
     except botocore.exceptions.ClientError as e:
         current_app.logger.error(
             f"Error retrieving subscriptions for topic {topic_arn}: {e}"
         )
         raise RuntimeError(f"Error retrieving subscriptions: {str(e)}")
-
-    return None

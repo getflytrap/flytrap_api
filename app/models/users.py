@@ -11,7 +11,6 @@ from typing import List, Dict, Optional, Union
 from app.utils import (
     db_read_connection,
     db_write_connection,
-    generate_uuid,
     calculate_total_user_project_pages,
 )
 
@@ -22,6 +21,8 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     cursor = kwargs["cursor"]
 
     query = "SELECT uuid, first_name, last_name, email, is_root FROM users;"
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -41,13 +42,11 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 
 @db_write_connection
 def add_user(
-    first_name: str, last_name: str, email: str, password_hash: str, **kwargs
+    user_uuid: str, first_name: str, last_name: str, email: str, password_hash: str, **kwargs
 ) -> int:
     """Adds a new user to the database with the specified information."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-
-    user_uuid = generate_uuid()
 
     query = """
     INSERT INTO users
@@ -55,10 +54,10 @@ def add_user(
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id;
     """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
     connection.commit()
-
-    return user_uuid
 
 
 @db_write_connection
@@ -66,7 +65,10 @@ def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
     """Deletes a user by their unique user ID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "DELETE FROM users WHERE uuid = %s"
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid,))
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -86,6 +88,7 @@ def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
     WHERE uuid = %s
     """
 
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (password_hash, user_uuid))
     rows_updated = cursor.rowcount
     connection.commit()
@@ -106,6 +109,8 @@ def fetch_user_by_email(
     FROM users u
     WHERE u.email = %s;
     """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (email,))
     user = cursor.fetchone()
     if user:
@@ -130,6 +135,8 @@ def user_is_root(user_uuid, **kwargs):
     FROM users
     WHERE uuid = %s
     """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid,))
 
     result = cursor.fetchone()
@@ -173,6 +180,7 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     LIMIT %s OFFSET %s;
     """
 
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid, limit, offset))
     rows = cursor.fetchall()
 
@@ -202,13 +210,15 @@ def fetch_user(user_uuid: str, **kwargs) -> dict:
     cursor = kwargs["cursor"]
 
     query = "SELECT first_name, last_name, email, is_root FROM users WHERE uuid = %s;"
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
         return None
 
     return {
-        "user_uuid": user_uuid,
+        "uuid": user_uuid,
         "first_name": user[0],
         "last_name": user[1],
         "email": user[2],
@@ -228,6 +238,7 @@ def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:
     WHERE user_id = (SELECT id FROM users WHERE uuid = %s)
     """
 
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [user_uuid])
     rows = cursor.fetchall()
     current_app.logger.info(rows)

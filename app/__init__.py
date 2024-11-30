@@ -7,7 +7,6 @@ configures error handling,
 and initializes authentication mechanisms.
 """
 
-import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from .socketio import socketio
@@ -26,18 +25,13 @@ def create_app() -> Flask:
     CORS(app, supports_credentials=True, expose_headers=["New-Access-Token"])
     socketio.init_app(app)
 
-    app.logger.setLevel(logging.DEBUG)
-    logging.getLogger("botocore").setLevel(logging.DEBUG)
-    logging.getLogger("urllib3").setLevel(logging.DEBUG)
-    logging.getLogger("boto3").setLevel(logging.DEBUG)
-
     @app.errorhandler(Exception)
     def handle_generic_error(e):
         app.logger.error(
             f"Unexpected error during {request.method} {request.path}: {e}",
             exc_info=True
         )
-        return jsonify("Internal Server Error"), 500
+        return jsonify({"message": "Internal Server Error"}), 500
 
     app.register_blueprint(projects_bp, url_prefix="/api/projects")
     app.register_blueprint(issues_bp, url_prefix="/api/projects/<project_uuid>/issues")
