@@ -8,7 +8,7 @@ ensure the correct database connection context for reading or writing.
 
 from flask import current_app
 from typing import List
-from app.utils import db_read_connection, db_write_connection
+from db import db_read_connection, db_write_connection
 
 
 @db_read_connection

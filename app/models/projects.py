@@ -8,11 +8,8 @@ the correct database connection context for reading or writing.
 
 from flask import current_app
 from typing import List, Dict, Union, Optional
-from app.utils import (
-    db_read_connection,
-    db_write_connection,
-    calculate_total_project_pages,
-)
+from db import db_read_connection, db_write_connection
+from app.utils import calculate_total_project_pages
 
 
 @db_read_connection

@@ -9,9 +9,8 @@ database connection context for reading or writing.
 from flask import current_app
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
+from db import db_read_connection, db_write_connection
 from app.utils import (
-    db_read_connection,
-    db_write_connection,
     fetch_errors_by_project,
     fetch_rejections_by_project,
     calculate_total_error_pages,
