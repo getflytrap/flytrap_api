@@ -40,6 +40,13 @@ def get_issues(project_uuid: str) -> Response:
 
     if not project_uuid:
         return jsonify({"message": "Project identifier is required."}), 400
+    
+
+    if page < 1 or limit < 1:
+        return (
+            jsonify({"message": "Invalid pagination parameters."}),
+            400,
+        )
 
     issue_data = fetch_issues_by_project(
         project_uuid, page, limit, handled, time, resolved

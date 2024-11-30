@@ -4,7 +4,7 @@ This module provides routes for managing projects, including creating, fetching,
 updating, and deleting project records. Each route enforces root access authorization.
 """
 
-from flask import jsonify, request, Response
+from flask import jsonify, request, Response, current_app
 from flask import Blueprint
 from app.models import (
     fetch_projects,
@@ -34,6 +34,15 @@ def get_projects() -> Response:
     """Fetches a paginated list of all projects."""
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", type=int)
+
+    current_app.logger.info(f'page: {page}')
+    current_app.logger.info(f'limit: {limit}')
+
+    if page < 1 or (limit is not None and limit < 1):
+        return (
+            jsonify({"message": "Invalid pagination parameters."}),
+            400,
+        )
 
     project_data = fetch_projects(page, limit)
     return jsonify({"payload": project_data}), 200
