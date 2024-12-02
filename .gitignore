@@ -1,0 +1,17 @@
+# Ignore virtual environment folder
+venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+
+.env
+
+update_docker.sh
+update_ec2.sh
