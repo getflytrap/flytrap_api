@@ -6,9 +6,8 @@ user to a project, and remove a user from a project. Each function is decorated 
 ensure the correct database connection context for reading or writing.
 """
 
-from flask import current_app
 from typing import List
-from app.utils import db_read_connection, db_write_connection
+from db import db_read_connection, db_write_connection
 
 
 @db_read_connection
@@ -40,15 +39,49 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = """
-    INSERT INTO projects_users (project_id, user_id)
-    SELECT p.id, u.id
-    FROM projects p, users u
-    WHERE p.uuid = %s AND u.uuid = %s
+    # Check if the project exists
+    project_query = "SELECT id FROM projects WHERE uuid = %s"
+
+    cursor.execute(project_query, [project_uuid])
+    project = cursor.fetchone()
+
+    if not project:
+        raise ValueError(f"Project with UUID={project_uuid} does not exist.")
+
+    project_id = project[0]
+
+    # Check if the user exists
+    user_query = "SELECT id FROM users WHERE uuid = %s"
+
+    cursor.execute(user_query, [user_uuid])
+    user = cursor.fetchone()
+
+    if not user:
+        raise ValueError(f"User with UUID={user_uuid} does not exist.")
+
+    user_id = user[0]
+
+    # Check if the user is already associated with the project
+    association_query = """
+    SELECT 1
+    FROM projects_users
+    WHERE project_id = %s AND user_id = %s
     """
-    current_app.logger.debug(f"Executing add_user_to_project with project_uuid={project_uuid}, user_uuid={user_uuid}")
-    cursor.execute(query, [project_uuid, user_uuid])
+
+    cursor.execute(association_query, [project_id, user_id])
+    if cursor.fetchone():
+        return False  # Indicate that the user was already added
+
+    # Add the user to the project
+    insert_query = """
+    INSERT INTO projects_users (project_id, user_id)
+    VALUES (%s, %s)
+    """
+
+    cursor.execute(insert_query, [project_id, user_id])
     connection.commit()
+
+    return True  # Indicate that the user was successfully added
 
 
 @db_write_connection
@@ -81,8 +114,11 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
     connection.commit()
     return cursor.rowcount > 0
 
+
 @db_write_connection
-def save_sns_subscription_arn_to_db(user_uuid: str, project_uuid: str, arn: str, **kwargs) -> None:
+def save_sns_subscription_arn_to_db(
+    user_uuid: str, project_uuid: str, arn: str, **kwargs
+) -> None:
     """Update project_users record by adding a sns subscription arn"""
 
     connection = kwargs["connection"]
@@ -98,7 +134,6 @@ def save_sns_subscription_arn_to_db(user_uuid: str, project_uuid: str, arn: str,
         SELECT id FROM projects WHERE uuid = %s
     )
     """
-    current_app.logger.debug(f"Executing save_sns_subscription with project_uuid={project_uuid}, user_uuid={user_uuid} and arn {arn}")
 
     cursor.execute(query, [arn, user_uuid, project_uuid])
     connection.commit()

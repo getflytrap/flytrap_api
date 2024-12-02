@@ -8,14 +8,8 @@ the correct database connection context for reading or writing.
 
 from flask import current_app
 from typing import List, Dict, Union, Optional
-from app.utils import (
-    db_read_connection,
-    db_write_connection,
-    calculate_total_project_pages,
-    generate_uuid,
-    create_sns_topic,
-    delete_api_key_from_aws
-)
+from db import db_read_connection, db_write_connection
+from app.utils import calculate_total_project_pages
 
 
 @db_read_connection
@@ -45,8 +39,13 @@ def fetch_projects(
     ORDER BY p.name
     LIMIT %s OFFSET %s
     """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [limit, offset])
     rows = cursor.fetchall()
+
+    if not rows:
+        current_app.logger.info("No projects found for the given page and limit.")
 
     projects = [
         {
@@ -69,39 +68,42 @@ def fetch_projects(
 
 
 @db_write_connection
-def add_project(name: str, platform: str, **kwargs) -> None:
+def add_project(
+    name: str, project_uuid: str, api_key: str, platform: str, topic_arn: str, **kwargs
+) -> None:
     """Adds a new project with a specified unique ID and name."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    project_uuid = generate_uuid()
-    api_key = generate_uuid()
-    topic_arn = create_sns_topic(project_uuid)
-    query = (
-        "INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn) VALUES (%s, %s, %s, %s, %s)"
-    )
+    query = """
+    INSERT INTO
+        projects (uuid, name, api_key, platform, sns_topic_arn)
+    VALUES
+        (%s, %s, %s, %s, %s)
+    """
+
+    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [project_uuid, name, api_key, platform, topic_arn])
     connection.commit()
-
-    return {"project_uuid": project_uuid, "api_key": api_key}
 
 
 @db_write_connection
 def delete_project_by_id(project_uuid: str, **kwargs) -> bool:
-    """Deletes a project by its unique project UUID, and returns the api_key so it can be deleted from AWS"""
+    """Deletes a project by its unique project UUID, and returns the api_key"""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
     query = "DELETE FROM projects WHERE uuid = %s RETURNING api_key"
+
     cursor.execute(query, [project_uuid])
-    api_key_value = cursor.fetchone()[0]
+    result = cursor.fetchone()[0]
     connection.commit()
-    
-    if api_key_value:
-        # Returns True if api key was successfully deleted
-        return delete_api_key_from_aws(api_key_value)
+
+    if result:
+        return result[0]
     else:
         return None
+
 
 @db_write_connection
 def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
@@ -133,18 +135,23 @@ def get_project_name(uuid: str, **kwargs) -> Optional[str]:
     else:
         return None
 
+
 @db_read_connection
 def get_topic_arn(project_uuid: str, **kwargs) -> Optional[str]:
     """Retrieves the SNS topic arn associated with a project"""
     cursor = kwargs["cursor"]
 
     query = "SELECT sns_topic_arn FROM projects WHERE uuid = %s"
-    cursor.execute(query, [project_uuid])
 
-    response = cursor.fetchone()
-    current_app.logger.info(response)
-    return response[0]
-    
+    cursor.execute(query, [project_uuid])
+    result = cursor.fetchone()
+
+    if result:
+        return result[0]
+    else:
+        return None
+
+
 @db_read_connection
 def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> list:
     """return a list of sns subscriptions ARNs associated with a project"""
@@ -156,9 +163,7 @@ def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> li
     WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
     """
 
-    response = cursor.execute(query, [project_uuid])
-    current_app.logger.info(f"get sub arns for project {response}")
+    cursor.execute(query, [project_uuid])
     rows = cursor.fetchall()
 
     return [row[0] for row in rows]
-

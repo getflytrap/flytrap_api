@@ -8,12 +8,8 @@ appropriate database connection context for reading or writing.
 
 from flask import current_app
 from typing import List, Dict, Optional, Union
-from app.utils import (
-    db_read_connection,
-    db_write_connection,
-    generate_uuid,
-    calculate_total_user_project_pages,
-)
+from db import db_read_connection, db_write_connection
+from app.utils import calculate_total_user_project_pages
 
 
 @db_read_connection
@@ -21,7 +17,8 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
     """Retrieves a list of all users in the database."""
     cursor = kwargs["cursor"]
 
-    query = "SELECT uuid, first_name, last_name, email, is_root, created_at FROM users;"
+    query = "SELECT uuid, first_name, last_name, email, is_root FROM users;"
+
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -32,7 +29,6 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
             "last_name": user[2],
             "email": user[3],
             "is_root": user[4],
-            "created_at": user[5],
         }
         for user in rows
     ]
@@ -42,13 +38,16 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 
 @db_write_connection
 def add_user(
-    first_name: str, last_name: str, email: str, password_hash: str, **kwargs
+    user_uuid: str,
+    first_name: str,
+    last_name: str,
+    email: str,
+    password_hash: str,
+    **kwargs
 ) -> int:
     """Adds a new user to the database with the specified information."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
-
-    user_uuid = generate_uuid()
 
     query = """
     INSERT INTO users
@@ -56,10 +55,9 @@ def add_user(
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id;
     """
+
     cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
     connection.commit()
-
-    return user_uuid
 
 
 @db_write_connection
@@ -67,7 +65,9 @@ def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
     """Deletes a user by their unique user ID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "DELETE FROM users WHERE uuid = %s"
+
     cursor.execute(query, (user_uuid,))
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -107,6 +107,7 @@ def fetch_user_by_email(
     FROM users u
     WHERE u.email = %s;
     """
+
     cursor.execute(query, (email,))
     user = cursor.fetchone()
     if user:
@@ -131,13 +132,14 @@ def user_is_root(user_uuid, **kwargs):
     FROM users
     WHERE uuid = %s
     """
+
     cursor.execute(query, (user_uuid,))
 
     result = cursor.fetchone()
 
     if result is None:
         return False
-    
+
     is_root = result[0]
     return is_root
 
@@ -198,23 +200,25 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
 
 
 @db_read_connection
-def get_user_info(user_uuid: str, **kwargs) -> dict:
+def fetch_user(user_uuid: str, **kwargs) -> dict:
     """Fetches a user's uuid, first and last name, email, and root status."""
     cursor = kwargs["cursor"]
 
     query = "SELECT first_name, last_name, email, is_root FROM users WHERE uuid = %s;"
+
     cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
-            raise ValueError(f"User with UUID {user_uuid} not found.")
-    
+        return None
+
     return {
-        "user_uuid": user_uuid,
+        "uuid": user_uuid,
         "first_name": user[0],
         "last_name": user[1],
         "email": user[2],
-        "is_root": user[3]
+        "is_root": user[3],
     }
+
 
 @db_read_connection
 def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:

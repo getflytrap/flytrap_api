@@ -11,6 +11,7 @@ def calculate_total_project_pages(cursor: Cursor, limit: int) -> int:
         return 1
 
     query = "SELECT COUNT(DISTINCT p.id) FROM projects p;"
+
     cursor.execute(query)
     total_count = cursor.fetchone()[0]
     total_pages = math.ceil(total_count / limit)
@@ -31,6 +32,7 @@ def calculate_total_user_project_pages(
     JOIN users u ON pu.user_id = u.id
     WHERE u.uuid = %s;
     """
+
     cursor.execute(query, (user_uuid,))
     total_count = cursor.fetchone()[0]
     total_pages = math.ceil(total_count / limit)
@@ -94,9 +96,13 @@ def fetch_errors_by_project(
         WHERE p.uuid = %s AND e.error_hash IN %s
         GROUP BY e.error_hash
         """
+
         cursor.execute(stats_query, [project_uuid, tuple(error_hashes)])
         stats = cursor.fetchall()
-        stats_map = {stat[0]: {"total_occurrences": stat[1], "distinct_users": stat[2]} for stat in stats}
+        stats_map = {
+            stat[0]: {"total_occurrences": stat[1], "distinct_users": stat[2]}
+            for stat in stats
+        }
     else:
         stats_map = {}
 

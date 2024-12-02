@@ -8,9 +8,8 @@ database connection context for reading or writing.
 
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
+from db import db_read_connection, db_write_connection
 from app.utils import (
-    db_read_connection,
-    db_write_connection,
     fetch_errors_by_project,
     fetch_rejections_by_project,
     calculate_total_error_pages,
@@ -57,17 +56,19 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
 
-    query = """
+    error_query = """
     DELETE FROM error_logs
     WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
-    cursor.execute(query, (project_uuid,))
+
+    cursor.execute(error_query, (project_uuid,))
     error_rows_deleted = cursor.rowcount
 
     rejection_query = """
     DELETE FROM rejection_logs
     WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
+
     cursor.execute(rejection_query, (project_uuid,))
     rejection_rows_deleted = cursor.rowcount
 
@@ -85,26 +86,28 @@ def fetch_error(
 
     query = """
     SELECT
-        name, message, created_at, filename, line_number, col_number, stack_trace, handled,
-        resolved, contexts, method, path, ip, os, browser, runtime, error_hash
+        name, message, created_at, filename, line_number, col_number, stack_trace,
+        handled, resolved, contexts, method, path, ip, os, browser, runtime, error_hash
     FROM error_logs
     WHERE uuid = %s
     """
+
     cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
     if not error:
         return None
-    
+
     error_hash = error[16]
 
     occurrence_query = """
-    SELECT COUNT(*) 
+    SELECT COUNT(*)
     FROM error_logs
     WHERE error_hash = %s AND project_id = (
         SELECT id FROM projects WHERE uuid = %s
     )
     """
+
     cursor.execute(occurrence_query, [error_hash, project_uuid])
     total_occurrences = cursor.fetchone()[0]
 
@@ -115,6 +118,7 @@ def fetch_error(
         SELECT id FROM projects WHERE uuid = %s
     )
     """
+
     cursor.execute(user_count_query, [error_hash, project_uuid])
     distinct_users = cursor.fetchone()[0]
 
@@ -131,15 +135,14 @@ def fetch_error(
         "handled": error[7],
         "resolved": error[8],
         "contexts": error[9],
-        "method": error[10], 
+        "method": error[10],
         "path": error[11],
         "os": error[13],
         "browser": error[14],
         "runtime": error[15],
         "total_occurrences": total_occurrences,
-        "distinct_users": distinct_users
+        "distinct_users": distinct_users,
     }
-
 
 
 @db_read_connection
@@ -148,11 +151,13 @@ def fetch_rejection(
 ) -> Optional[Dict[str, str]]:
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
+
     query = """
     SELECT value, created_at, handled, resolved, method, path, os, browser, runtime
     FROM rejection_logs
     WHERE uuid = %s
     """
+
     cursor.execute(query, [rejection_uuid])
     rejection = cursor.fetchone()
 
@@ -181,7 +186,9 @@ def update_error_resolved(
     """Updates the resolved state of a specific error log."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "UPDATE error_logs SET resolved = %s WHERE uuid = %s"
+
     cursor.execute(query, [new_resolved_state, error_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
@@ -196,7 +203,9 @@ def update_rejection_resolved(
     """Updates the resolved state of a specific rejection log."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "UPDATE rejection_logs SET resolved = %s WHERE uuid = %s"
+
     cursor.execute(query, [new_resolved_state, rejection_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
@@ -209,7 +218,9 @@ def delete_error_by_id(error_uuid: str, **kwargs: dict) -> bool:
     """Deletes a specific error log by its UUID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "DELETE FROM error_logs WHERE uuid = %s"
+
     cursor.execute(query, [error_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -222,17 +233,20 @@ def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
     """Deletes a specific rejection log by its ID."""
     connection = kwargs["connection"]
     cursor = kwargs["cursor"]
+
     query = "DELETE FROM rejection_logs WHERE uuid = %s"
+
     cursor.execute(query, [rejection_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
 
     return rows_deleted > 0
 
+
 @db_read_connection
 def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
     cursor = kwargs["cursor"]
-    
+
     today = datetime.utcnow()
     start_of_week = today - timedelta(days=7)
 
@@ -245,7 +259,13 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
         ORDER BY day
         """
 
-    cursor.execute(query, (project_uuid, start_of_week,))
+    cursor.execute(
+        query,
+        (
+            project_uuid,
+            start_of_week,
+        ),
+    )
     error_results = cursor.fetchall()
 
     query = """
@@ -274,6 +294,7 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
 
     return issue_counts[::-1]
 
+
 @db_read_connection
 def fetch_most_recent_log(
     project_uuid: str, **kwargs: dict
@@ -281,32 +302,37 @@ def fetch_most_recent_log(
     """Fetches the most recent error or rejection log for a given project."""
     cursor = kwargs["cursor"]
 
-    query_project = "SELECT id FROM projects WHERE uuid = %s"
-    cursor.execute(query_project, [project_uuid])
+    project_query = "SELECT id FROM projects WHERE uuid = %s"
+
+    cursor.execute(project_query, [project_uuid])
     project = cursor.fetchone()
     project_id = project[0]
 
     # Query to get the most recent error log
-    query_error = """
-    SELECT uuid, 'error' AS log_type, name, message, created_at, filename, line_number, 
+    error_query = """
+    SELECT uuid, 'error' AS log_type, name, message, created_at, filename, line_number,
            col_number, stack_trace, handled, resolved, contexts, method, path
     FROM error_logs
     WHERE project_id = %s
     ORDER BY created_at DESC
     LIMIT 1
     """
-    cursor.execute(query_error, [project_id])
+
+    cursor.execute(error_query, [project_id])
     error = cursor.fetchone()
 
     # Query to get the most recent rejection log
-    query_rejection = """
-    SELECT uuid, 'rejection' AS log_type, value, created_at, handled, resolved, method, path
+    rejection_query = """
+    SELECT
+        uuid, 'rejection' AS log_type, value, created_at, handled, resolved, method,
+        path
     FROM rejection_logs
     WHERE project_id = %s
     ORDER BY created_at DESC
     LIMIT 1
     """
-    cursor.execute(query_rejection, [project_id])
+
+    cursor.execute(rejection_query, [project_id])
     rejection = cursor.fetchone()
 
     # Compare the most recent error and rejection logs
@@ -323,7 +349,7 @@ def fetch_most_recent_log(
         most_recent = rejection
 
     if most_recent:
-        if most_recent[1] == 'error':
+        if most_recent[1] == "error":
             return {
                 "uuid": most_recent[0],
                 "name": most_recent[2],
@@ -340,7 +366,7 @@ def fetch_most_recent_log(
                 "method": most_recent[12],
                 "path": most_recent[13],
             }
-        elif most_recent[1] == 'rejection':
+        elif most_recent[1] == "rejection":
             return {
                 "uuid": most_recent[0],
                 "value": most_recent[2],
