@@ -7,6 +7,7 @@ from typing import Any
 
 connection_pool: pool.ThreadedConnectionPool = None
 
+
 def init_db_pool(app) -> None:
     """Initialize the connection pool."""
     global connection_pool
@@ -21,6 +22,7 @@ def init_db_pool(app) -> None:
             password=app.config["DB_PASSWORD"],
             port=app.config["DB_PORT"],
         )
+
 
 def get_db_connection_from_pool() -> connection:
     """Retrieve a connection from the pool."""

@@ -46,7 +46,7 @@ def fetch_projects(
 
     if not rows:
         current_app.logger.info("No projects found for the given page and limit.")
-    
+
     projects = [
         {
             "uuid": row[0],
@@ -95,7 +95,6 @@ def delete_project_by_id(project_uuid: str, **kwargs) -> bool:
 
     query = "DELETE FROM projects WHERE uuid = %s RETURNING api_key"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [project_uuid])
     result = cursor.fetchone()[0]
     connection.commit()
@@ -114,7 +113,6 @@ def update_project_name(uuid: str, new_name: str, **kwargs) -> bool:
 
     query = "UPDATE projects SET name = %s WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [new_name, uuid])
     rows_updated = cursor.rowcount
     connection.commit()
@@ -129,7 +127,6 @@ def get_project_name(uuid: str, **kwargs) -> Optional[str]:
 
     query = "SELECT name FROM projects WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [uuid])
     result = cursor.fetchone()
 
@@ -145,13 +142,12 @@ def get_topic_arn(project_uuid: str, **kwargs) -> Optional[str]:
     cursor = kwargs["cursor"]
 
     query = "SELECT sns_topic_arn FROM projects WHERE uuid = %s"
-    
-    current_app.logger.debug(f"Executing query: {query}")
+
     cursor.execute(query, [project_uuid])
     result = cursor.fetchone()
 
     if result:
-        result[0]
+        return result[0]
     else:
         return None
 
@@ -167,7 +163,6 @@ def get_all_sns_subscription_arns_for_project(project_uuid: str, **kwargs) -> li
     WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [project_uuid])
     rows = cursor.fetchall()
 

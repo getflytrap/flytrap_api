@@ -38,7 +38,9 @@ def get_projects() -> Response:
     current_app.logger.debug(f"Fetching projects with page={page}, limit={limit}")
 
     if page < 1 or (limit is not None and limit < 1):
-        current_app.logger.error(f"Invalid pagination parameters: page={page}, limit={limit}")
+        current_app.logger.error(
+            f"Invalid pagination parameters: page={page}, limit={limit}"
+        )
         return (
             jsonify({"message": "Invalid pagination parameters."}),
             400,
@@ -46,7 +48,9 @@ def get_projects() -> Response:
 
     try:
         project_data = fetch_projects(page, limit)
-        current_app.logger.info(f"Fetched {len(project_data)} projects for page={page}, limit={limit}")
+        current_app.logger.info(
+            f"Fetched {len(project_data)} projects for page={page}, limit={limit}"
+        )
         return jsonify({"payload": project_data}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to fetch projects: {e}", exc_info=True)
@@ -69,7 +73,12 @@ def create_project() -> Response:
     platform = data.get("platform")
 
     if not name or not platform:
-        current_app.logger.error(f"Missing project name or platform in request: name={name}, platform={platform}")
+        current_app.logger.error(
+            (
+                f"Missing project name or platform in request: name={name}, "
+                f"platform={platform}"
+            )
+        )
         return (
             jsonify({"message": "Missing project name or platform."}),
             400,
@@ -77,21 +86,25 @@ def create_project() -> Response:
 
     project_uuid = generate_uuid()
     api_key = generate_uuid()
-    current_app.logger.debug(f"Generated UUID for project: {project_uuid} and API key: {api_key}")
+    current_app.logger.debug(
+        f"Generated UUID for project: {project_uuid} and API key: {api_key}"
+    )
 
     try:
         topic_arn = create_sns_topic(project_uuid)
         add_project(name, project_uuid, api_key, platform, topic_arn)
         associate_api_key_with_usage_plan(name, api_key)
-        current_app.logger.info(f"Project created successfully: {name} ({project_uuid})")
-        
+        current_app.logger.info(
+            f"Project created successfully: {name} ({project_uuid})"
+        )
+
         project_data = {
             "uuid": project_uuid,
             "name": name,
             "platform": platform,
             "api_key": api_key,
         }
-        
+
         return jsonify({"payload": project_data}), 201
     except Exception as e:
         current_app.logger.error(f"Failed to create project: {e}", exc_info=True)
@@ -121,7 +134,9 @@ def delete_project(project_uuid: str) -> Response:
             current_app.logger.warning(f"Project not found: {project_uuid}")
             return jsonify({"message": "Project not found."}), 404
     except Exception as e:
-        current_app.logger.error(f"Failed to delete project UUID={project_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to delete project UUID={project_uuid}: {e}", exc_info=True
+        )
         return jsonify({"message": "Failed to delete project."}), 500
 
 
@@ -135,7 +150,7 @@ def update_project(project_uuid: str) -> Response:
     if not project_uuid:
         current_app.logger.error("Project identifier is required but missing.")
         return jsonify({"message": "Project identifier required."}), 400
-    
+
     data = request.get_json()
 
     if not data:
@@ -151,11 +166,15 @@ def update_project(project_uuid: str) -> Response:
     try:
         success = update_project_name(project_uuid, new_name)
         if success:
-            current_app.logger.info(f"Updated project {project_uuid} with new name: {new_name}")
+            current_app.logger.info(
+                f"Updated project {project_uuid} with new name: {new_name}"
+            )
             return "", 204
         else:
             current_app.logger.warning(f"Project not found for update: {project_uuid}")
             return jsonify({"message": "Project not found."}), 404
     except Exception as e:
-        current_app.logger.error(f"Failed to update project UUID={project_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to update project UUID={project_uuid}: {e}", exc_info=True
+        )
         return jsonify({"message": "Failed to update project."}), 500

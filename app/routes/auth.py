@@ -31,14 +31,18 @@ def login() -> Response:
     password = data.get("password")
 
     if not email or not password:
-        current_app.logger.error(f"Login request missing email or password: email={email}")
+        current_app.logger.error(
+            f"Login request missing email or password: email={email}"
+        )
         return jsonify({"message": "Invalid email or password"}), 400
 
     try:
         user = fetch_user_by_email(email)
 
         if not user:
-            current_app.logger.warning(f"Login failed: user with email {email} not found.")
+            current_app.logger.warning(
+                f"Login failed: user with email {email} not found."
+            )
             return jsonify({"message": "Invalid email or password"}), 400
 
         # Extract user details
@@ -50,9 +54,11 @@ def login() -> Response:
 
         # Verify password
         if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
-            current_app.logger.warning(f"Login failed: invalid password for email {email}.")
+            current_app.logger.warning(
+                f"Login failed: invalid password for email {email}."
+            )
             return jsonify({"message": "Invalid email or password"}), 401
-        
+
         access_token = token_manager.create_access_token(uuid, is_root, expires_in=20)
         refresh_token = token_manager.create_refresh_token(uuid, expires_in=7)
 
@@ -81,7 +87,7 @@ def login() -> Response:
     except Exception as e:
         current_app.logger.error(f"Login failed for user {email}: {e}", exc_info=True)
         return jsonify({"message": "Login failed."}), 500
-    
+
 
 @bp.route("/logout", methods=["POST"])
 def logout() -> Response:
@@ -111,11 +117,16 @@ def refresh() -> Response:
     try:
         new_access_token, error_response = token_manager.refresh_access_token()
         if error_response:
-            current_app.logger.warning(f"Token refresh failed: {error_response["message"]}.")
+            current_app.logger.warning(
+                f"Token refresh failed: {error_response["message"]}."
+            )
             return jsonify(error_response), 401
 
         current_app.logger.info("Access token refreshed successfully.")
         return jsonify({"payload": new_access_token}), 200
     except Exception as e:
         current_app.logger.error(f"Failed to refresh access token: {e}", exc_info=True)
-        return jsonify({"message": "Unable to refresh session. Please log in again."}), 500
+        return (
+            jsonify({"message": "Unable to refresh session. Please log in again."}),
+            500,
+        )

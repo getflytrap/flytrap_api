@@ -6,7 +6,6 @@ user to a project, and remove a user from a project. Each function is decorated 
 ensure the correct database connection context for reading or writing.
 """
 
-from flask import current_app
 from typing import List
 from db import db_read_connection, db_write_connection
 
@@ -26,7 +25,6 @@ def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
     WHERE p.uuid = %s
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (project_uuid,))
     rows = cursor.fetchall()
 
@@ -44,7 +42,6 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     # Check if the project exists
     project_query = "SELECT id FROM projects WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {project_query}")
     cursor.execute(project_query, [project_uuid])
     project = cursor.fetchone()
 
@@ -56,7 +53,6 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     # Check if the user exists
     user_query = "SELECT id FROM users WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {user_query}")
     cursor.execute(user_query, [user_uuid])
     user = cursor.fetchone()
 
@@ -72,7 +68,6 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     WHERE project_id = %s AND user_id = %s
     """
 
-    current_app.logger.debug(f"Executing query: {association_query}")
     cursor.execute(association_query, [project_id, user_id])
     if cursor.fetchone():
         return False  # Indicate that the user was already added
@@ -83,7 +78,6 @@ def add_user_to_project(project_uuid: str, user_uuid: str, **kwargs: dict) -> No
     VALUES (%s, %s)
     """
 
-    current_app.logger.debug(f"Executing query: {insert_query}")
     cursor.execute(insert_query, [project_id, user_id])
     connection.commit()
 
@@ -110,7 +104,6 @@ def remove_user_from_project(project_uuid: str, user_uuid: str, **kwargs: dict) 
     )
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(
         query,
         (
@@ -142,6 +135,5 @@ def save_sns_subscription_arn_to_db(
     )
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [arn, user_uuid, project_uuid])
     connection.commit()

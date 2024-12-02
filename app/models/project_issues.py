@@ -6,7 +6,6 @@ resolution status, and deleting records. Each function is decorated to ensure pr
 database connection context for reading or writing.
 """
 
-from flask import current_app
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
 from db import db_read_connection, db_write_connection
@@ -62,7 +61,6 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
     WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
 
-    current_app.logger.debug(f"Executing query: {error_query}")
     cursor.execute(error_query, (project_uuid,))
     error_rows_deleted = cursor.rowcount
 
@@ -71,7 +69,6 @@ def delete_issues_by_project(project_uuid: str, **kwargs: dict) -> bool:
     WHERE project_id IN (SELECT id FROM projects WHERE uuid = %s)
     """
 
-    current_app.logger.debug(f"Executing query: {rejection_query}")
     cursor.execute(rejection_query, (project_uuid,))
     rejection_rows_deleted = cursor.rowcount
 
@@ -95,7 +92,6 @@ def fetch_error(
     WHERE uuid = %s
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [error_uuid])
     error = cursor.fetchone()
 
@@ -112,7 +108,6 @@ def fetch_error(
     )
     """
 
-    current_app.logger.debug(f"Executing query: {occurrence_query}")
     cursor.execute(occurrence_query, [error_hash, project_uuid])
     total_occurrences = cursor.fetchone()[0]
 
@@ -124,7 +119,6 @@ def fetch_error(
     )
     """
 
-    current_app.logger.debug(f"Executing query: {user_count_query}")
     cursor.execute(user_count_query, [error_hash, project_uuid])
     distinct_users = cursor.fetchone()[0]
 
@@ -157,14 +151,13 @@ def fetch_rejection(
 ) -> Optional[Dict[str, str]]:
     """Retrieves a specific rejection log by its UUID."""
     cursor = kwargs["cursor"]
-    
+
     query = """
     SELECT value, created_at, handled, resolved, method, path, os, browser, runtime
     FROM rejection_logs
     WHERE uuid = %s
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [rejection_uuid])
     rejection = cursor.fetchone()
 
@@ -196,7 +189,6 @@ def update_error_resolved(
 
     query = "UPDATE error_logs SET resolved = %s WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [new_resolved_state, error_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
@@ -214,7 +206,6 @@ def update_rejection_resolved(
 
     query = "UPDATE rejection_logs SET resolved = %s WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [new_resolved_state, rejection_uuid])
     rows_updated = cursor.rowcount
     connection.commit()
@@ -230,7 +221,6 @@ def delete_error_by_id(error_uuid: str, **kwargs: dict) -> bool:
 
     query = "DELETE FROM error_logs WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [error_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -246,7 +236,6 @@ def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
 
     query = "DELETE FROM rejection_logs WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [rejection_uuid])
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -270,7 +259,6 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
         ORDER BY day
         """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(
         query,
         (
@@ -289,7 +277,6 @@ def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
         ORDER BY day
         """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (project_uuid, start_of_week))
     rejection_results = cursor.fetchall()
 
@@ -317,7 +304,6 @@ def fetch_most_recent_log(
 
     project_query = "SELECT id FROM projects WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {project_query}")
     cursor.execute(project_query, [project_uuid])
     project = cursor.fetchone()
     project_id = project[0]
@@ -332,7 +318,6 @@ def fetch_most_recent_log(
     LIMIT 1
     """
 
-    current_app.logger.debug(f"Executing query: {error_query}")
     cursor.execute(error_query, [project_id])
     error = cursor.fetchone()
 
@@ -347,7 +332,6 @@ def fetch_most_recent_log(
     LIMIT 1
     """
 
-    current_app.logger.debug(f"Executing query: {rejection_query}")
     cursor.execute(rejection_query, [project_id])
     rejection = cursor.fetchone()
 

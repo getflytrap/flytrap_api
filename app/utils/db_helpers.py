@@ -1,7 +1,6 @@
 """Database helper functions for projects and logs."""
 
 import math
-from flask import current_app
 from typing import Optional, List, Dict
 from psycopg2.extensions import cursor as Cursor
 
@@ -13,7 +12,6 @@ def calculate_total_project_pages(cursor: Cursor, limit: int) -> int:
 
     query = "SELECT COUNT(DISTINCT p.id) FROM projects p;"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query)
     total_count = cursor.fetchone()[0]
     total_pages = math.ceil(total_count / limit)
@@ -35,7 +33,6 @@ def calculate_total_user_project_pages(
     WHERE u.uuid = %s;
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid,))
     total_count = cursor.fetchone()[0]
     total_pages = math.ceil(total_count / limit)
@@ -83,7 +80,6 @@ def fetch_errors_by_project(
     query += " ORDER BY e.created_at DESC LIMIT %s OFFSET %s"
     params.extend([limit, offset])
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, params)
     rows = cursor.fetchall()
 
@@ -101,7 +97,6 @@ def fetch_errors_by_project(
         GROUP BY e.error_hash
         """
 
-        current_app.logger.debug(f"Executing query: {stats_query}")
         cursor.execute(stats_query, [project_uuid, tuple(error_hashes)])
         stats = cursor.fetchall()
         stats_map = {
@@ -171,7 +166,6 @@ def fetch_rejections_by_project(
     query += " ORDER BY r.created_at DESC LIMIT %s OFFSET %s"
     params.extend([limit, offset])
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, params)
     rows = cursor.fetchall()
     rejections = [
@@ -216,7 +210,6 @@ def calculate_total_error_pages(
         error_count_query += " AND e.created_at >= %s"
         params.append(time)
 
-    current_app.logger.debug(f"Executing query: {error_count_query}")
     cursor.execute(error_count_query, params)
     error_count = cursor.fetchone()[0]
 
@@ -240,7 +233,6 @@ def calculate_total_error_pages(
         rejection_count_query += " AND r.created_at >= %s"
         params.append(time)
 
-    current_app.logger.debug(f"Executing query: {rejection_count_query}")
     cursor.execute(rejection_count_query, params)
     rejection_count = cursor.fetchone()[0]
 

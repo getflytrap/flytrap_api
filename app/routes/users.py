@@ -15,7 +15,7 @@ from app.models import (
     update_password,
     fetch_projects_for_user,
     fetch_projects,
-    fetch_user
+    fetch_user,
 )
 from app.utils import is_valid_email, generate_uuid
 from app.models import user_is_root
@@ -40,7 +40,6 @@ def get_users() -> Response:
     except Exception as e:
         current_app.logger.error(f"Failed to fetch users: {e}", exc_info=True)
         return jsonify({"message": "Failed to fetch users."}), 500
-
 
 
 @bp.route("", methods=["POST"])
@@ -88,8 +87,16 @@ def create_user() -> Response:
 
     try:
         add_user(user_uuid, first_name, last_name, email, password_hash.decode("utf-8"))
-        user_info = {"uuid": user_uuid, "first_name": first_name, "last_name": last_name, "email": email, "is_root": False}
-        current_app.logger.info(f"User {first_name} {last_name} created successfully with UUID={user_uuid}.")
+        user_info = {
+            "uuid": user_uuid,
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "is_root": False,
+        }
+        current_app.logger.info(
+            f"User {first_name} {last_name} created successfully with UUID={user_uuid}."
+        )
         return (
             jsonify({"payload": user_info}),
             201,
@@ -107,19 +114,24 @@ def get_session_info() -> Response:
 
     if not user_uuid:
         current_app.logger.error("User not found in session payload.")
-        return jsonify({"message":"User not found."}), 404
+        return jsonify({"message": "User not found."}), 404
 
     try:
         user_info = fetch_user(user_uuid)
 
         if not user_info:
-            current_app.logger.error(f"User not found in database for UUID={user_uuid}.")
-            return jsonify({"message":"User not found."}), 404
+            current_app.logger.error(
+                f"User not found in database for UUID={user_uuid}."
+            )
+            return jsonify({"message": "User not found."}), 404
 
         current_app.logger.info(f"Fetched session info for user UUID={user_uuid}.")
         return jsonify({"payload": user_info}), 200
     except Exception as e:
-        current_app.logger.error(f"Failed to fetch session info for user UUID={user_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to fetch session info for user UUID={user_uuid}: {e}",
+            exc_info=True,
+        )
         return jsonify({"message": "Failed to fetch session info."}), 500
 
 
@@ -143,7 +155,9 @@ def delete_user(user_uuid: str) -> Response:
             current_app.logger.warning(f"User UUID={user_uuid} not found for deletion.")
             return jsonify("User not found"), 404
     except Exception as e:
-        current_app.logger.error(f"Failed to delete user UUID={user_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to delete user UUID={user_uuid}: {e}", exc_info=True
+        )
         return jsonify({"message": "Failed to delete user."}), 500
 
 
@@ -152,7 +166,9 @@ def delete_user(user_uuid: str) -> Response:
 @auth_manager.authorize_user
 def update_user_password(user_uuid: str) -> Response:
     """Updates the password of a specified user."""
-    current_app.logger.debug(f"Received request to update password for user UUID={user_uuid}.")
+    current_app.logger.debug(
+        f"Received request to update password for user UUID={user_uuid}."
+    )
 
     if not user_uuid:
         current_app.logger.error("User identifier is required but missing.")
@@ -176,13 +192,19 @@ def update_user_password(user_uuid: str) -> Response:
     try:
         success = update_password(user_uuid, password_hash)
         if success:
-            current_app.logger.info(f"Password updated successfully for user UUID={user_uuid}.")
+            current_app.logger.info(
+                f"Password updated successfully for user UUID={user_uuid}."
+            )
             return "", 204
         else:
-            current_app.logger.warning(f"User UUID={user_uuid} not found for password update.")
+            current_app.logger.warning(
+                f"User UUID={user_uuid} not found for password update."
+            )
             return jsonify({"message": "User not found"}), 404
     except Exception as e:
-        current_app.logger.error(f"Failed to update password for user UUID={user_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to update password for user UUID={user_uuid}: {e}", exc_info=True
+        )
         return jsonify({"message": "Failed to update password."}), 500
 
 
@@ -196,14 +218,16 @@ def get_user_projects(user_uuid: str) -> Response:
     if not user_uuid:
         current_app.logger.error("User identifier is required but missing.")
         return jsonify({"message": "User identifier required."}), 400
-    
+
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
-    
+
     current_app.logger.debug(f"Fetching user projects with page={page}, limit={limit}")
 
     if page < 1 or limit < 1:
-        current_app.logger.error(f"Invalid pagination parameters: page={page}, limit={limit}")
+        current_app.logger.error(
+            f"Invalid pagination parameters: page={page}, limit={limit}"
+        )
         return (
             jsonify({"message": "Invalid pagination parameters."}),
             400,
@@ -218,8 +242,15 @@ def get_user_projects(user_uuid: str) -> Response:
         else:
             project_data = fetch_projects_for_user(user_uuid, page, limit)
 
-        current_app.logger.info(f"Fetched {len(project_data['projects'])} projects for user UUID={user_uuid}.") 
+        current_app.logger.info(
+            (
+                f"Fetched {len(project_data['projects'])} projects for user "
+                f"UUID={user_uuid}."
+            )
+        )
         return jsonify({"payload": project_data}), 200
     except Exception as e:
-        current_app.logger.error(f"Failed to fetch projects for user UUID={user_uuid}: {e}", exc_info=True)
+        current_app.logger.error(
+            f"Failed to fetch projects for user UUID={user_uuid}: {e}", exc_info=True
+        )
         return jsonify({"message": "Failed to fetch user projects."}), 500

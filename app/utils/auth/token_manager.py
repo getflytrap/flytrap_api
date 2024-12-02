@@ -12,7 +12,6 @@ class TokenManager:
             "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_in),
         }
 
-
         token = jwt.encode(
             token_payload,
             current_app.config["JWT_SECRET_KEY"],
@@ -20,7 +19,6 @@ class TokenManager:
         )
         current_app.logger.debug(f"Access token created for user_uuid={user_uuid}.")
         return token
-    
 
     def create_refresh_token(self, user_uuid, expires_in=7):
         token_payload = {
@@ -43,19 +41,10 @@ class TokenManager:
         current_app.logger.debug("Token decoded successfully.")
         return payload
 
-    def validate_token(self, token):
-        try:
-            self.decode_token(token)
-            return True
-        except jwt.ExpiredSignatureError:
-            return False
-        except jwt.InvalidTokenError:
-            return False
-
     def refresh_access_token(self):
         refresh_token = request.cookies.get("refresh_token")
         if not refresh_token:
-            current_app.logger.info('Missing refresh token.')
+            current_app.logger.info("Missing refresh token.")
             return None, {"message": "Authentication required. Please log in."}
 
         try:
@@ -66,8 +55,8 @@ class TokenManager:
             new_access_token = self.create_access_token(user_uuid, is_root)
             return new_access_token, None
         except jwt.ExpiredSignatureError:
-            current_app.logger.info('Refresh token expired.')
+            current_app.logger.info("Refresh token expired.")
             return None, {"message": "Session expired. Please log in again."}
         except jwt.InvalidTokenError:
-            current_app.logger.info('Invalid refresh token.')
+            current_app.logger.info("Invalid refresh token.")
             return None, {"message": "Invalid session. Please log in again."}

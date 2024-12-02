@@ -19,7 +19,6 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 
     query = "SELECT uuid, first_name, last_name, email, is_root FROM users;"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -39,7 +38,12 @@ def fetch_all_users(**kwargs) -> Optional[List[Dict[str, str]]]:
 
 @db_write_connection
 def add_user(
-    user_uuid: str, first_name: str, last_name: str, email: str, password_hash: str, **kwargs
+    user_uuid: str,
+    first_name: str,
+    last_name: str,
+    email: str,
+    password_hash: str,
+    **kwargs
 ) -> int:
     """Adds a new user to the database with the specified information."""
     connection = kwargs["connection"]
@@ -52,7 +56,6 @@ def add_user(
     RETURNING id;
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid, first_name, last_name, email, password_hash))
     connection.commit()
 
@@ -65,7 +68,6 @@ def delete_user_by_id(user_uuid: str, **kwargs) -> bool:
 
     query = "DELETE FROM users WHERE uuid = %s"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid,))
     rows_deleted = cursor.rowcount
     connection.commit()
@@ -85,7 +87,6 @@ def update_password(user_uuid: str, password_hash: str, **kwargs) -> bool:
     WHERE uuid = %s
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (password_hash, user_uuid))
     rows_updated = cursor.rowcount
     connection.commit()
@@ -107,7 +108,6 @@ def fetch_user_by_email(
     WHERE u.email = %s;
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (email,))
     user = cursor.fetchone()
     if user:
@@ -133,7 +133,6 @@ def user_is_root(user_uuid, **kwargs):
     WHERE uuid = %s
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid,))
 
     result = cursor.fetchone()
@@ -177,7 +176,6 @@ def fetch_projects_for_user(user_uuid, page: int, limit: int, **kwargs) -> dict:
     LIMIT %s OFFSET %s;
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, (user_uuid, limit, offset))
     rows = cursor.fetchall()
 
@@ -208,7 +206,6 @@ def fetch_user(user_uuid: str, **kwargs) -> dict:
 
     query = "SELECT first_name, last_name, email, is_root FROM users WHERE uuid = %s;"
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [user_uuid])
     user = cursor.fetchone()
     if not user:
@@ -235,7 +232,6 @@ def get_all_sns_subscription_arns_for_user(user_uuid: str, **kwargs) -> list:
     WHERE user_id = (SELECT id FROM users WHERE uuid = %s)
     """
 
-    current_app.logger.debug(f"Executing query: {query}")
     cursor.execute(query, [user_uuid])
     rows = cursor.fetchall()
     current_app.logger.info(rows)
