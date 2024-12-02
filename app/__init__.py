@@ -29,7 +29,7 @@ def create_app() -> Flask:
     def handle_generic_error(e):
         app.logger.error(
             f"Unexpected error during {request.method} {request.path}: {e}",
-            exc_info=True
+            exc_info=True,
         )
         return jsonify({"message": "Internal Server Error"}), 500
 
