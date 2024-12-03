@@ -118,7 +118,7 @@ def refresh() -> Response:
         new_access_token, error_response = token_manager.refresh_access_token()
         if error_response:
             current_app.logger.warning(
-                f"Token refresh failed: {error_response["message"]}."
+                f"Token refresh failed: {error_response.get('message')}."
             )
             return jsonify(error_response), 401
 
