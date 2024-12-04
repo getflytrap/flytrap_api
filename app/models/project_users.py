@@ -12,7 +12,7 @@ from db import db_read_connection, db_write_connection
 
 @db_read_connection
 def fetch_project_users(project_uuid: str, **kwargs: dict) -> List[int]:
-    """Retrieves a list of user IDs associated with a specific project."""
+    """Retrieves a list of user UUIDs associated with a specific project."""
     cursor = kwargs["cursor"]
 
     query = """
