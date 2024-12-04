@@ -16,11 +16,9 @@ app.config["TESTING"] = True
 def client():
     return app.test_client()
 
-@patch('app.routes.projects.add_project')
 @patch('app.routes.projects.generate_uuid')
-def test_create_project(mock_generate_uuid, mock_add_project, client):
+def test_create_project(mock_generate_uuid, client):
     mock_generate_uuid.return_value = "dajhew32876dcx79sd2332"
-    mock_add_project.return_value = MOCK_DATA["create_project"]
 
     response = client.post('/api/projects', json={
         "name": "testing123",
