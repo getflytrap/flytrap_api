@@ -10,16 +10,24 @@ MOCK_DATA = {
   "fetch_projects": {
         "projects": [
             {
-                "uuid": "12321312",
-                "name": "project1",
-                "api_key": "23423432432324",
-                "platform": "flask"
+                "uuid": "dajhew32876dcx79sd2332",
+                "issue_count": 0,
+                "name": "testing123",
+                "api_key": "api_key_123",
+                "platform": "react"
             }
         ],
         "status": "success"
     },
     "add_project": {
       ""
+    },
+    "mock_user": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email": "john@doe.com",
+        "password": "password123",
+        "confirmed_password": "password123"
     }
 }
 

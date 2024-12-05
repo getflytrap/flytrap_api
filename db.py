@@ -1,7 +1,9 @@
 """Database configuration and connection management with pooling."""
 
 import functools
+import time
 from psycopg2 import pool
+from psycopg2 import OperationalError
 from psycopg2.extensions import connection, cursor as Cursor
 from typing import Any
 
@@ -12,16 +14,31 @@ def init_db_pool(app) -> None:
     """Initialize the connection pool."""
     global connection_pool
     app.logger.debug("Initialising pool")
+    
     if connection_pool is None:
-        connection_pool = pool.ThreadedConnectionPool(
-            minconn=1,
-            maxconn=app.config.get("DB_MAX_CONNECTIONS", 10),
-            host=app.config["DB_HOST"],
-            database=app.config["DB_NAME"],
-            user=app.config["DB_USER"],
-            password=app.config["DB_PASSWORD"],
-            port=app.config["DB_PORT"],
-        )
+        retries = 5
+        for attempt in range(retries):
+            try:
+                connection_pool = pool.ThreadedConnectionPool(
+                    minconn=1,
+                    maxconn=app.config.get("DB_MAX_CONNECTIONS", 10),
+                    host=app.config["DB_HOST"],
+                    database=app.config["DB_NAME"],
+                    user=app.config["DB_USER"],
+                    password=app.config["DB_PASSWORD"],
+                    port=app.config["DB_PORT"],
+                )
+                break  # Successfully created the pool, exit retry loop
+            except OperationalError as e:
+                app.logger.error(
+                    f"Attempt {attempt + 1}/{retries} failed: {e}. Retrying in 5 seconds..."
+                )
+                time.sleep(5)
+        else:
+            # If retries are exhausted
+            raise RuntimeError(
+                "Failed to initialize database connection pool after several attempts."
+            )
 
 
 def get_db_connection_from_pool() -> connection:

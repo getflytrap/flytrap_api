@@ -3,6 +3,15 @@
 import os
 import json
 
+class TestingConfig:
+    """Testing configuration."""
+    TESTING = True
+    DB_HOST = "localhost"
+    DB_PORT = 5433
+    DB_NAME = "test_db"
+    DB_USER = "postgres"
+    DB_PASSWORD = "postgres"
+
 
 def load_config(app):
     """
@@ -10,17 +19,10 @@ def load_config(app):
     This includes environment variables and secrets from AWS Secrets Manager.
     """
     app.config["ENVIRONMENT"] = os.getenv("FLASK_ENV", "development")
-    app.config["AWS_REGION"] = os.getenv("AWS_REGION")
-    app.config["USAGE_PLAN_ID"] = os.getenv("USAGE_PLAN_ID")
-    app.config["DB_HOST"] = os.getenv("PGHOST")
-    app.config["DB_NAME"] = os.getenv("PGDATABASE")
-    app.config["DB_USER"] = os.getenv("PGUSER")
-    app.config["DB_PORT"] = os.getenv("PGPORT")
-    app.config["HTTPONLY"] = os.getenv("HTTPONLY") == "True"
-    app.config["SECURE"] = os.getenv("SECURE") == "True"
-    app.config["SAMESITE"] = os.getenv("SAMESITE")
 
-    if app.config["ENVIRONMENT"] == "development":
+    if app.config["ENVIRONMENT"] == 'TESTING':
+        app.config.from_object(TestingConfig)
+    elif app.config["ENVIRONMENT"] == "development":
         from dotenv import load_dotenv
 
         load_dotenv()
