@@ -64,7 +64,7 @@ def login() -> Response:
 
         # Construct response data
         user_info = {
-            "user_uuid": uuid,
+            "uuid": uuid,
             "first_name": first_name,
             "last_name": last_name,
             "is_root": is_root,
