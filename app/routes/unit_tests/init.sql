@@ -89,4 +89,5 @@ VALUES (
   true
 );
 
-
+INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
+VALUES ('fdlkj432987jh43hjkds', 'dummy_project', 'api_key_789', 'flask', '435jhksdjkg43hks')

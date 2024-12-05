@@ -166,6 +166,8 @@ def delete_user(user_uuid: str) -> Response:
 @auth_manager.authorize_user
 def update_user_password(user_uuid: str) -> Response:
     """Updates the password of a specified user."""
+
+    print('uuid here', user_uuid)
     current_app.logger.debug(
         f"Received request to update password for user UUID={user_uuid}."
     )

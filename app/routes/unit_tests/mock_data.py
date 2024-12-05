@@ -1,5 +1,5 @@
 MOCK_DATA = {
-  "create_project": {
+  "mock_project": {
       "payload": {
           "uuid": "dajhew32876dcx79sd2332",
           "name": "testing123",
@@ -10,11 +10,18 @@ MOCK_DATA = {
   "fetch_projects": {
         "projects": [
             {
-                "uuid": "dajhew32876dcx79sd2332",
+                "uuid": "fdlkj432987jh43hjkds",
                 "issue_count": 0,
+                "name": "dummy_project",
+                "api_key": "api_key_789",
+                "platform": "flask"
+            },
+            {
+                "uuid": "dajhew32876dcx79sd2332",
                 "name": "testing123",
-                "api_key": "api_key_123",
-                "platform": "react"
+                "issue_count": 0,
+                "platform": "react",
+                "api_key": "api_key_123"
             }
         ],
         "status": "success"
@@ -28,6 +35,17 @@ MOCK_DATA = {
         "email": "john@doe.com",
         "password": "password123",
         "confirmed_password": "password123"
+    },
+    "fetch_user_projects": {
+        "current_page": 1,
+        "total_pages": 1,
+        "projects": [{
+            'api_key': 'api_key_789',
+            'issue_count': 0,
+            'name': 'dummy_project',
+            'platform': 'flask',
+            'uuid': 'fdlkj432987jh43hjkds',
+        }]
     }
 }
 

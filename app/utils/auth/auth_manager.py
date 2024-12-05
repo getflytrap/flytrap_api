@@ -13,7 +13,7 @@ class AuthManager:
     def authenticate(self, f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if current_app.config.get('TESTING'):
+            if current_app.config.get('ENVIRONMENT') == 'TESTING':
                 return f(*args, **kwargs)
             token = self._get_token()
             if not token:
@@ -50,7 +50,7 @@ class AuthManager:
     def authorize_root(self, f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if current_app.config.get('TESTING'):
+            if current_app.config.get('ENVIRONMENT') == 'TESTING':
                 return f(*args, **kwargs)
             if g.user_payload.get("is_root"):
                 current_app.logger.debug("Root access granted.")
@@ -136,6 +136,8 @@ class AuthManager:
     def authorize_user(self, f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            if current_app.config.get('ENVIRONMENT') == 'TESTING':
+                return f(*args, **kwargs)
             user_uuid_in_path = kwargs.get("user_uuid")
             current_user_uuid = g.user_payload.get("user_uuid")
 

@@ -71,7 +71,7 @@ def add_project_user(project_uuid: str) -> Response:
         if user_is_root(user_uuid):
             current_app.logger.warning(
                 (
-                    f"Attempt to add root user UUID={user_uuid} to project "
+                    f"Attempted to add root user UUID={user_uuid} to project."
                     f"UUID={project_uuid}."
                 )
             )

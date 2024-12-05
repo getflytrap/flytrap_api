@@ -9,6 +9,7 @@ from db import init_db_pool
 
 pytest_plugins = ["pytest_docker.plugin"]
 
+# Set the correct version of the docker-compose command
 @pytest.fixture(scope="session")
 def docker_compose_command() -> str:
     return "docker-compose"
@@ -44,9 +45,7 @@ def postgres_container(docker_services):
     conn.close()
 
 @pytest.fixture
-def app(postgres_container):
-    """Pass the pre-verified connection to init_db_pool."""
-    
+def app(postgres_container):    
     os.environ["FLASK_ENV"] = "TESTING"
     app = create_app()
     load_config(app)
