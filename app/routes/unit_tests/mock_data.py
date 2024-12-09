@@ -11,7 +11,7 @@ MOCK_DATA = {
         "projects": [
             {
                 "uuid": "fdlkj432987jh43hjkds",
-                "issue_count": 0,
+                "issue_count": 1,
                 "name": "dummy_project",
                 "api_key": "api_key_789",
                 "platform": "flask"
@@ -41,11 +41,32 @@ MOCK_DATA = {
         "total_pages": 1,
         "projects": [{
             'api_key': 'api_key_789',
-            'issue_count': 0,
+            'issue_count': 1,
             'name': 'dummy_project',
             'platform': 'flask',
             'uuid': 'fdlkj432987jh43hjkds',
         }]
+    },
+    "mock_error": {
+        "uuid": "jkhas894jhkchjkl", 
+        "name": "dummy error", 
+        "message": "dummy message", 
+        "created_at": "2023-07-14 15:23:45", 
+        "filename": "dummy.py", 
+        "line_number": 89, 
+        "col_number": 23, 
+        "project_id": 1, 
+        "stack_trace": "dummy stack", 
+        "handled": False,
+        "resolved": False, 
+        "contexts": {"user": {"id": 123, "role": "admin"}, "request": {"query": "id=1"}}, 
+        "method": "POST", 
+        "path": "/api/v1/resource", 
+        "ip": "123.4.3.5", 
+        "os": "MacOS", 
+        "browser": "Chrome 96", 
+        "runtime": "Python 3.9.7", 
+        "error_hash": "dslajl234lsjl4"
     }
 }
 
@@ -54,3 +75,4 @@ class status_codes:
     HTTP_200_OK = 200
     HTTP_400_BAD_REQUEST = 400
     HTTP_204_NO_CONTENT = 204
+    HTTP_500_SERVER_ERROR = 500

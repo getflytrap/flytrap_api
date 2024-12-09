@@ -21,6 +21,9 @@ def login() -> Response:
     """Logs in a user by verifying credentials and issuing JWT tokens."""
     current_app.logger.debug("Login request received.")
 
+    if not request.json:
+        current_app.logger.error("Invalid request: No JSON payload provided.")
+        return jsonify({"message": "Invalid request"}), 400
     data = request.json
 
     if not data:

@@ -10,6 +10,7 @@ class TestingConfig:
     DB_NAME = "test_db"
     DB_USER = "postgres"
     DB_PASSWORD = "postgres"
+    JWT_SECRET_KEY = '23ljdskj3jh23b432k'
 
 
 def load_config(app):

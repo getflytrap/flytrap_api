@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   uuid VARCHAR(36) NOT NULL UNIQUE,
-  name VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL UNIQUE,
   api_key VARCHAR(36) NOT NULL UNIQUE,
   platform VARCHAR(255) NOT NULL,
   sns_topic_arn VARCHAR(255) NOT NULL
@@ -90,4 +90,14 @@ VALUES (
 );
 
 INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
-VALUES ('fdlkj432987jh43hjkds', 'dummy_project', 'api_key_789', 'flask', '435jhksdjkg43hks')
+VALUES ('fdlkj432987jh43hjkds', 'dummy_project', 'api_key_789', 'flask', '435jhksdjkg43hks');
+
+
+INSERT INTO error_logs (
+  uuid, name, message, created_at, filename, line_number, col_number, project_id, stack_trace, handled,
+  resolved, contexts, method, path, ip, os, browser, runtime, error_hash
+)
+VALUES ('jkhas894jhkchjkl', 'dummy error', 'dummy message', 'Fri, 14 Jul 2023 15:23:45 GMT', 'dummy.py', 89, 23, 1, 'dummy stack', false,
+  false, '{"user": {"id": 123, "role": "admin"}, "request": {"query": "id=1"}}'::jsonb, 'POST', '/api/v1/resource', '123.4.3.5', 'MacOS',
+  'Chrome 96', 'Python 3.9.7', 'dslajl234lsjl4'
+);

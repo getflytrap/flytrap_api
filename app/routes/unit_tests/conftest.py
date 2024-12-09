@@ -48,6 +48,10 @@ def postgres_container(docker_services):
 def app(postgres_container):    
     os.environ["FLASK_ENV"] = "TESTING"
     app = create_app()
+    app.config["HTTPONLY"] = True
+    app.config["SECURE"] = False
+    app.config["SAMESITE"] = "Lax"
+    
     load_config(app)
     init_db_pool(app)
 
