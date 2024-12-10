@@ -8,6 +8,8 @@ This guide explains how to set up the Flytrap API locally for development and te
 
 To learn more about Flytrap, check out our [case study](https://getflytrap.github.io/).
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## 🛠️ Key Features
 - **User Authentication:** Secure authentication using JWT tokens.
 - **Project Management:** Create, update, and manage projects within Flytrap.
