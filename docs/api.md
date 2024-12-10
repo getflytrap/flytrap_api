@@ -16,15 +16,13 @@ Fetches all users.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": [
+  "payload": [
     {
       "uuid": "056ec265-79e0-4c03-8017-895eccd2cc05",
       "first_name": "John",
       "last_name": "Doe",
       "email": "john.doe@example.com",
       "is_root": true,
-      "created_at": "2023-10-01T12:00:00Z"
     }
   ]
 }
@@ -49,16 +47,33 @@ Creates a new user.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "uuid": "056ec265-79e0-4c03-8017-895eccd2cc05",
     "first_name": "John",
-    "last_name": "Doe"
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "is_root": false,
   }
 }
 ```
 
-### 1.3 DELETE /api/users/:user_uuid
+### 1.3 GET /api/users/me
+Gets session info if current user is logged in.
+
+#### Example Response
+```json
+{
+  "payload": {
+    "uuid": "056ec265-79e0-4c03-8017-895eccd2cc05",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "is_root": false,
+  }
+}
+```
+
+### 1.4 DELETE /api/users/:user_uuid
 Deletes a specific user by UUID.
 
 **Authorization**: Requires root access.
@@ -67,7 +82,7 @@ Deletes a specific user by UUID.
 Empty response with status 204 on success.
 
 
-### 1.4 PATCH /api/users/:user_uuid
+### 1.5 PATCH /api/users/:user_uuid
 Updates a user's password.
 
 **Authorization**: Requires user access.
@@ -82,7 +97,7 @@ Updates a user's password.
 #### Example Response
 Empty response with status 204 on success.
 
-### 1.5 GET /api/:user_uuid/projects
+### 1.6 GET /api/:user_uuid/projects
 Retrieves all projects assigned to a specific user by user UUID.
 
 **Authorization**: Requires user access.
@@ -96,8 +111,7 @@ Retrieves all projects assigned to a specific user by user UUID.
 #### Example Response (Success)
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "projects": [
       {
         "uuid": "1234-5678-90ab-cdef",
@@ -139,6 +153,8 @@ Fetches all projects from the database with pagination.
       {
         "uuid": "6f4c2c48-bf42-4f8e-ae1c-f5c53e87bcd1",
         "name": "React Shopping Cart App",
+        "api_key": "9f4c2c48-bf42-4f8e-ae1c-f5c53e87c8ed",
+        "platform": "React",
         "issue_count": 3
       }
     ],
@@ -163,10 +179,11 @@ Creates a new project.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "uuid": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
-    "name": "My Project Name"
+    "name": "My Project Name",
+    "platform": "React",
+    "api_key": "9f4c2c48-bf42-4f8e-ae1c-f5c53e87c8ed",
   }
 }
 ```
@@ -193,15 +210,7 @@ Updates the name of a project.
 ```
 
 #### Example Response
-```json
-{
-  "status": "success",
-  "data": {
-    "uuid": "6e3f2a78-3c8f-4555-9f90-6c11a21c3b62",
-    "name": "Updated Project Name"
-  }
-}
-```
+Empty response with status 204 on success.
 
 ---
 ## 3. Issue Management for Projects
@@ -223,19 +232,21 @@ Fetches issues (errors and rejections) associated with a project.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "issues": [
       {
         "uuid": "789g4567-e89b-12d3-a456-4266141741111",
         "name": "Database Connection Error",
         "message": "Unable to connect to the database.",
         "created_at": "2024-10-03T09:20:00Z",
+        "file": "app.js",
         "line_number": 45,
         "col_number": 15,
         "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
         "handled": false,
-        "resolved": false
+        "resolved": false,
+        "total_occurrences": 3,
+        "distinct_users": 2,
       }
     ],
     "total_pages": 1,
@@ -252,7 +263,7 @@ Deletes all issues related to a project.
 #### Example Response
 Empty response with status 204 on success.
 
-### 3.3 GET /api/projects/:project_uuid/errors/:error_uuid
+### 3.3 GET /api/projects/:project_uuid/issues/errors/:error_uuid
 Retrieves a specific error by ID.
 
 **Authorization**: Requires user access.
@@ -260,8 +271,7 @@ Retrieves a specific error by ID.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "uuid": "sample-uuid-1234-5678",
     "name": "Database Connection Error",
     "message": "Unable to connect to the database.",
@@ -271,12 +281,33 @@ Retrieves a specific error by ID.
     "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
     "stack_trace": "Traceback (most recent call last):...",
     "handled": false,
-    "resolved": false
+    "resolved": false,
+    "contexts": [
+                  {
+                    "file": "src/app.js",
+                    "line": 42,
+                    "column": 18,
+                    "context": "function handleError() { ... }"
+                  },
+                  {
+                    "file": "src/utils/helpers.js",
+                    "line": 58,
+                    "column": 23,
+                    "context": "const data = fetchData(url);"
+                  }
+                ],
+    "method": "GET",
+    "path": "/home",
+    "os": "MacOS",
+    "browser": "Chrome",
+    "runtime": null, 
+    "total_occurrences": 5,
+    "distinct_users": 3,
   }
 }
 ```
 
-### 3.4 GET /api/projects/:project_uuid/rejections/:rejection_uuid
+### 3.4 GET /api/projects/:project_uuid/issues/rejections/:rejection_uuid
 Retrieves a specific rejection by ID.
 
 **Authorization**: Requires user access.
@@ -284,18 +315,22 @@ Retrieves a specific rejection by ID.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "uuid": "sample-uuid-1234-5678",
     "value": "Promise rejected",
     "project_uuid": "123e4567-e89b-12d3-a456-426614174000",
     "handled": false,
-    "resolved": false
+    "resolved": false,
+    "method": "GET",
+    "path": "/home",
+    "os": "MacOS",
+    "browser": "Chrome",
+    "runtime": null, 
   }
 }
 ```
 
-### 3.5 PATCH /api/projects/:project_uuid/errors/:error_uuid
+### 3.5 PATCH /api/projects/:project_uuid/issues/errors/:error_uuid
 Updates the resolved state of an error.
 
 **Authorization**: Requires user access.
@@ -308,14 +343,9 @@ Updates the resolved state of an error.
 ```
 
 #### Example Response
-```json
-{
-  "status": "success",
-  "message": "Error resolved state updated successfully"
-}
-```
+Empty response with status 204 on success.
 
-### 3.6 PATCH /api/projects/:project_uuid/rejections/:rejection_uuid
+### 3.6 PATCH /api/projects/:project_uuid/issues/rejections/:rejection_uuid
 Updates the resolved state of an error.
 
 **Authorization**: Requires user access.
@@ -328,14 +358,9 @@ Updates the resolved state of an error.
 ```
 
 #### Example Response
-```json
-{
-  "status": "success",
-  "message": "Rejection resolved state updated successfully"
-}
-```
+Empty response with status 204 on success.
 
-### 3.7 DELETE /api/projects/:project_uuid/errors/:error_uuid
+### 3.7 DELETE /api/projects/:project_uuid/issues/errors/:error_uuid
 Deletes a specific error by ID.
 
 **Authorization**: Requires user access.
@@ -343,13 +368,24 @@ Deletes a specific error by ID.
 #### Example Response
 Empty response with status 204 on success.
 
-### 3.8 DELETE /api/projects/:project_uuid/rejections/:rejection_uuid
+### 3.8 DELETE /api/projects/:project_uuid/issues/rejections/:rejection_uuid
 Deletes a specific rejection by ID.
 
 **Authorization**: Requires user access.
 
 #### Example Response
 Empty response with status 204 on success.
+
+### 3.9 GET /api/projects/:project_uuid/issues/summary
+Gets a summary of issue counts for the last 7 days for the given project ID.
+
+#### Example Response
+```json 
+{
+  "payload": [10, 25, 7, 80, 76, 21, 17]
+}
+
+```
 
 ---
 
@@ -364,8 +400,7 @@ Fetches users associated with a project.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": [1, 5, 7]
+  "payload": ["d614a8c7-0288-4850-a9a8-a647b1133d1", "f614a8c7-0288-4850-a9a8-a647b113gh67"]
 }
 ```
 
@@ -382,12 +417,7 @@ Adds a user to a project.
 ```
 
 #### Example Response
-```json
-{
-  "status": "success",
-  "message": "Successfully added user to project"
-}
-```
+Empty response with 204 status on success.
 
 ### 4.3 DELETE /api/projects/:project_uuid/users/:user_uuid
 Removes a user from a project.
@@ -416,12 +446,14 @@ Logs in a user and issues JWT tokens.
 #### Example Response
 ```json
 {
-  "status": "success",
-  "data": {
+  "payload": {
     "access_token": "JWT_TOKEN",
-    "first_name": "John",
-    "last_name": "Doe",
-    "is_root": "False",
+    "user": {
+      "uuid": "d614a8c7-0288-4850-a9a8-a647b1133d15",
+      "first_name": "John",
+      "last_name": "Doe",
+      "is_root": "False",
+    }
   }
 }
 ```
@@ -430,6 +462,34 @@ Logs in a user and issues JWT tokens.
 Logs out a user by clearing the refresh token cookie.
 
 #### Example Response
-Redirects to login page with refresh token cleared.
+Empty response with 204 status on success. Refresh token cleared.
+
+### 5.3 POST /api/auth/refresh
+Refreshes the user's access token.
+
+#### Example Response
+```json
+{
+  "payload": "NEW_ACCESS_TOKEN"
+}
+```
 
 ---
+
+## 6. Notifications
+
+### 6.1 POST /api/notifications/webhook
+Receives a webhook notification.
+
+#### Expected Payload
+```json
+{
+  "project_id": "d614a8c7-0288-4850-a9a8-a647b1133d15"
+}
+```
+
+#### Example Response
+```json
+{
+  "message": "Webhook received."
+}
