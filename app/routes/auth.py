@@ -21,6 +21,9 @@ def login() -> Response:
     """Logs in a user by verifying credentials and issuing JWT tokens."""
     current_app.logger.debug("Login request received.")
 
+    if not request.json:
+        current_app.logger.error("Invalid request: No JSON payload provided.")
+        return jsonify({"message": "Invalid request"}), 400
     data = request.json
 
     if not data:
@@ -118,7 +121,7 @@ def refresh() -> Response:
         new_access_token, error_response = token_manager.refresh_access_token()
         if error_response:
             current_app.logger.warning(
-                f"Token refresh failed: {error_response["message"]}."
+                f"Token refresh failed: {error_response.get('message')}."
             )
             return jsonify(error_response), 401
 
