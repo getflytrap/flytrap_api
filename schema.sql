@@ -31,7 +31,7 @@ CREATE TABLE error_logs (
     contexts JSONB,
     method VARCHAR(10),
     path TEXT,
-    ip VARCHAR(45),
+    ip VARCHAR(64),
     os VARCHAR(255),
     browser VARCHAR(255),
     runtime VARCHAR(255),
@@ -50,7 +50,7 @@ CREATE TABLE rejection_logs (
   resolved BOOLEAN NOT NULL DEFAULT FALSE,
   method VARCHAR(10),
   path TEXT,
-  ip VARCHAR(45),
+  ip VARCHAR(64),
   os VARCHAR(255),
   browser VARCHAR(255),
   runtime VARCHAR(255)
