@@ -22,6 +22,13 @@ def test_get_issues(client):
   }]
   assert response.status_code == status_codes.HTTP_200_OK
 
+def test_get_issues_invalid_pagination(client):
+    project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
+    response = client.get(f"/api/projects/{project_uuid}/issues?page=-1&limit=0")
+    
+    assert response.status_code == 400
+    assert response.get_json() == {"message": "Invalid pagination parameters."}
+
 def test_get_error_by_id(client):
     project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
     error_uuid = MOCK_DATA["mock_error"]["uuid"]
@@ -51,6 +58,15 @@ def test_get_error_by_id(client):
         "distinct_users": 1,
     }
 
+def test_get_error_invalid_uuid(client):
+    project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
+    invalid_error_uuid = "invalid-uuid"
+    response = client.get(f"/api/projects/{project_uuid}/issues/errors/{invalid_error_uuid}")
+    
+    assert response.status_code == 404
+    assert response.get_json() == {"message": "Error not found."}
+
+
 def test_toggle_error_resolved_state(client):
     project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
     error_uuid = MOCK_DATA["mock_error"]["uuid"]
@@ -61,6 +77,14 @@ def test_toggle_error_resolved_state(client):
     )
 
     assert response.status_code == status_codes.HTTP_204_NO_CONTENT
+
+def test_toggle_error_missing_payload(client):
+    project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
+    error_uuid = MOCK_DATA["mock_error"]["uuid"]
+    response = client.patch(f"/api/projects/{project_uuid}/issues/errors/{error_uuid}", json={})
+    
+    assert response.status_code == 400
+    assert response.get_json() == {"message": "Invalid request."}
 
 def test_delete_error(client):
     project_uuid = MOCK_DATA['fetch_projects']['projects'][0]['uuid']
