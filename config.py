@@ -21,8 +21,6 @@ class StandardConfig:
     HTTPONLY = os.getenv("HTTPONLY") == "True"
     SECURE = os.getenv("SECURE") == "True"
     SAMESITE = os.getenv("SAMESITE")
-    DB_PASSWORD = os.getenv("PGPASSWORD")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 
 def load_config(app):
