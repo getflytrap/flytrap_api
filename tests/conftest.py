@@ -9,6 +9,7 @@ from app.utils.auth.token_manager import TokenManager
 from config import load_config
 from db import init_db_pool, close_db_pool, get_db_connection_from_pool, return_db_connection_to_pool
 from test_helpers import setup_schema, clean_up_database, insert_user
+from mock_data import processed_users, projects as mock_projects, project_assignment
 
 @pytest.fixture(scope="session")
 def test_app():
@@ -65,38 +66,25 @@ def test_db(test_app):
 @pytest.fixture
 def root_user(test_db):
     """Fixture to create and return the root user."""
-    user_data = (
-        "root-uuid-123-456-789",
-        "Flytrap",
-        "Admin",
-        "admin@admin.com",
-        "$2b$12$5voKL8Dzp9muUhSZ/bsPL.JkWaDja.jrvBFk2wMfmOn.ILBLBvksW",
-        True,
-    )
+    user_data = processed_users["root_user"]
     return insert_user(test_db, user_data)
 
 
 @pytest.fixture
 def regular_user(test_db):
     """Fixture to create and return a regular user."""
-    user_data = (
-        "user-uuid-123-456-789",
-        "John",
-        "Doe",
-        "john@doe.com",
-        "$2b$12$7Ze4nBXlTV04y8ls2PiHce0ecpBgjO.uOiuVx5WobS7SCQDELZzNS",
-        False,
-    )
+    user_data = processed_users["regular_user"]
     return insert_user(test_db, user_data)
 
 
 @pytest.fixture
 def client(test_app):
+    """Provides an unauthenticated test client."""
     return test_app.test_client()
 
 
 @pytest.fixture
-def auth_client(test_app, root_user):
+def root_client(test_app, root_user):
     """
     Provide a test client pre-configured with an authenticated user.
     Includes Authorization header and cookies using the actual TokenManager.
@@ -118,3 +106,65 @@ def auth_client(test_app, root_user):
     client.set_cookie("refresh_token", refresh_token)
 
     return client
+
+@pytest.fixture
+def regular_client(test_app, regular_user):
+    """
+    Provide a test client pre-configured with an authenticated user.
+    Includes Authorization header and cookies using the actual TokenManager.
+    """
+    client = test_app.test_client()
+
+    # Instantiate the TokenManager
+    token_manager = TokenManager()
+
+    # Generate a token for the root user
+    with test_app.app_context():
+        access_token = token_manager.create_access_token(regular_user[0], is_root=False)
+        refresh_token = token_manager.create_refresh_token(regular_user[0])
+
+    # Set Authorization header
+    client.environ_base["HTTP_AUTHORIZATION"] = f"Bearer {access_token}"
+
+    # Set cookies if required
+    client.set_cookie("refresh_token", refresh_token)
+
+    return client
+
+@pytest.fixture
+def projects(test_db):
+    """Fixture to insert two projects into the database."""
+    for project in mock_projects:
+        test_db.execute(
+            """
+            INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (
+                project["uuid"],
+                project["name"],
+                project["api_key"],
+                project["platform"],
+                project["sns_topic_arn"],
+            )
+        )
+
+    return mock_projects
+
+@pytest.fixture
+def user_project_assignment(test_db, regular_user, projects):
+    """Fixture to assign a regular user to one of the projects."""
+    project_uuid = project_assignment["project_uuid"]
+    user_uuid = project_assignment["user_uuid"]
+
+    test_db.execute(
+        """
+        INSERT INTO projects_users (project_id, user_id)
+        SELECT p.id, u.id
+        FROM projects p, users u
+        WHERE p.uuid = %s AND u.uuid = %s
+        """,
+        (project_uuid, user_uuid),
+    )
+
+    return {"user_uuid": user_uuid, "project_uuid": project_uuid}

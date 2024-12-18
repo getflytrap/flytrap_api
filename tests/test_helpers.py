@@ -24,5 +24,13 @@ def insert_user(cursor, user_data):
     VALUES (%s, %s, %s, %s, %s, %s) 
     RETURNING uuid, first_name, last_name, email, is_root
     """
-    cursor.execute(query, user_data)
+    cursor.execute(query, 
+                (
+        user_data["uuid"],
+        user_data["first_name"],
+        user_data["last_name"],
+        user_data["email"],
+        user_data["password_hash"],
+        user_data["is_root"],
+    ))
     return cursor.fetchone()
