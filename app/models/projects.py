@@ -47,6 +47,10 @@ def fetch_projects(
     if not rows:
         current_app.logger.info("No projects found for the given page and limit.")
 
+    for row in rows:
+        print("error count:", row[4])
+        print("rejection count:", row[5])
+    
     projects = [
         {
             "uuid": row[0],

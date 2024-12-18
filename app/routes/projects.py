@@ -48,7 +48,6 @@ def get_projects() -> Response:
 
     try:
         project_data = fetch_projects(page, limit)
-        print('proj data', project_data)
         current_app.logger.info(
             f"Fetched {len(project_data)} projects for page={page}, limit={limit}"
         )

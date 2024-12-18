@@ -1,7 +1,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pytest
 import time
@@ -13,16 +13,19 @@ from db import init_db_pool
 
 pytest_plugins = ["pytest_docker.plugin"]
 
+
 # Set the correct version of the docker-compose command
 @pytest.fixture(scope="session")
 def docker_compose_command() -> str:
     return "docker-compose"
 
+
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
     return os.path.join(str(pytestconfig.rootdir), "tests/docker-compose.yml")
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def postgres_container(docker_services):
     """Ensure the PostgreSQL container is up and return a verified connection."""
     postgres_port = docker_services.port_for("db", 5432)
@@ -48,18 +51,20 @@ def postgres_container(docker_services):
     yield conn
     conn.close()
 
+
 @pytest.fixture
-def app(postgres_container):    
+def app(postgres_container):
     os.environ["FLASK_ENV"] = "TESTING"
     app = create_app()
     app.config["HTTPONLY"] = True
     app.config["SECURE"] = False
     app.config["SAMESITE"] = "Lax"
-    
+
     load_config(app)
     init_db_pool(app)
 
-    yield app           
+    yield app
+
 
 @pytest.fixture
 def client(app):
