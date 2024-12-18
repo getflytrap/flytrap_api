@@ -38,6 +38,9 @@ def load_config(app):
             from dotenv import load_dotenv
 
             load_dotenv()
+
+            app.config["DB_PASSWORD"] = os.getenv("PGPASSWORD")
+            app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
         else:
             """Set production configuration"""
             from app.utils import get_secret
