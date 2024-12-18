@@ -16,7 +16,7 @@ def docker_compose_command() -> str:
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
-    return os.path.join(str(pytestconfig.rootdir), "unit_tests/docker-compose.yml")
+    return os.path.join(str(pytestconfig.rootdir), "tests/docker-compose.yml")
 
 @pytest.fixture(scope='session')
 def postgres_container(docker_services):
