@@ -89,15 +89,38 @@ VALUES (
   true
 );
 
-INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
-VALUES ('fdlkj432987jh43hjkds', 'dummy_project', 'api_key_789', 'flask', '435jhksdjkg43hks');
-
+INSERT INTO projects (id, uuid, name, api_key, platform, sns_topic_arn)
+VALUES (1, 'fdlkj432987jh43hjkds', 'dummy_project', 'api_key_789', 'flask', '435jhksdjkg43hks');
 
 INSERT INTO error_logs (
   uuid, name, message, created_at, filename, line_number, col_number, project_id, stack_trace, handled,
   resolved, contexts, method, path, ip, os, browser, runtime, error_hash
 )
-VALUES ('jkhas894jhkchjkl', 'dummy error', 'dummy message', 'Fri, 14 Jul 2023 15:23:45 GMT', 'dummy.py', 89, 23, 1, 'dummy stack', false,
-  false, '{"user": {"id": 123, "role": "admin"}, "request": {"query": "id=1"}}'::jsonb, 'POST', '/api/v1/resource', '123.4.3.5', 'MacOS',
-  'Chrome 96', 'Python 3.9.7', 'dslajl234lsjl4'
+VALUES (
+  'jkhas894jhkchjkl',
+  'dummy error',
+  'dummy message',
+  'Fri, 14 Jul 2023 15:23:45 GMT',
+  'dummy.py',
+  89,
+  23,
+  1,
+  'dummy stack',
+  false,
+  false,
+  $$[
+    {
+      "file": "dummy.py",
+      "line": 89,
+      "column": 23,
+      "context": "Dummy Context"
+    }
+  ]$$::jsonb,
+  'POST',
+  '/api/v1/resource',
+  '123.4.3.5',
+  'MacOS',
+  'Chrome 96',
+  'Python 3.9.7',
+  'dslajl234lsjl4'
 );
