@@ -41,7 +41,14 @@ processed_users = {
     },
 }
 
-projects = [
+raw_projects = {
+    "new_project": {
+        "name": "New Project",
+        "platform": "React"
+    }
+}
+
+processed_projects = [
     {
         "uuid": "project-uuid-123-456",
         "name": "Project 1",

@@ -9,7 +9,7 @@ from app.utils.auth.token_manager import TokenManager
 from config import load_config
 from db import init_db_pool, close_db_pool, get_db_connection_from_pool, return_db_connection_to_pool
 from test_helpers import setup_schema, clean_up_database, insert_user
-from mock_data import processed_users, projects as mock_projects, project_assignment
+from mock_data import processed_users, processed_projects, project_assignment
 
 @pytest.fixture(scope="session")
 def test_app():
@@ -134,7 +134,7 @@ def regular_client(test_app, regular_user):
 @pytest.fixture
 def projects(test_db):
     """Fixture to insert two projects into the database."""
-    for project in mock_projects:
+    for project in processed_projects:
         test_db.execute(
             """
             INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
@@ -149,7 +149,7 @@ def projects(test_db):
             )
         )
 
-    return mock_projects
+    return processed_projects
 
 @pytest.fixture
 def user_project_assignment(test_db, regular_user, projects):
