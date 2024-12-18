@@ -1,4 +1,3 @@
-from unittest.mock import patch
 from tests.mock_data import raw_users
 
 def test_get_users(root_client, regular_user):
@@ -13,8 +12,13 @@ def test_get_users(root_client, regular_user):
     assert "john@doe.com" in emails
 
 
-def test_create_user(root_client):
+def test_create_user(root_client, test_db):
     new_user_data = raw_users["new_user"]
+    
+    # Verify the user doesn't exist before creation
+    test_db.execute("SELECT * FROM users WHERE email = %s;", (new_user_data["email"],))
+    new_user = test_db.fetchone()
+    assert new_user is None, "User should not exist in the database before creation."
 
     response = root_client.post("/api/users", json=new_user_data)
 
@@ -22,6 +26,11 @@ def test_create_user(root_client):
     assert "payload" in response.json, "Response should contain 'payload' key."
     assert response.json["payload"]["email"] == "jane@smith.com"
     assert response.json["payload"]["is_root"] is False
+
+    # Verify the user exists in the database after creation
+    test_db.execute("SELECT * FROM users WHERE email = %s;", (new_user_data["email"],))
+    new_user = test_db.fetchone()
+    assert new_user is not None, "User should exist in the database."
 
 
 def test_get_session_info(root_client):
@@ -35,13 +44,20 @@ def test_get_session_info(root_client):
 
 def test_delete_user(root_client, regular_user, test_db):
     user_uuid = regular_user[0]
+
+    # Verify the user exists before deletion
+    test_db.execute("SELECT * FROM users WHERE uuid = %s;", (user_uuid,))
+    existing_user = test_db.fetchone()
+    assert existing_user is not None, "User should exist in the database."
+    
     response = root_client.delete(f"/api/users/{user_uuid}")
 
     assert response.status_code == 204
 
     # Verify the user was deleted from the database
     test_db.execute("SELECT * FROM users WHERE uuid = %s;", (user_uuid,))
-    assert test_db.fetchone() is None, "User should be deleted from the database."
+    deleted_user = test_db.fetchone()
+    assert deleted_user is None, "User should be deleted from the database."
 
 
 def test_update_user_password(regular_client, regular_user, test_db):
@@ -49,6 +65,7 @@ def test_update_user_password(regular_client, regular_user, test_db):
     user_uuid = regular_user[0]
     new_password_data = {"password": "newsecurepassword"}
 
+    # Keep a reference to the old password hash for comparison
     test_db.execute("SELECT password_hash FROM users WHERE uuid = %s;", (user_uuid,))
     old_password_hash = test_db.fetchone()[0]
     assert old_password_hash is not None, "Old password hash should exist."
@@ -57,12 +74,12 @@ def test_update_user_password(regular_client, regular_user, test_db):
 
     assert response.status_code == 204
 
-    # Verify the password was updated in the database 
+    # Verify the password is in the database
     test_db.execute("SELECT password_hash FROM users WHERE uuid = %s;", (user_uuid,))
     updated_password_hash = test_db.fetchone()[0]
     assert updated_password_hash is not None, "Updated password hash should exist."
 
-    # Compare the hashes
+    # Compare hashes to verify the password was updated
     assert old_password_hash != updated_password_hash, "Password hash should be updated."
 
 
