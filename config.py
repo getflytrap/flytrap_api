@@ -21,7 +21,8 @@ class StandardConfig:
     HTTPONLY = os.getenv("HTTPONLY") == "True"
     SECURE = os.getenv("SECURE") == "True"
     SAMESITE = os.getenv("SAMESITE")
-
+    AWS_REGION = os.getenv("AWS_REGION")
+    USAGE_PLAN_ID = os.getenv("USAGE_PLAN_ID")
 
 def load_config(app):
     """
