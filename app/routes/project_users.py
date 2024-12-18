@@ -80,9 +80,9 @@ def add_project_user(project_uuid: str) -> Response:
                 400,
             )
 
-        create_sns_subscription(project_uuid, user_uuid)
         success = add_user_to_project(project_uuid, user_uuid)
         if success:
+            create_sns_subscription(project_uuid, user_uuid)
             current_app.logger.info(
                 f"User UUID={user_uuid} added to project UUID={project_uuid}."
             )
@@ -127,9 +127,9 @@ def remove_project_user(project_uuid: str, user_uuid: str) -> Response:
         return jsonify({"message": "User identifier required."}), 400
 
     try:
-        remove_sns_subscription(project_uuid, user_uuid)
         success = remove_user_from_project(project_uuid, user_uuid)
         if success:
+            remove_sns_subscription(project_uuid, user_uuid)
             current_app.logger.info(
                 f"User UUID={user_uuid} removed from project UUID={project_uuid}."
             )

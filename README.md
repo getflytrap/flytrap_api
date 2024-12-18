@@ -107,7 +107,7 @@ To test the Flytrap API as part of the complete Flytrap architecture, set up the
 5. **Verifying Processing:** View in the Dashboard: Open the Flytrap Dashboard to verify that the errors are displayed correctly.
 
 ## 📂 API Endpoints
-For detailed API routes, refer to the [API Documentation](https://github.com/getflytrap/flytrap_api/docs/api.md).
+For detailed API routes, refer to the [API Documentation](https://github.com/getflytrap/flytrap_api/blob/main/docs/api.md).
 
 ## 🔧 Technologies Used
 - Flask: Python web framework for building the API.
