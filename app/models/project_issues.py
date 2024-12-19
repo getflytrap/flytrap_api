@@ -6,7 +6,7 @@ resolution status, and deleting records. Each function is decorated to ensure pr
 database connection context for reading or writing.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, List
 from db import db_read_connection, db_write_connection
 from app.utils import (
@@ -247,7 +247,7 @@ def delete_rejection_by_id(rejection_uuid: str, **kwargs: dict) -> bool:
 def get_issue_summary(project_uuid: str, **kwargs: dict) -> bool:
     cursor = kwargs["cursor"]
 
-    today = datetime.utcnow()
+    today = datetime.now(timezone.utc)
     start_of_week = today - timedelta(days=7)
 
     query = """
