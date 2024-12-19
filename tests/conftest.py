@@ -243,3 +243,9 @@ def rejections(test_db):
         )
     return mock_rejections
 
+@pytest.fixture
+def webhook_payload():
+    """Fixture for a valid webhook payload."""
+    return {
+        "project_id": "project-uuid-123-456",
+    }

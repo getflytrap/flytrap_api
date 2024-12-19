@@ -19,6 +19,7 @@ def clean_up_database(cursor):
         """
     )
 
+
 def insert_user(cursor, user_data):
     """Insert a user into the database and return the inserted row."""
     query = """
