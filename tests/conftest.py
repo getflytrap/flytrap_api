@@ -8,9 +8,21 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app import create_app
 from app.utils.auth.token_manager import TokenManager
 from config import load_config
-from db import init_db_pool, close_db_pool, get_db_connection_from_pool, return_db_connection_to_pool
+from db import (
+    init_db_pool,
+    close_db_pool,
+    get_db_connection_from_pool,
+    return_db_connection_to_pool,
+)
 from tests.utils.test_setup_helpers import setup_schema, clean_up_database, insert_user
-from tests.utils.mock_data import processed_users, processed_projects, project_assignment, errors as mock_errors, rejections as mock_rejections
+from tests.utils.mock_data import (
+    processed_users,
+    processed_projects,
+    project_assignment,
+    errors as mock_errors,
+    rejections as mock_rejections,
+)
+
 
 @pytest.fixture(scope="session")
 def test_app():
@@ -28,6 +40,7 @@ def test_app():
         yield app
 
     close_db_pool()
+
 
 @pytest.fixture(scope="session")
 def setup_test_db():
@@ -57,7 +70,7 @@ def test_db(test_app):
     cursor = connection.cursor()
 
     # Provide cursor for test use
-    yield cursor 
+    yield cursor
 
     # Clean up after each test
     clean_up_database(cursor)
@@ -108,6 +121,7 @@ def root_client(test_app, root_user):
 
     return client
 
+
 @pytest.fixture
 def regular_client(test_app, regular_user):
     """
@@ -132,6 +146,7 @@ def regular_client(test_app, regular_user):
 
     return client
 
+
 @pytest.fixture
 def projects(test_db):
     """Fixture to insert two projects into the database."""
@@ -147,10 +162,11 @@ def projects(test_db):
                 project["api_key"],
                 project["platform"],
                 project["sns_topic_arn"],
-            )
+            ),
         )
 
     return processed_projects
+
 
 @pytest.fixture
 def user_project_assignment(test_db, regular_user, projects):
@@ -169,6 +185,7 @@ def user_project_assignment(test_db, regular_user, projects):
     )
 
     return {"user_uuid": user_uuid, "project_uuid": project_uuid}
+
 
 @pytest.fixture
 def errors(test_db):
@@ -206,11 +223,12 @@ def errors(test_db):
                 error["browser"],
                 error["runtime"],
                 error["error_hash"],
-            )
-    )
-        
+            ),
+        )
+
     return mock_errors
-        
+
+
 @pytest.fixture
 def rejections(test_db):
     """Fixture to insert mock rejection logs."""
@@ -218,9 +236,9 @@ def rejections(test_db):
         test_db.execute(
             """
             INSERT INTO rejection_logs (
-                uuid, value, created_at, project_id, handled, 
+                uuid, value, created_at, project_id, handled,
                 resolved, method, path, ip, os, browser, runtime
-            ) 
+            )
             VALUES (
                 %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s
@@ -242,6 +260,7 @@ def rejections(test_db):
             ),
         )
     return mock_rejections
+
 
 @pytest.fixture
 def webhook_payload():

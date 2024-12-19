@@ -25,7 +25,7 @@ def load_config(app, overrides=None):
 
         app.config["DB_PASSWORD"] = os.getenv("PGPASSWORD")
         app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
-    
+
     # Load shared variables
     app.config["AWS_REGION"] = os.getenv("AWS_REGION")
     app.config["USAGE_PLAN_ID"] = os.getenv("USAGE_PLAN_ID")
@@ -36,7 +36,7 @@ def load_config(app, overrides=None):
     app.config["HTTPONLY"] = os.getenv("HTTPONLY") == "True"
     app.config["SECURE"] = os.getenv("SECURE") == "True"
     app.config["SAMESITE"] = os.getenv("SAMESITE")
-    
+
     # Load production specific secrets
     if environment == "production":
         from app.utils import get_secret

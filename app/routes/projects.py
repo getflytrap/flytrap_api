@@ -103,7 +103,7 @@ def create_project() -> Response:
             "name": name,
             "platform": platform,
             "api_key": api_key,
-            "issue_count": 0
+            "issue_count": 0,
         }
 
         return jsonify({"payload": project_data}), 201

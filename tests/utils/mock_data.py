@@ -43,12 +43,7 @@ processed_users = {
     },
 }
 
-raw_projects = {
-    "new_project": {
-        "name": "New Project",
-        "platform": "React"
-    }
-}
+raw_projects = {"new_project": {"name": "New Project", "platform": "React"}}
 
 processed_projects = [
     {
@@ -77,7 +72,9 @@ errors = [
         "uuid": "error-uuid-123-456",
         "name": "Dummy Error",
         "message": "Dummy Message",
-        "created_at": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),  # Yesterday,
+        "created_at": (datetime.now() - timedelta(days=1)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),  # Yesterday,
         "filename": "dummy.js",
         "line_number": 89,
         "col_number": 23,
@@ -100,7 +97,9 @@ errors = [
         "uuid": "error-uuid-789-012",
         "name": "Dummy Error",
         "message": "Dummy Message",
-        "created_at": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),  # Yesterday,
+        "created_at": (datetime.now() - timedelta(days=1)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),  # Yesterday,
         "filename": "dummy.jsx",
         "line_number": 112,
         "col_number": 15,
@@ -118,7 +117,7 @@ errors = [
         "browser": "Chrome 119.0",
         "runtime": None,
         "error_hash": "5b499c03b5d6a1deda3b9312b5b3b72c",
-    }
+    },
 ]
 
 rejections = [
@@ -126,7 +125,7 @@ rejections = [
         "uuid": "rejection-uuid-123",
         "value": "Dummy Rejection Value",
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Today,
-        "project_id": 1, 
+        "project_id": 1,
         "handled": False,
         "resolved": False,
         "method": "POST",
@@ -140,7 +139,7 @@ rejections = [
         "uuid": "rejection-uuid-456",
         "value": "Dummy Rejection Value",
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Today,
-        "project_id": 2,  
+        "project_id": 2,
         "handled": True,
         "resolved": False,
         "method": "PUT",

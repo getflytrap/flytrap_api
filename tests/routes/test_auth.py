@@ -1,9 +1,10 @@
 from tests.utils.mock_data import raw_users
 
+
 def test_login_success(client, regular_user):
     """Test successful login as regular user."""
     user_data = raw_users["regular_user"]
-    
+
     response = client.post(
         "/api/auth/login",
         json={"email": user_data["email"], "password": user_data["password"]},
@@ -13,16 +14,18 @@ def test_login_success(client, regular_user):
     assert "payload" in response.json, "Response should contain 'payload' key."
     assert "access_token" in response.json["payload"]
     assert "user" in response.json["payload"]
-    
+
     refresh_token_cookie = response.headers.get("Set-Cookie")
     assert refresh_token_cookie is not None
-    assert "refresh_token=" in refresh_token_cookie, "Refresh token should be set as a cookie."
+    assert (
+        "refresh_token=" in refresh_token_cookie
+    ), "Refresh token should be set as a cookie."
 
 
 def test_login_invalid_password(client, regular_user):
     """Test login with an invalid password."""
     user_data = raw_users["regular_user"]
-    
+
     response = client.post(
         "/api/auth/login",
         json={"email": user_data["email"], "password": "wrongpassword"},

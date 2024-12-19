@@ -1,6 +1,7 @@
 from tests.utils.mock_data import raw_users
 from tests.utils.test_db_queries import TestDBQueries
 
+
 def test_get_users(root_client, regular_user):
     """Test fetching all users as a root user."""
     response = root_client.get("/api/users")
@@ -15,7 +16,7 @@ def test_get_users(root_client, regular_user):
 
 def test_create_user(root_client, test_db):
     new_user_data = raw_users["new_user"]
-    
+
     # Verify the user doesn't exist before creation
     new_user = TestDBQueries.get_user_by_email(test_db, new_user_data["email"])
     assert new_user is None, "User should not exist in the database before creation."
@@ -47,7 +48,7 @@ def test_delete_user(root_client, regular_user, test_db):
     # Verify the user exists before deletion
     existing_user = TestDBQueries.get_user_by_uuid(test_db, user_uuid)
     assert existing_user is not None, "User should exist in the database."
-    
+
     response = root_client.delete(f"/api/users/{user_uuid}")
 
     assert response.status_code == 204
@@ -75,17 +76,23 @@ def test_update_user_password(regular_client, regular_user, test_db):
     assert updated_password_hash is not None, "Updated password hash should exist."
 
     # Compare hashes to verify the password was updated
-    assert old_password_hash != updated_password_hash, "Password hash should be updated."
+    assert (
+        old_password_hash != updated_password_hash
+    ), "Password hash should be updated."
 
 
-def test_get_user_projects(regular_client, regular_user, projects, user_project_assignment):
+def test_get_user_projects(
+    regular_client, regular_user, projects, user_project_assignment
+):
     """Test fetching projects assigned to a regular user."""
     user_uuid = regular_user[0]
     response = regular_client.get(f"/api/users/{user_uuid}/projects")
 
     assert response.status_code == 200
     assert "payload" in response.json, "Response should contain 'payload' key."
-    assert "projects" in response.json["payload"], "Response payload should contain 'projects' key."
+    assert (
+        "projects" in response.json["payload"]
+    ), "Response payload should contain 'projects' key."
     fetched_projects = response.json["payload"]["projects"]
     assert len(fetched_projects) == 1
     assert fetched_projects[0]["name"] == projects[0]["name"]
