@@ -1,3 +1,5 @@
+import boto3
+
 def setup_schema(cursor):
     """Set up the database schema and add an admin user."""
     cursor.execute(open("tests/schema.sql", "r").read())
@@ -34,3 +36,10 @@ def insert_user(cursor, user_data):
         user_data["is_root"],
     ))
     return cursor.fetchone()
+
+
+def setup_mock_sns_topic(project_uuid, region="us-east-1"):
+    sns_client = boto3.client("sns", region_name=region)
+    topic_name = f"project_{project_uuid}_notifications"
+    topic_response = sns_client.create_topic(Name=topic_name)
+    return topic_response["TopicArn"]

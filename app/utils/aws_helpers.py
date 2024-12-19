@@ -153,7 +153,7 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
 
 def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Removes an SNS subscription for a user."""
-    from app.models import fetch_user, get_topic_arn, get_subscription_arn_by_email
+    from app.models import fetch_user, get_topic_arn
 
     try:
         user_info = fetch_user(user_uuid)
