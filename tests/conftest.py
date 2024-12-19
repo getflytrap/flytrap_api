@@ -9,8 +9,8 @@ from app import create_app
 from app.utils.auth.token_manager import TokenManager
 from config import load_config
 from db import init_db_pool, close_db_pool, get_db_connection_from_pool, return_db_connection_to_pool
-from test_helpers import setup_schema, clean_up_database, insert_user
-from mock_data import processed_users, processed_projects, project_assignment, errors as mock_errors, rejections as mock_rejections
+from tests.utils.test_setup_helpers import setup_schema, clean_up_database, insert_user
+from tests.utils.mock_data import processed_users, processed_projects, project_assignment, errors as mock_errors, rejections as mock_rejections
 
 @pytest.fixture(scope="session")
 def test_app():

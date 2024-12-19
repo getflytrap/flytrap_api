@@ -1,6 +1,7 @@
 from moto import mock_aws
-from tests.mock_data import processed_users
-from tests.test_helpers import setup_mock_sns_topic
+from tests.utils.mock_data import processed_users
+from tests.utils.test_aws_helpers import setup_mock_sns_topic
+from tests.utils.test_db_queries import TestDBQueries
 
 def test_get_project_users(root_client, regular_user, projects, user_project_assignment):
     """Test fetching users associated with a project."""
@@ -22,23 +23,10 @@ def test_add_project_user(root_client, regular_user, projects, test_db):
 
     # Setup mocked SNS topic
     sns_topic_arn = setup_mock_sns_topic(project_uuid)
-    test_db.execute(
-        """
-        UPDATE projects SET sns_topic_arn = %s WHERE uuid = %s
-        """,
-        (sns_topic_arn, project_uuid),
-    )
+    TestDBQueries.update_project_sns_topic(test_db, project_uuid, sns_topic_arn)
 
     # Verify the user is not already associated
-    test_db.execute(
-        """
-        SELECT * FROM projects_users
-        WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
-        AND user_id = (SELECT id FROM users WHERE uuid = %s)
-        """,
-        (project_uuid, user_uuid),
-    )
-    association = test_db.fetchone()
+    association = TestDBQueries.get_project_user_association(test_db, project_uuid, user_uuid)
     assert association is None, "User should not be associated with the project initially."
 
     response = root_client.post(f"/api/projects/{project_uuid}/users", json={"user_uuid": user_uuid})
@@ -46,15 +34,7 @@ def test_add_project_user(root_client, regular_user, projects, test_db):
     assert response.status_code == 204
 
     # Verify the user is now associated
-    test_db.execute(
-        """
-        SELECT * FROM projects_users
-        WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
-        AND user_id = (SELECT id FROM users WHERE uuid = %s)
-        """,
-        (project_uuid, user_uuid),
-    )
-    association = test_db.fetchone()
+    association = TestDBQueries.get_project_user_association(test_db, project_uuid, user_uuid)
     assert association is not None, "User should be associated with the project after the request."
 
 
@@ -77,23 +57,10 @@ def test_remove_project_user(root_client, regular_user, projects, user_project_a
 
     # Setup mocked SNS topic
     sns_topic_arn = setup_mock_sns_topic(project_uuid)
-    test_db.execute(
-        """
-        UPDATE projects SET sns_topic_arn = %s WHERE uuid = %s
-        """,
-        (sns_topic_arn, project_uuid),
-    )
+    TestDBQueries.update_project_sns_topic(test_db, project_uuid, sns_topic_arn)
 
     # Verify the user is associated
-    test_db.execute(
-        """
-        SELECT * FROM projects_users
-        WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
-        AND user_id = (SELECT id FROM users WHERE uuid = %s)
-        """,
-        (project_uuid, user_uuid),
-    )
-    association = test_db.fetchone()
+    association = TestDBQueries.get_project_user_association(test_db, project_uuid, user_uuid)
     assert association is not None, "User should be associated with the project before removal."
 
     response = root_client.delete(f"/api/projects/{project_uuid}/users/{user_uuid}")
@@ -101,15 +68,7 @@ def test_remove_project_user(root_client, regular_user, projects, user_project_a
     assert response.status_code == 204
 
     # Verify the user is no longer associated
-    test_db.execute(
-        """
-        SELECT * FROM projects_users
-        WHERE project_id = (SELECT id FROM projects WHERE uuid = %s)
-        AND user_id = (SELECT id FROM users WHERE uuid = %s)
-        """,
-        (project_uuid, user_uuid),
-    )
-    association = test_db.fetchone()
+    association = TestDBQueries.get_project_user_association(test_db, project_uuid, user_uuid)
     assert association is None, "User should no longer be associated with the project after removal."
 
 

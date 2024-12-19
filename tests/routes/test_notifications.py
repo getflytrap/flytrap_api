@@ -1,6 +1,7 @@
 from moto import mock_aws
 from unittest.mock import patch
-from tests.test_helpers import setup_mock_sns_topic
+from tests.utils.test_aws_helpers import setup_mock_sns_topic
+from tests.utils.test_db_queries import TestDBQueries
 
 @mock_aws
 @patch("app.routes.notifications.send_notification_to_frontend")
@@ -11,12 +12,7 @@ def test_webhook_success(mock_frontend, client, projects, webhook_payload, test_
     # Set up mocked SNS
     project_uuid = webhook_payload["project_id"]
     sns_topic_arn = setup_mock_sns_topic(project_uuid)
-    test_db.execute(
-        """
-        UPDATE projects SET sns_topic_arn = %s WHERE uuid = %s
-        """,
-        (sns_topic_arn, project_uuid),
-    )
+    TestDBQueries.update_project_sns_topic(test_db, project_uuid, sns_topic_arn)
 
     response = client.post("/api/notifications/webhook", json=webhook_payload)
 

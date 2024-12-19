@@ -1,4 +1,4 @@
-from tests.mock_data import raw_users
+from tests.utils.mock_data import raw_users
 
 def test_login_success(client, regular_user):
     """Test successful login as regular user."""
@@ -19,7 +19,7 @@ def test_login_success(client, regular_user):
     assert "refresh_token=" in refresh_token_cookie, "Refresh token should be set as a cookie."
 
 
-def test_login_invalid_password(client, regular_user, test_db):
+def test_login_invalid_password(client, regular_user):
     """Test login with an invalid password."""
     user_data = raw_users["regular_user"]
     
