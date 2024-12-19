@@ -50,13 +50,11 @@ These instructions cover setting up Flytrap locally for development and testing.
 
 4. Set up the database: 
 
-  Ensure PostgreSQL is installed and running on your system. Use your desired PostgreSQL user and password (assuming they are already set up). Then, create the required databases:
+    Ensure PostgreSQL is installed and running on your system. Use your desired PostgreSQL user and password (assuming they are already set up). Then, create the required databases:
 
     ```sql
     CREATE DATABASE flytrap_db;
-
-    -- Optional: Create separate database for testing:
-    CREATE DATABASE flytrap_test_db;
+    CREATE DATABASE flytrap_test_db; -- Create separate database for testing
     ```
 
 5. Set up the .env file with the necessary environment variables (e.g., database URL, JWT secret, etc.). Example:
@@ -83,11 +81,11 @@ These instructions cover setting up Flytrap locally for development and testing.
     python flytrap.py
     ```
 
-7. Optional: Run tests:
+7. Run tests (Optional):
 
-  ```bash
-  pytest
-  ```
+    ```bash
+    pytest
+    ```
 
 ### 🐳 Running with Docker
 You can also run the API in a Docker container for a consistent development environment.
