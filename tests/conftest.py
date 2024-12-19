@@ -14,7 +14,15 @@ from db import (
     get_db_connection_from_pool,
     return_db_connection_to_pool,
 )
-from tests.utils.test_setup_helpers import setup_schema, clean_up_database, insert_user
+from tests.utils.test_setup_helpers import (
+    setup_schema,
+    clean_up_database,
+    insert_user,
+    insert_project,
+    assign_user_to_project,
+    insert_error_log,
+    insert_rejection_log
+)
 from tests.utils.mock_data import (
     processed_users,
     processed_projects,
@@ -151,19 +159,7 @@ def regular_client(test_app, regular_user):
 def projects(test_db):
     """Fixture to insert two projects into the database."""
     for project in processed_projects:
-        test_db.execute(
-            """
-            INSERT INTO projects (uuid, name, api_key, platform, sns_topic_arn)
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            (
-                project["uuid"],
-                project["name"],
-                project["api_key"],
-                project["platform"],
-                project["sns_topic_arn"],
-            ),
-        )
+        insert_project(test_db, project)
 
     return processed_projects
 
@@ -174,15 +170,7 @@ def user_project_assignment(test_db, regular_user, projects):
     project_uuid = project_assignment["project_uuid"]
     user_uuid = project_assignment["user_uuid"]
 
-    test_db.execute(
-        """
-        INSERT INTO projects_users (project_id, user_id)
-        SELECT p.id, u.id
-        FROM projects p, users u
-        WHERE p.uuid = %s AND u.uuid = %s
-        """,
-        (project_uuid, user_uuid),
-    )
+    assign_user_to_project(test_db, user_uuid, project_uuid)
 
     return {"user_uuid": user_uuid, "project_uuid": project_uuid}
 
@@ -191,40 +179,7 @@ def user_project_assignment(test_db, regular_user, projects):
 def errors(test_db):
     """Fixture to insert mock error logs."""
     for error in mock_errors:
-        test_db.execute(
-            """
-            INSERT INTO error_logs (
-                uuid, name, message, created_at, filename,
-                line_number, col_number, project_id, stack_trace, handled, resolved,
-                contexts, method, path, ip, os, browser, runtime, error_hash
-            )
-            VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s
-            )
-            """,
-            (
-                error["uuid"],
-                error["name"],
-                error["message"],
-                error["created_at"],
-                error["filename"],
-                error["line_number"],
-                error["col_number"],
-                error["project_id"],
-                error["stack_trace"],
-                error["handled"],
-                error["resolved"],
-                json.dumps(error["contexts"]),
-                error["method"],
-                error["path"],
-                error["ip"],
-                error["os"],
-                error["browser"],
-                error["runtime"],
-                error["error_hash"],
-            ),
-        )
+        insert_error_log(test_db, error)
 
     return mock_errors
 
@@ -233,32 +188,8 @@ def errors(test_db):
 def rejections(test_db):
     """Fixture to insert mock rejection logs."""
     for rejection in mock_rejections:
-        test_db.execute(
-            """
-            INSERT INTO rejection_logs (
-                uuid, value, created_at, project_id, handled,
-                resolved, method, path, ip, os, browser, runtime
-            )
-            VALUES (
-                %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s
-            )
-            """,
-            (
-                rejection["uuid"],
-                rejection["value"],
-                rejection["created_at"],
-                rejection["project_id"],
-                rejection["handled"],
-                rejection["resolved"],
-                rejection["method"],
-                rejection["path"],
-                rejection["ip"],
-                rejection["os"],
-                rejection["browser"],
-                rejection["runtime"],
-            ),
-        )
+        insert_rejection_log(test_db, rejection)
+
     return mock_rejections
 
 
