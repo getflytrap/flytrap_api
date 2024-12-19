@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -9,7 +10,7 @@ from app.utils.auth.token_manager import TokenManager
 from config import load_config
 from db import init_db_pool, close_db_pool, get_db_connection_from_pool, return_db_connection_to_pool
 from test_helpers import setup_schema, clean_up_database, insert_user
-from mock_data import processed_users, processed_projects, project_assignment
+from mock_data import processed_users, processed_projects, project_assignment, errors as mock_errors, rejections as mock_rejections
 
 @pytest.fixture(scope="session")
 def test_app():
@@ -168,3 +169,77 @@ def user_project_assignment(test_db, regular_user, projects):
     )
 
     return {"user_uuid": user_uuid, "project_uuid": project_uuid}
+
+@pytest.fixture
+def errors(test_db):
+    """Fixture to insert mock error logs."""
+    for error in mock_errors:
+        test_db.execute(
+            """
+            INSERT INTO error_logs (
+                uuid, name, message, created_at, filename,
+                line_number, col_number, project_id, stack_trace, handled, resolved,
+                contexts, method, path, ip, os, browser, runtime, error_hash
+            )
+            VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
+            """,
+            (
+                error["uuid"],
+                error["name"],
+                error["message"],
+                error["created_at"],
+                error["filename"],
+                error["line_number"],
+                error["col_number"],
+                error["project_id"],
+                error["stack_trace"],
+                error["handled"],
+                error["resolved"],
+                json.dumps(error["contexts"]),
+                error["method"],
+                error["path"],
+                error["ip"],
+                error["os"],
+                error["browser"],
+                error["runtime"],
+                error["error_hash"],
+            )
+    )
+        
+    return mock_errors
+        
+@pytest.fixture
+def rejections(test_db):
+    """Fixture to insert mock rejection logs."""
+    for rejection in mock_rejections:
+        test_db.execute(
+            """
+            INSERT INTO rejection_logs (
+                uuid, value, created_at, project_id, handled, 
+                resolved, method, path, ip, os, browser, runtime
+            ) 
+            VALUES (
+                %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s
+            )
+            """,
+            (
+                rejection["uuid"],
+                rejection["value"],
+                rejection["created_at"],
+                rejection["project_id"],
+                rejection["handled"],
+                rejection["resolved"],
+                rejection["method"],
+                rejection["path"],
+                rejection["ip"],
+                rejection["os"],
+                rejection["browser"],
+                rejection["runtime"],
+            ),
+        )
+    return mock_rejections
+

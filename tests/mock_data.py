@@ -60,7 +60,7 @@ processed_projects = [
         "uuid": "project-uuid-456-789",
         "name": "Project 2",
         "api_key": "test-api-key-456",
-        "platform": "Flask",
+        "platform": "React",
         "sns_topic_arn": "arn:aws:sns:us-east-1:123456789012:project2-topic",
     },
 ]
@@ -70,3 +70,82 @@ project_assignment = {
     "project_uuid": "project-uuid-123-456",
 }
 
+errors = [
+    {
+        "uuid": "error-uuid-123-456",
+        "name": "Dummy Error",
+        "message": "Dummy Message",
+        "created_at": "2023-07-14 15:23:45",
+        "filename": "dummy.js",
+        "line_number": 89,
+        "col_number": 23,
+        "project_id": 1,
+        "stack_trace": "Dummy Stack",
+        "handled": False,
+        "resolved": False,
+        "contexts": [
+            {"file": "dummy.js", "line": 89, "column": 23, "context": "Dummy Context"}
+        ],
+        "method": "POST",
+        "path": "/api/v1/resource",
+        "ip": "7635fc03b5d6a1deda3b9312b5b3dhs65",
+        "os": "macOS",
+        "browser": None,
+        "runtime": "Node.js 18.12.1",
+        "error_hash": "5b499c03b5d6a1deda3b9312b5b3b72c",
+    },
+    {
+        "uuid": "error-uuid-789-012",
+        "name": "Dummy Error",
+        "message": "Dummy Message",
+        "created_at": "2023-07-15 15:33:45",
+        "filename": "dummy.jsx",
+        "line_number": 112,
+        "col_number": 15,
+        "project_id": 2,
+        "stack_trace": "Dummy Stack",
+        "handled": False,
+        "resolved": False,
+        "contexts": [
+            {"file": "dummy.py", "line": 112, "column": 15, "context": "Dummy Context"}
+        ],
+        "method": "POST",
+        "path": "/api/v1/resource",
+        "ip": "7635fc03b5d6a1deda3b9312b5b3dhs65",
+        "os": "macOS",
+        "browser": "Chrome 119.0",
+        "runtime": None,
+        "error_hash": "5b499c03b5d6a1deda3b9312b5b3b72c",
+    }
+]
+
+rejections = [
+    {
+        "uuid": "rejection-uuid-123",
+        "value": "Dummy Rejection Value",
+        "created_at": "2023-07-12 15:23:45",
+        "project_id": 1, 
+        "handled": False,
+        "resolved": False,
+        "method": "POST",
+        "path": "/submit-form",
+        "ip": "7635fc03b5d6a1deda3b9312b5b3dhs65",
+        "os": "macOS",
+        "browser": None,
+        "runtime": "Node.js 18.12.1",
+    },
+    {
+        "uuid": "rejection-uuid-456",
+        "value": "Dummy Rejection Value",
+        "created_at": "2023-12-18 09:45:00",
+        "project_id": 2,  
+        "handled": True,
+        "resolved": False,
+        "method": "PUT",
+        "path": "/upload-file",
+        "ip": "7635fc03b5d6a1deda3b9312b5b3dhs65",
+        "os": "macOS",
+        "browser": "Safari 17.0",
+        "runtime": None,
+    },
+]
