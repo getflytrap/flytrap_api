@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 raw_users = {
     "root_user": {
         "first_name": "Admin",
@@ -75,7 +77,7 @@ errors = [
         "uuid": "error-uuid-123-456",
         "name": "Dummy Error",
         "message": "Dummy Message",
-        "created_at": "2023-07-14 15:23:45",
+        "created_at": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),  # Yesterday,
         "filename": "dummy.js",
         "line_number": 89,
         "col_number": 23,
@@ -98,7 +100,7 @@ errors = [
         "uuid": "error-uuid-789-012",
         "name": "Dummy Error",
         "message": "Dummy Message",
-        "created_at": "2023-07-15 15:33:45",
+        "created_at": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S"),  # Yesterday,
         "filename": "dummy.jsx",
         "line_number": 112,
         "col_number": 15,
@@ -123,7 +125,7 @@ rejections = [
     {
         "uuid": "rejection-uuid-123",
         "value": "Dummy Rejection Value",
-        "created_at": "2023-07-12 15:23:45",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Today,
         "project_id": 1, 
         "handled": False,
         "resolved": False,
@@ -137,7 +139,7 @@ rejections = [
     {
         "uuid": "rejection-uuid-456",
         "value": "Dummy Rejection Value",
-        "created_at": "2023-12-18 09:45:00",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Today,
         "project_id": 2,  
         "handled": True,
         "resolved": False,
