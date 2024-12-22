@@ -1,6 +1,5 @@
 import sys
 import os
-import json
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -65,13 +64,14 @@ def setup_test_db():
 
     # Drop the schema after tests
     connection = get_db_connection_from_pool()
+    connection.autocommit = True
     cursor = connection.cursor()
     cursor.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
     return_db_connection_to_pool(connection)
 
 
 @pytest.fixture(scope="function")
-def test_db(test_app):
+def test_db(test_app, setup_test_db):
     """Provide a database connection for testing and ensure cleanup."""
     connection = get_db_connection_from_pool()
     connection.autocommit = True
