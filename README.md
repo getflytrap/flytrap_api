@@ -48,14 +48,23 @@ These instructions cover setting up Flytrap locally for development and testing.
     pip install -r requirements.txt
     ```
 
-4. Set up the .env file with the necessary environment variables (e.g., database URL, JWT secret, etc.). Example:
+4. Set up the database: 
+
+    Ensure PostgreSQL is installed and running on your system. Use your desired PostgreSQL user and password (assuming they are already set up). Then, create the required databases:
+
+    ```sql
+    CREATE DATABASE flytrap_db;
+    CREATE DATABASE flytrap_test_db; -- Create separate database for testing
+    ```
+
+5. Set up the .env file with the necessary environment variables (e.g., database URL, JWT secret, etc.). Example:
 
     ```bash
     FLASK_APP=flytrap.py
     FLASK_ENV=development
     PGUSER=<your_pg_user>
     PGHOST=localhost
-    PGDATABASE=<your_pg_db>
+    PGDATABASE=flytrap_db
     PGPASSWORD=<your_pg_password>
     PGPORT=5432
     JWT_SECRET_KEY=SECRET
@@ -66,10 +75,16 @@ These instructions cover setting up Flytrap locally for development and testing.
     AWS_REGION=us-east-1
     ```
 
-5. Run the application:
+6. Run the application:
 
     ```bash
     python flytrap.py
+    ```
+
+7. Run tests (Optional):
+
+    ```bash
+    pytest
     ```
 
 ### 🐳 Running with Docker

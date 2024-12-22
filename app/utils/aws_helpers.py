@@ -69,7 +69,7 @@ def delete_api_key_from_aws(api_key_value: str) -> None:
         return
 
     try:
-        client = create_aws_client("apigateway")
+        client = create_aws_client("apigateway", current_app.config["AWS_REGION"])
         response = client.get_api_keys(includeValues=True)
         all_keys = response.get("items", [])
 
@@ -153,7 +153,7 @@ def create_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
 
 def remove_sns_subscription(project_uuid: str, user_uuid: str) -> Response:
     """Removes an SNS subscription for a user."""
-    from app.models import fetch_user, get_topic_arn, get_subscription_arn_by_email
+    from app.models import fetch_user, get_topic_arn
 
     try:
         user_info = fetch_user(user_uuid)
@@ -239,8 +239,8 @@ def delete_sns_topic_from_aws(project_uuid: str) -> None:
             )
             return
 
-        client = create_aws_client("sns")
-        client.deleteTopic(TopicArn=topic_arn)
+        client = create_aws_client("sns", current_app.config["AWS_REGION"])
+        client.delete_topic(TopicArn=topic_arn)
         logger.info(f"SNS topic {topic_arn} deleted successfully.")
     except botocore.exceptions.ClientError as e:
         logger.error(f"Failed to delete SNS topic for project {project_uuid}: {e}")

@@ -9,7 +9,8 @@ class TokenManager:
         token_payload = {
             "user_uuid": user_uuid,
             "is_root": is_root,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_in),
+            "exp": datetime.datetime.now(datetime.UTC)
+            + datetime.timedelta(minutes=expires_in),
         }
 
         token = jwt.encode(
@@ -23,7 +24,8 @@ class TokenManager:
     def create_refresh_token(self, user_uuid, expires_in=7):
         token_payload = {
             "user_uuid": user_uuid,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=expires_in),
+            "exp": datetime.datetime.now(datetime.UTC)
+            + datetime.timedelta(days=expires_in),
         }
 
         token = jwt.encode(
